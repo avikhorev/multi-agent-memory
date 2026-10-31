@@ -9,7 +9,7 @@ venv:
 test:
 	$(PY) -m pytest
 
-.PHONY: dataset test-generator memory-level smoke
+.PHONY: dataset test-generator memory-level smoke mutation
 
 dataset:
 	PYTHONPATH=src $(PY) -m mam.generate --split dev --out data/dev
@@ -27,3 +27,8 @@ memory-level:
 
 smoke:
 	PYTHONPATH=src $(PY) -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke --max-cost-usd 3
+
+# needs: pip install -e '.[mutation]'
+mutation:
+	.venv/bin/mutmut run --max-children 4
+	.venv/bin/mutmut results

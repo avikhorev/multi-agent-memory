@@ -7,6 +7,7 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest==9.2.0"]
+mutation = ["mutmut==3.8.1"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -19,3 +20,8 @@ where = ["src"]
 pythonpath = ["src"]
 testpaths = ["tests"]
 markers = ["memory: tests of the memory system and token counter (modules not written yet)"]
+
+[tool.mutmut]
+source_paths = ["src/mam/systems/ours.py", "src/mam/guard.py"]
+pytest_add_cli_args_test_selection = ["tests/unit/"]
+also_copy = ["src", "tests", "data/dev", "results/pilot", "docs", "Makefile"]
