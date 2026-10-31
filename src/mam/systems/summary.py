@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 from mam.extract import make_extractor
@@ -44,7 +45,25 @@ class RollingSummary(MemorySystem):
 _SUMMARY_SYSTEM = ("You maintain a short running summary of a software implementation project. Given the previous "
                    "summary and the new messages of one session, write the updated summary as plain lines, newest "
                    "information included, at most {words} words. Keep concrete values (dates, amounts, names, "
-                   "owners) and standing rules. Reply with the summary only.")
+                   "owners) and standing rules. Write only project information: no notes about your working directory, "
+                   "platform, tools or file handling. Reply with the summary only.")
+
+# The command-line tool adds a block about the working directory and file handling to every prompt; a model may copy
+# it into its summary. Such lines are not project information and are dropped.
+_ENVIRONMENT_LINE = re.compile(r"/tmp/|working directory|git repository|^\W*platform\W|downloaded files|run python with -i",
+                               re.I)
+
+
+def clean_summary(text: str) -> str:
+    kept = [ln for ln in text.split("\n") if not _ENVIRONMENT_LINE.search(ln)]
+    out: list[str] = []
+    for i, ln in enumerate(kept):
+        if ln.strip().lower().rstrip(":") == "standing notes":  # a header whose bullets were all removed goes too
+            following = next((x for x in kept[i + 1:] if x.strip()), "")
+            if not following.lstrip().startswith("-"):
+                continue
+        out.append(ln)
+    return "\n".join(out).strip()
 
 
 class _TextSummary(MemorySystem):
@@ -94,7 +113,7 @@ class LLMSummary(_TextSummary):
         if out.refusal:
             self.refusals.append(session)
         else:
-            self._summary = out.text.strip()
+            self._summary = clean_summary(out.text)
 
 
 class CachedSummary(_TextSummary):
