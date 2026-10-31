@@ -66,6 +66,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
     task_id = f"task-{scenario.id}"
     offered = {src.id for k in range(1, scenario.n_sessions + 1) if (src := session_source(scenario, k))}
     trace: list[dict] = []
+    seen_memory_ops: set[str] = set()
     calls: list[dict] = []
     checkpoints: list[dict] = []
     written_events: set[str] = set()
@@ -99,7 +100,11 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         state["memory_s"] += time.perf_counter() - t0
         trace.append({"op": "read", "clock": state["clock"], "reader": role, "item_ids": [i.id for i in ctx.items],
                       "token_count": ctx.token_count})
-        trace.extend(dict(t, clock=state["clock"]) for t in getattr(system, "last_trace", []))
+        for t in getattr(system, "last_trace", []):  # resolutions are recomputed at every read: list each once
+            ident = json.dumps(t, sort_keys=True)
+            if ident not in seen_memory_ops:
+                seen_memory_ops.add(ident)
+                trace.append(dict(t, clock=state["clock"]))
         return ctx
 
     def agent(role: str, session: int, ctx, task: str, **kw) -> AgentResult:
