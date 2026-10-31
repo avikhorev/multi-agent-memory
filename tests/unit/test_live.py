@@ -123,3 +123,20 @@ def test_the_result_reports_what_the_memory_did_on_its_own():
     res = run_live(generate("C0", 0), "ours", FakeClient(model()))
     assert set(res["memory"]) == {"quarantined", "extraction_refusals", "parse_errors"}
     assert run_live(generate("C0", 0), "full_history", FakeClient(model()))["memory"]["parse_errors"] == 0
+
+
+def test_the_trace_records_what_every_agent_did():
+    res = run_live(generate("C0", 0), "full_history", FakeClient(model()))
+    acts = [t for t in res["trace"] if t["op"] == "agent_action"]
+    assert len(acts) == 40  # one per agent call, retries included only when they happen
+    worker = [t for t in acts if t["role"] == "worker"]
+    assert {"role", "session", "tool", "args", "answer", "error", "refusal"} <= worker[0].keys()
+    assert any(t["tool"] in ("read_document", "read_status") and t["args"] for t in worker)
+
+
+def test_a_checkpoint_says_whether_its_information_could_reach_memory():
+    res = run_live(generate("C5", 500), "full_history", FakeClient(model()))
+    by_id = {c["checkpoint"]: c for c in res["checkpoints"]}
+    assert by_id["cp-2"]["reachable"] is False  # needs a tool source that is not offered, or a scripted note nobody writes
+    assert all(isinstance(c["reachable"], bool) for c in res["checkpoints"])
+    assert any(c["reachable"] for c in res["checkpoints"])
