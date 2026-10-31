@@ -140,3 +140,11 @@ def test_a_checkpoint_says_whether_its_information_could_reach_memory():
     assert by_id["cp-2"]["reachable"] is False  # needs a tool source that is not offered, or a scripted note nobody writes
     assert all(isinstance(c["reachable"], bool) for c in res["checkpoints"])
     assert any(c["reachable"] for c in res["checkpoints"])
+
+
+def test_the_trace_shows_what_the_model_extracted():
+    row = {"entity": "Atlas/billing", "attribute": "budget_usd", "value": "100", "as_of": None}
+    res = run_live(generate("C0", 0), "ours", FakeClient(model(extractor_facts=[row])))
+    ex = [t for t in res["trace"] if t["op"] == "extraction"]
+    assert ex and {"entry_id", "facts", "refused", "session"} <= ex[0].keys()
+    assert ex[0]["facts"][0]["attribute"] == "budget_usd"

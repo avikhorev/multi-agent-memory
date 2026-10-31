@@ -97,3 +97,15 @@ def test_extractor_llm_needs_a_client():
         create("ours", extractor="llm")
     with pytest.raises(ValueError):
         create("rolling_summary", extractor="llm")
+
+
+def test_every_extraction_is_logged_with_its_facts_and_refusal_state():
+    ex = LLMExtractor(FakeClient([facts_json(ROW), None, None]))
+    ex.extract(entry("e1", "text"))
+    ex.extract(entry("e2", "text"))
+    log = ex.drain_log()
+    assert [l["entry_id"] for l in log] == ["e1", "e2"]
+    assert log[0]["facts"] == [{"entity": "Atlas/billing", "attribute": "budget_usd", "value": "281000",
+                                "valid_from": 29, "source": "user"}] and not log[0]["refused"]
+    assert log[1]["refused"] and log[1]["facts"] == []
+    assert ex.drain_log() == []
