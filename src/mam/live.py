@@ -36,6 +36,20 @@ def session_source(scenario, session: int):
     return next((e for e in evs if e.factor), evs[0] if evs else None)
 
 
+def reachable(scenario, cp, offered: set[str]) -> bool:
+    """Could the information of the checkpoint reach memory under the protocol?
+
+    User messages and the scenario's conflict notes and drafts are always written; a tool source only if it is offered
+    to the Worker in its session; ordinary scripted notes are not written in a live run.
+    """
+    events = {e.id: (e, sess.index) for sess in scenario.sessions for e in sess.events}
+    for rid in cp.required_events:
+        e, _ = events[rid]
+        if e.type == "user_message" or (e.type == "note" and e.factor) or (e.type == "tool_data" and rid in offered):
+            return True
+    return False
+
+
 def _source_line(ev) -> str:
     return f"tool: {ev.tool}, args: {json.dumps(ev.args, sort_keys=True)} (about: {ev.text.split(chr(10))[0][:60]})"
 
@@ -50,6 +64,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
     for e in entries(scenario):
         by_session.setdefault(e.session, []).append(e)
     task_id = f"task-{scenario.id}"
+    offered = {src.id for k in range(1, scenario.n_sessions + 1) if (src := session_source(scenario, k))}
     trace: list[dict] = []
     calls: list[dict] = []
     checkpoints: list[dict] = []
@@ -91,6 +106,10 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         for c in res.calls:
             trace.append({"op": "llm_call", "clock": state["clock"], "role": role, "session": session,
                           "refusal": c.refusal, "latency_s": round(c.latency_s, 3), "cost_usd": c.usage.cost_usd})
+        act = res.action or {}
+        trace.append({"op": "agent_action", "clock": state["clock"], "role": role, "session": session,
+                      "tool": act.get("tool"), "args": act.get("args"), "answer": (act.get("answer") or "")[:200],
+                      "error": res.error, "refusal": res.refusal})
         return res
 
     def notes(role: str, session: int, res: AgentResult, tool_entry_id: str | None = None) -> None:
@@ -164,6 +183,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
             ctx_ok = score_context(scenario, cp.id, ctx).passed
             checkpoints.append({"checkpoint": cp.id, "role": role, "kind": cp.kind, "factor": cp.factor,
                                 "session": k, "passed": passed, "label": label, "context_passed": ctx_ok,
+                                "reachable": reachable(scenario, cp, offered),
                                 "answer": action["answer"], "actions": actions if role == "worker" else [],
                                 "token_count": ctx.token_count, "refusal": refused,
                                 "violations": [] if passed else score_action(scenario, cp.id, output).violations})
