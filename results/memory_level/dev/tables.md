@@ -86,7 +86,7 @@
 | ours@oracle | 0.00 [0.00, 0.00] |
 | ours@rules | 0.00 [0.00, 0.00] |
 | ours@oracle-no_validity | 0.00 [0.00, 0.00] |
-| ours@oracle-no_scopes | 0.00 [0.00, 0.00] |
+| ours@oracle-no_scopes | 0.30 [0.10, 0.50] |
 | ours@oracle-no_trust | 0.00 [0.00, 0.00] |
 | ours@oracle-no_pinned_constraints | 0.00 [0.00, 0.00] |
 
@@ -101,7 +101,7 @@
 | ours@oracle | 1.00 [1.00, 1.00] |
 | ours@rules | 1.00 [1.00, 1.00] |
 | ours@oracle-no_validity | 1.00 [1.00, 1.00] |
-| ours@oracle-no_scopes | 1.00 [1.00, 1.00] |
+| ours@oracle-no_scopes | 0.85 [0.65, 1.00] |
 | ours@oracle-no_trust | 1.00 [1.00, 1.00] |
 | ours@oracle-no_pinned_constraints | 1.00 [1.00, 1.00] |
 
