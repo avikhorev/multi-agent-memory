@@ -52,3 +52,33 @@ def test_tables_render_one_row_per_system():
         rows += run_scenario(cfg, s)[0]
     text = render({"full_history": rows[: len(rows) // 2], "ours@oracle": rows[len(rows) // 2:]}, "t")
     assert "### C0: correct" in text and text.count("| full_history |") >= 1
+
+
+def test_the_system_set_gains_the_cache_variants_only_when_a_cache_is_given():
+    from mam.memory_eval import systems_for
+    plain, cached = systems_for(False), systems_for(True)
+    assert "ours@cache" not in plain and "rolling_summary@cache" not in plain
+    assert set(plain) < set(cached)
+    assert {"ours@cache", "rolling_summary@cache", "ours@cache-no_validity", "ours@cache-no_scopes",
+            "ours@cache-no_trust", "ours@cache-no_pinned_constraints"} <= set(cached)
+
+
+def test_a_cache_variant_reads_the_saved_answers(tmp_path):
+    import json
+    s = generate("C1", 100, variant="explicit")
+    first = next(e for e in entries_of(s) if e.kind == "user_message")
+    fact = next(iter(first.oracle_facts))
+    cache = tmp_path / "cache.jsonl"
+    cache.write_text(json.dumps({"kind": "entry", "task_id": first.task_id, "entry_id": first.id, "refusal": False,
+                                 "constraints": [], "facts": [{"entity": fact.entity, "attribute": fact.attribute,
+                                                              "value": fact.value, "event_time": fact.valid_from,
+                                                              "source": fact.source}]}) + "\n")
+    recs, _ = run_scenario("ours@cache", s, cache_path=cache)
+    assert [r for r in recs if r["record"] == "scenario"][0]["system"] == "ours@cache"
+    with __import__("pytest").raises(ValueError):
+        run_scenario("ours@cache", s)  # no cache path: a clear error, not a silent empty memory
+
+
+def entries_of(s):
+    from mam.simulate import entries
+    return entries(s)
