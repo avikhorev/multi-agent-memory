@@ -33,10 +33,10 @@ class Version:
 
 
 class Ours(MemorySystem):
-    def __init__(self, limit: int, ablate=frozenset(), extractor: str = "oracle", cache_path=None):
+    def __init__(self, limit: int, ablate=frozenset(), extractor: str = "oracle", cache_path=None, llm=None):
         super().__init__(limit)
         self.ablate = frozenset(ablate)
-        self._extractor = make_extractor(extractor, cache_path)
+        self._extractor = make_extractor(extractor, cache_path, llm)
         self._done: set[str] = set()
         self._versions: dict[tuple[str, str], list[Version]] = {}
         self._constraints: list[tuple[Entry, str]] = []
@@ -54,14 +54,15 @@ class Ours(MemorySystem):
                 self._ingest(e)
 
     def _ingest(self, e: Entry) -> None:
-        ex = self._extractor.extract(e)
+        ex = (self._extractor.extract(e, known=self.known_lines(e.text))
+              if getattr(self._extractor, "wants_known", False) else self._extractor.extract(e))
         if ex.refused:
             self.refusals.append(e.id)
         trust_on = "trust" not in self.ablate
         if "pinned_constraints" not in self.ablate:
             texts = ex.constraints if trust_on else (ex.constraints or rule_constraints(e, require_trusted=False))
             self._constraints.extend((e, t) for t in texts)
-        if e.trust == "untrusted":
+        if e.trust == "untrusted" and e.kind in ("tool_output", "document"):
             if trust_on:
                 kept, held = split_untrusted(e.text)
                 values = [_norm(f.value) for f in ex.facts]
@@ -73,6 +74,19 @@ class Ours(MemorySystem):
         for f in ex.facts:
             self._versions.setdefault((f.entity, f.attribute), []).append(
                 Version(f, e, f.valid_from, AUTHORITY.get(f.source, 0), TRUST[e.trust]))
+
+    def known_lines(self, text: str, k: int = 8) -> list[str]:
+        """Current shared facts most related to `text`, to help the model read relative updates."""
+        lines = []
+        for key in sorted(self._versions):
+            vis = [v for v in self._versions[key] if v.entry.scope != "private"]
+            for v in self._resolve(vis) if vis else []:
+                lines.append(f"{v.fact.entity} {v.fact.attribute} = {v.fact.value}")
+        scores = bm25_scores(text, lines)
+        return [l for _, l in sorted(zip(scores, lines), key=lambda p: (-p[0], p[1]))[:k]]
+
+    def drain_llm_calls(self) -> list:
+        return self._extractor.drain() if hasattr(self._extractor, "drain") else []
 
     # ---- reading ----
 

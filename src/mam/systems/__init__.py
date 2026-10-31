@@ -4,15 +4,15 @@ from __future__ import annotations
 from mam.systems.base import MemorySystem
 from mam.systems.baselines import FullHistory, SharedRagBm25, SlidingWindow
 from mam.systems.ours import Ours
-from mam.systems.summary import RollingSummary
+from mam.systems.summary import LLMSummary, RollingSummary
 
 NAMES = ("ours", "full_history", "sliding_window", "rolling_summary", "shared_rag_bm25")
 ABLATIONS = frozenset({"validity", "scopes", "trust", "pinned_constraints"})
-EXTRACTORS = ("oracle", "rules", "cache")
+EXTRACTORS = ("oracle", "rules", "cache", "llm")
 
 
 def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str = "oracle",
-           cache_path=None) -> MemorySystem:
+           cache_path=None, llm=None) -> MemorySystem:
     ablate = frozenset(ablate)
     if name not in NAMES:
         raise ValueError(f"unknown system: {name}")
@@ -29,5 +29,9 @@ def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str =
     if name == "shared_rag_bm25":
         return SharedRagBm25(limit)
     if name == "rolling_summary":
+        if extractor == "llm":
+            if llm is None:
+                raise ValueError("extractor 'llm' needs a client")
+            return LLMSummary(limit, llm)
         return RollingSummary(limit, extractor, cache_path)
-    return Ours(limit, ablate, extractor, cache_path)
+    return Ours(limit, ablate, extractor, cache_path, llm)

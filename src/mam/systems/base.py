@@ -32,6 +32,9 @@ class MemorySystem:
     def end_session(self, session: int) -> None:
         """Hook for systems that extract facts or build summaries at session end."""
 
+    def drain_llm_calls(self) -> list:
+        return []
+
     def context(self, reader: Reader) -> Context:
         raise NotImplementedError
 

@@ -36,3 +36,48 @@ class RollingSummary(MemorySystem):
         if not lines:
             return make_context([])
         return make_context([ContextItem(id="summary", kind="summary", text="\n".join(lines))])
+
+
+_SUMMARY_SYSTEM = ("You maintain a short running summary of a software implementation project. Given the previous "
+                   "summary and the new messages of one session, write the updated summary as plain lines, newest "
+                   "information included, at most {words} words. Keep concrete values (dates, amounts, names, "
+                   "owners) and standing rules. Reply with the summary only.")
+
+
+class LLMSummary(MemorySystem):
+    """The summary baseline written by the model once per session."""
+
+    def __init__(self, limit: int, llm):
+        super().__init__(limit)
+        self.llm = llm
+        self._summary = ""
+        self._done: set[str] = set()
+        self._calls: list = []
+        self.refusals: list[int] = []
+
+    def drain_llm_calls(self) -> list:
+        calls, self._calls = self._calls, []
+        return calls
+
+    def end_session(self, session: int) -> None:
+        new = [e for e in sorted(self._entries.values(), key=lambda e: e.clock)
+               if e.session == session and e.id not in self._done and e.scope != "private"]
+        self._done.update(e.id for e in new)
+        if not new:
+            return
+        body = "\n".join(f"[{e.kind}] {e.text}" for e in new)
+        prompt = f"PREVIOUS SUMMARY\n{self._summary or '(empty)'}\n\nNEW MESSAGES\n{body}\n\nReply with the summary only."
+        out = self.llm.complete(_SUMMARY_SYSTEM.format(words=int(self.limit * 0.5)), [{"role": "user", "content": prompt}], {})
+        self._calls.append(("summary", out))
+        if out.refusal:
+            self.refusals.append(session)
+        else:
+            self._summary = out.text.strip()
+
+    def context(self, reader: Reader) -> Context:
+        lines = [ln for ln in self._summary.split("\n") if ln.strip()]
+        while lines and count("\n".join(lines)) > self.limit:
+            lines.pop(0)
+        if not lines:
+            return make_context([])
+        return make_context([ContextItem(id="summary", kind="summary", text="\n".join(lines))])
