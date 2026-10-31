@@ -1,6 +1,13 @@
 PY ?= .venv/bin/python
+SPLIT ?= dev
+SIZE ?= A
+REPEATS ?= 2
+WORKERS ?= 8
+MAX_COST ?= 10
+IMAGE ?= mam
 
-.PHONY: venv test
+.PHONY: venv test test-generator dataset memory-level reproduce doctor live live-tables smoke \
+        extraction-trial extraction mutation docker-build docker-test docker-reproduce docker-live
 
 venv:
 	python3 -m venv .venv
@@ -9,31 +16,72 @@ venv:
 test:
 	$(PY) -m pytest
 
-.PHONY: dataset test-generator memory-level smoke mutation extraction-trial
+test-generator:
+	$(PY) -m pytest tests/acceptance -m "not memory"
 
+# regenerate the scenarios (identical to the committed files on Python 3.11 to 3.13)
 dataset:
 	PYTHONPATH=src $(PY) -m mam.generate --split dev --out data/dev
 	PYTHONPATH=src $(PY) -m mam.generate --split eval --out data/eval
 	PYTHONPATH=src $(PY) -m mam.generate --split holdout --out holdout
 
-test-generator:
-	$(PY) -m pytest tests/acceptance -m "not memory"
-
-# usage: make memory-level SPLIT=dev
-SPLIT ?= dev
+# memory level, no model: usage `make memory-level SPLIT=eval`. The cache variants (saved model answers) are
+# added when results/extraction/$(SPLIT)/cache.jsonl exists.
 memory-level:
-	PYTHONPATH=src $(PY) -m mam.memory_eval --split $(SPLIT) --out results/memory_level/$(SPLIT)
-	PYTHONPATH=src $(PY) -m mam.tables results/memory_level/$(SPLIT) --title "$(SPLIT), memory level" > results/memory_level/$(SPLIT)/tables.md
+	PYTHONPATH=src $(PY) -m mam.memory_eval --split $(SPLIT) --out results/memory_level/$(SPLIT) \
+		$(if $(wildcard results/extraction/$(SPLIT)/cache.jsonl),--cache results/extraction/$(SPLIT)/cache.jsonl)
+	PYTHONPATH=src $(PY) -m mam.tables results/memory_level/$(SPLIT) --title "$(SPLIT), memory level" \
+		> results/memory_level/$(SPLIT)/tables.md
 
-smoke:
-	PYTHONPATH=src $(PY) -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke --max-cost-usd 3
+# no model, no network: recompute the memory level from the dataset and the saved answers, rebuild all tables
+# from the saved raw results. Compare the output with the committed files (`git diff --stat results`); the files
+# in results/memory_level/*/timing/ are measurements and differ from run to run.
+reproduce:
+	$(MAKE) memory-level SPLIT=eval
+	$(MAKE) memory-level SPLIT=holdout
+	@if [ -d results/live/main/units ]; then $(MAKE) live-tables; else echo "no live results in results/live/main: NOT RUN"; fi
+
+live-tables:
+	PYTHONPATH=src $(PY) -m mam.live_tables results/live/main > results/live/main/tables.md
+
+# checks that the model can be reached (ANTHROPIC_API_KEY, CLAUDE_CODE_OAUTH_TOKEN or a login of `claude`)
+doctor:
+	PYTHONPATH=src $(PY) -m mam.preflight
+
+# live layer with real agents. SIZE is A or B, see docs/DECISIONS.md. Resumable: run it again after an interruption.
+live: doctor
+	PYTHONPATH=src $(PY) -m mam.run live --split eval --select $(SIZE) --repeats $(REPEATS) --workers $(WORKERS) \
+		--out results/live/main --max-cost-usd $(MAX_COST)
+
+smoke: doctor
+	PYTHONPATH=src $(PY) -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke_check --max-cost-usd 3
+
+# extraction pass: the model reads every source entry once and writes the session summaries; answers are saved
+extraction-trial: doctor
+	PYTHONPATH=src $(PY) -m mam.extraction run --split dev --select trial --out results/extraction/dev_trial --max-cost-usd 3
+	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/dev_trial --out results/extraction/dev_trial/cache.jsonl
+
+extraction: doctor
+	PYTHONPATH=src $(PY) -m mam.extraction run --split eval --out results/extraction/eval --max-cost-usd $(MAX_COST)
+	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/eval --out results/extraction/eval/cache.jsonl
+	PYTHONPATH=src $(PY) -m mam.extraction run --split holdout --out results/extraction/holdout --max-cost-usd $(MAX_COST)
+	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/holdout --out results/extraction/holdout/cache.jsonl
 
 # needs: pip install -e '.[mutation]'
 mutation:
 	.venv/bin/mutmut run --max-children 4
 	.venv/bin/mutmut results
 
-# trial extraction pass on development scenarios (the first five of every category)
-extraction-trial:
-	PYTHONPATH=src $(PY) -m mam.extraction run --split dev --select trial --out results/extraction/dev_trial --max-cost-usd 3
-	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/dev_trial --out results/extraction/dev_trial/cache.jsonl
+# the same targets inside a container; the model credentials are passed from the environment, never stored
+docker-build:
+	docker build -t $(IMAGE) .
+
+docker-test: docker-build
+	docker run --rm $(IMAGE) make test
+
+docker-reproduce: docker-build
+	docker run --rm -v "$(CURDIR)/results:/app/results" $(IMAGE) make reproduce
+
+docker-live: docker-build
+	docker run --rm -e ANTHROPIC_API_KEY -e CLAUDE_CODE_OAUTH_TOKEN -v "$(CURDIR)/results:/app/results" \
+		$(IMAGE) make live SIZE=$(SIZE) REPEATS=$(REPEATS) WORKERS=$(WORKERS) MAX_COST=$(MAX_COST)
