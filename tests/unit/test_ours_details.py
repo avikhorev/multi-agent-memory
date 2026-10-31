@@ -191,11 +191,30 @@ def test_untrusted_lines_become_quoted_fragments_with_stable_ids_or_raw_text_wit
     d = doc(1, [], text="Document D-1 - Pack\n- Review the staging checklist.")
     got = items(build([d]), query="staging checklist")
     assert [(i.id, i.kind, i.text, i.entry_ids) for i in got] == [
-        ("frag-e1-0", "quoted_data", "Document D-1 - Pack", ("e1",)),
-        ("frag-e1-1", "quoted_data", "Review the staging checklist.", ("e1",))] or \
-        [(i.id, i.kind) for i in got] == [("frag-e1-1", "quoted_data"), ("frag-e1-0", "quoted_data")]
+        ("frag-e1-1", "quoted_data", "Review the staging checklist.", ("e1",)),
+        ("frag-e1-0", "quoted_data", "Document D-1 - Pack", ("e1",))]
     raw = items(build([d], ablate={"trust"}))
     assert [i.kind for i in raw] == ["raw"] and "Review the staging checklist." in raw[0].text
+
+
+def test_a_status_feed_output_is_quoted_but_a_note_derived_from_it_adds_no_raw_text():
+    feed = doc(1, [], text="STATUS Atlas/billing\nbuild: green", kind="tool_output")
+    derived = note(2, [], trust="untrusted")
+    derived = Entry(**{**derived.__dict__, "text": "Worker note: build is green again"})
+    got = items(build([feed, derived]), query="build green")
+    assert sorted(i.text for i in got) == ["STATUS Atlas/billing", "build: green"]
+    assert all(i.entry_ids == ("e1",) and i.kind == "quoted_data" for i in got)
+
+
+def test_a_key_without_a_visible_version_does_not_hide_the_keys_after_it():
+    private = entry(1, facts=[fact("999", 5, attr="aaa_first")], author="worker", kind="draft", scope="private", trust="agent")
+    shown = entry(2, facts=[fact("100", 5, attr="zzz_last")])
+    assert [i.text for i in items(build([private, shown]), role="planner")] == ["Atlas/billing zzz_last: 100"]
+
+
+def test_a_fact_item_is_named_after_its_key_and_its_entry():
+    (item,) = items(build([entry(1, facts=[fact("100", 5)])]))
+    assert item.id == "fact-Atlas/billing-budget_usd-e1" and item.kind == "fact"
 
 
 def test_a_line_whose_fact_was_extracted_is_not_repeated_as_text_whatever_the_case_or_commas():
@@ -207,6 +226,7 @@ def test_a_line_whose_fact_was_extracted_is_not_repeated_as_text_whatever_the_ca
 
 def test_fragments_keep_a_leading_x_and_strip_list_markers():
     assert fragments("- Xenon is the partner\n* second line\n\n  third  ") == ["Xenon is the partner", "second line", "third"]
+    assert fragments("-Xenon is the partner") == ["Xenon is the partner"]
 
 
 # ---- known facts, sessions and draining ----
@@ -216,8 +236,10 @@ def test_known_lines_are_current_shared_facts_best_matches_first_at_most_eight()
     private = entry(11, facts=[fact("999", 5, attr="secret_attr")], author="worker", kind="draft", scope="private", trust="agent")
     s = build(facts + [private])
     lines = s.known_lines("attr_3 billing")
-    assert len(lines) == 8 and lines[0] == "Atlas/billing attr_3 = 3" and not any("999" in l for l in lines)
+    assert len(lines) == 8 and lines[0] == "Atlas/billing attr_3 = 3"
     assert s.known_lines("billing", k=2).__len__() == 2
+    best = s.known_lines("secret_attr")
+    assert len(best) == 8 and not any("secret_attr" in l or "999" in l for l in best)
 
 
 def test_end_session_extracts_each_entry_once_and_only_for_its_own_session():
