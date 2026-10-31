@@ -80,3 +80,28 @@ def test_each_role_has_its_own_system_prompt_with_the_output_format():
     assert len(set(systems.values())) == 3
     with pytest.raises(ValueError):
         run_agent(FakeClient([reply()]), "janitor", context="", task="t")
+
+
+def test_the_worker_prompt_makes_reading_the_listed_source_the_default_and_demands_exact_arguments():
+    system = _system_of("worker")
+    assert "default" in system.lower() and "exactly as shown" in system
+
+
+def test_the_reviewer_answers_a_question_instead_of_accepting_it():
+    system = _system_of("reviewer")
+    assert "question" in system.lower() and "answer it" in system.lower()
+
+
+def test_the_source_line_names_the_tool_and_the_arguments_separately():
+    from mam.live import _source_line
+    from mam.generate import generate
+    s = generate("C0", 0)
+    ev = next(e for sess in s.sessions for e in sess.events if e.type == "tool_data")
+    line = _source_line(ev)
+    assert f"tool: {ev.tool}" in line and "args: " in line
+
+
+def _system_of(role):
+    llm = FakeClient([reply()])
+    run_agent(llm, role, context="", task="t")
+    return llm.calls[0]["system"]

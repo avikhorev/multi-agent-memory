@@ -117,3 +117,9 @@ def test_memory_time_is_separate_from_model_time():
 
 def test_the_result_is_json_serialisable():
     json.dumps(run_live(generate("C0", 0), "sliding_window", FakeClient(model())))
+
+
+def test_the_result_reports_what_the_memory_did_on_its_own():
+    res = run_live(generate("C0", 0), "ours", FakeClient(model()))
+    assert set(res["memory"]) == {"quarantined", "extraction_refusals", "parse_errors"}
+    assert run_live(generate("C0", 0), "full_history", FakeClient(model()))["memory"]["parse_errors"] == 0
