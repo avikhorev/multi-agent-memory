@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from mam.systems.base import MemorySystem
 from mam.systems.baselines import FullHistory, SharedRagBm25, SlidingWindow
+from mam.systems.ours import Ours
+from mam.systems.summary import RollingSummary
 
 NAMES = ("ours", "full_history", "sliding_window", "rolling_summary", "shared_rag_bm25")
 ABLATIONS = frozenset({"validity", "scopes", "trust", "pinned_constraints"})
@@ -26,4 +28,6 @@ def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str =
         return SlidingWindow(limit)
     if name == "shared_rag_bm25":
         return SharedRagBm25(limit)
-    raise NotImplementedError(name)
+    if name == "rolling_summary":
+        return RollingSummary(limit, extractor, cache_path)
+    return Ours(limit, ablate, extractor, cache_path)

@@ -1,10 +1,8 @@
 """Simple baselines: full history, sliding window and BM25 retrieval over all visible entries."""
 from __future__ import annotations
 
-import math
-import re
-
 from mam.systems.base import MemorySystem, make_context
+from mam.systems.ranking import bm25_scores
 from mam.tokens import count
 from mam.types import Context, ContextItem, Entry, Reader
 
@@ -36,40 +34,13 @@ class SlidingWindow(MemorySystem):
         return make_context(kept)
 
 
-_TOKEN = re.compile(r"[a-z0-9]+")
-
-
-def tokenize(text: str) -> list[str]:
-    return _TOKEN.findall(text.lower())
-
-
 class SharedRagBm25(MemorySystem):
     """BM25 over visible entries; best matches first until the limit is full."""
 
-    K1, B = 1.5, 0.75
-
     def context(self, reader: Reader) -> Context:
         docs = self._visible(reader)
-        if not docs:
-            return make_context([])
-        toks = [tokenize(d.text) for d in docs]
-        avg = sum(len(t) for t in toks) / len(toks)
-        df: dict[str, int] = {}
-        for t in toks:
-            for w in set(t):
-                df[w] = df.get(w, 0) + 1
-        query = tokenize(reader.query)
-        scored = []
-        for d, t in zip(docs, toks):
-            tf: dict[str, int] = {}
-            for w in t:
-                tf[w] = tf.get(w, 0) + 1
-            score = 0.0
-            for w in set(query):
-                if w in tf:
-                    idf = math.log(1 + (len(docs) - df[w] + 0.5) / (df[w] + 0.5))
-                    score += idf * tf[w] * (self.K1 + 1) / (tf[w] + self.K1 * (1 - self.B + self.B * len(t) / avg))
-            scored.append((score, d))
+        scores = bm25_scores(reader.query, [d.text for d in docs])
+        scored = list(zip(scores, docs))
         scored.sort(key=lambda p: (-p[0], -p[1].clock))
         kept, used = [], 0
         for score, d in scored:

@@ -36,9 +36,9 @@ def sentences(text: str) -> list[str]:
     return [s.strip() for s in _SENTENCES.split(text) if s.strip()]
 
 
-def rule_constraints(entry: Entry) -> tuple[str, ...]:
-    """Standing rules stated by a trusted source."""
-    if entry.trust != "trusted":
+def rule_constraints(entry: Entry, require_trusted: bool = True) -> tuple[str, ...]:
+    """Standing rules stated by a trusted source (any source when the trust filter is off)."""
+    if require_trusted and entry.trust != "trusted":
         return ()
     return tuple(s for s in sentences(entry.text) if _CONSTRAINT.search(s))
 
