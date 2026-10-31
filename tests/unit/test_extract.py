@@ -67,9 +67,9 @@ def test_oracle_returns_the_facts_given_with_the_entry():
 def test_cache_replays_facts_refusals_and_misses(tmp_path):
     path = tmp_path / "cache.jsonl"
     rows = [
-        {"entry_id": "e1", "facts": [{"entity": "Atlas", "attribute": "owner", "value": "Yara Rossi",
+        {"entry_id": "e1", "task_id": "t", "facts": [{"entity": "Atlas", "attribute": "owner", "value": "Yara Rossi",
                                       "event_time": 4, "source": "user"}], "constraints": ["never do x"]},
-        {"entry_id": "e2", "refusal": True},
+        {"entry_id": "e2", "task_id": "t", "refusal": True},
     ]
     path.write_text("\n".join(json.dumps(r) for r in rows))
     cache = CacheExtractor(path)

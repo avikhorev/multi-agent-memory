@@ -58,6 +58,9 @@ def test_only_sources_of_facts_are_sent_to_the_model():
     assert llm.calls == []
     ex.extract(entry("x-1", "Planner note: scripted conflict", kind="agent_note", author="planner", trust="agent"))
     assert len(llm.calls) == 1
+    llm2 = FakeClient([facts_json()])
+    LLMExtractor(llm2).extract(entry("x-2", "Private draft with a figure", kind="draft", author="worker", trust="agent"))
+    assert len(llm2.calls) == 1  # drafts carry facts too; their scope keeps them from other roles
 
 
 def test_constraints_come_from_the_rule_even_when_the_model_refuses():
