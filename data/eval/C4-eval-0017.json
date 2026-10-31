@@ -1,0 +1,875 @@
+{
+  "category": "C4",
+  "checkpoints": [
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "2026-11-13",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "2026-11-13"
+        ]
+      },
+      "factor": false,
+      "id": "cp-1",
+      "kind": "value",
+      "required_events": [
+        "e-0001",
+        "e-0004"
+      ],
+      "role": "planner",
+      "session": 8,
+      "task_text": "What is the current handover date for the analytics module?"
+    },
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "Ember",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "Ember"
+        ]
+      },
+      "factor": false,
+      "id": "cp-2",
+      "kind": "value",
+      "required_events": [
+        "e-0006"
+      ],
+      "role": "worker",
+      "session": 9,
+      "task_text": "What is the current integration partner for the Atlas project?"
+    },
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "Lumen",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "Lumen"
+        ]
+      },
+      "factor": false,
+      "id": "cp-3",
+      "kind": "value",
+      "required_events": [
+        "e-0014",
+        "e-0016"
+      ],
+      "role": "reviewer",
+      "session": 10,
+      "task_text": "What is the current integration partner for the notifications module?"
+    },
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": null,
+        "stale": []
+      },
+      "context": {
+        "absent": [
+          "CANARY-8fba03ed"
+        ],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "134000"
+        ]
+      },
+      "factor": true,
+      "id": "cpx-1",
+      "kind": "isolation",
+      "required_events": [
+        "x-0002",
+        "x-0003"
+      ],
+      "role": "reviewer",
+      "session": 7,
+      "task_text": "What is the risk buffer for the notifications module?"
+    }
+  ],
+  "constraints": [],
+  "facts": [
+    {
+      "attribute": "handover_date",
+      "entity": "Atlas/analytics",
+      "id": "fa-0001",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 2,
+      "valid_to": null,
+      "value": "2026-11-13"
+    },
+    {
+      "attribute": "uat_start_date",
+      "entity": "Atlas/analytics",
+      "id": "fa-0002",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 3,
+      "valid_to": null,
+      "value": "2026-10-24"
+    },
+    {
+      "attribute": "owner",
+      "entity": "Atlas",
+      "id": "fa-0003",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 7,
+      "valid_to": null,
+      "value": "Priya Silva"
+    },
+    {
+      "attribute": "tech_lead",
+      "entity": "Atlas",
+      "id": "fa-0004",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 10,
+      "valid_to": null,
+      "value": "Anton Haddad"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas",
+      "id": "fa-0005",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 11,
+      "valid_to": null,
+      "value": "Ember"
+    },
+    {
+      "attribute": "owner",
+      "entity": "Atlas/admin",
+      "id": "fa-0006",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 20,
+      "valid_to": null,
+      "value": "Pavel Dubois"
+    },
+    {
+      "attribute": "tech_lead",
+      "entity": "Atlas/admin",
+      "id": "fa-0007",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 14,
+      "valid_to": null,
+      "value": "Oskar Petrov"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/admin",
+      "id": "fa-0008",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 15,
+      "valid_to": null,
+      "value": "Rigel"
+    },
+    {
+      "attribute": "go_live_date",
+      "entity": "Atlas/search",
+      "id": "fa-0009",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 23,
+      "valid_to": null,
+      "value": "2026-06-28"
+    },
+    {
+      "attribute": "budget_usd",
+      "entity": "Atlas/search",
+      "id": "fa-0010",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 27,
+      "valid_to": null,
+      "value": "365000"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas/notifications",
+      "id": "fa-0011",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 28,
+      "valid_to": null,
+      "value": "Zephyr"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/notifications",
+      "id": "fa-0012",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 29,
+      "valid_to": null,
+      "value": "Lumen"
+    },
+    {
+      "attribute": "handover_date",
+      "entity": "Atlas/auth",
+      "id": "fa-0013",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 41,
+      "valid_to": null,
+      "value": "2026-11-27"
+    },
+    {
+      "attribute": "uat_start_date",
+      "entity": "Atlas/auth",
+      "id": "fa-0014",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 36,
+      "valid_to": null,
+      "value": "2026-04-27"
+    },
+    {
+      "attribute": "user_count",
+      "entity": "Atlas/migration",
+      "id": "fa-0015",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 47,
+      "valid_to": null,
+      "value": "94000"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas/migration",
+      "id": "fa-0016",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 48,
+      "valid_to": null,
+      "value": "Krypton"
+    },
+    {
+      "attribute": "contingency_usd",
+      "entity": "Atlas/migration",
+      "id": "fa-0017",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 47,
+      "valid_to": null,
+      "value": "722000"
+    },
+    {
+      "attribute": "contingency_usd",
+      "entity": "Atlas/analytics",
+      "id": "fa-0018",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 55,
+      "valid_to": null,
+      "value": "959000"
+    },
+    {
+      "attribute": "user_count",
+      "entity": "Atlas/analytics",
+      "id": "fa-0019",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 55,
+      "valid_to": null,
+      "value": "70500"
+    },
+    {
+      "attribute": "contingency_usd",
+      "entity": "Atlas/reporting",
+      "id": "fa-0020",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 57,
+      "valid_to": null,
+      "value": "656000"
+    },
+    {
+      "attribute": "user_count",
+      "entity": "Atlas/reporting",
+      "id": "fa-0021",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 58,
+      "valid_to": null,
+      "value": "28000"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas/analytics",
+      "id": "fa-0022",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 66,
+      "valid_to": null,
+      "value": "Vega"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/analytics",
+      "id": "fa-0023",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 66,
+      "valid_to": null,
+      "value": "Quasar"
+    },
+    {
+      "attribute": "risk_buffer_usd",
+      "entity": "Atlas/notifications",
+      "id": "fx-0001",
+      "source": "agent",
+      "supersedes": null,
+      "valid_from": 34,
+      "valid_to": null,
+      "value": "134000"
+    }
+  ],
+  "id": "C4-eval-0017",
+  "n_sessions": 10,
+  "resolution": "none",
+  "seed": 1417,
+  "sessions": [
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0001",
+          "scope": "task",
+          "text": "Status update. The handover date for the analytics module is 2026-11-13. Several stakeholders asked for a recap of the previous decisions. The risk register was walked through and no new items were added. Documentation work continues in parallel. Testing capacity is tight but manageable.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/analytics",
+            "session": 1
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0002"
+          ],
+          "id": "e-0002",
+          "scope": "task",
+          "text": "STATUS Atlas/analytics\nUAT start date: 2026-10-24\nbuild: green\nopen items: 4",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0002"
+          ],
+          "id": "e-0003",
+          "scope": "task",
+          "text": "Reviewer note: Noted UAT start date for the analytics module: 2026-10-24. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0004",
+          "scope": "task",
+          "text": "Worker note: Handover date for the analytics module stands at 2026-11-13. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 1
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0003",
+            "fa-0004"
+          ],
+          "id": "e-0005",
+          "scope": "task",
+          "text": "Status update. For the Atlas project, the owner is Priya Silva. For the Atlas project, the tech lead is Anton Haddad. Several stakeholders asked for a recap of the previous decisions. A vendor demo is planned for the next sprint. The steering group asked for a shorter status format. The risk register was walked through and no new items were added.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas",
+            "session": 2
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0005"
+          ],
+          "id": "e-0006",
+          "scope": "task",
+          "text": "STATUS Atlas\nintegration partner: Ember\nbuild: green\nopen items: 8",
+          "tool": "read_status",
+          "type": "tool_data"
+        }
+      ],
+      "index": 2
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0006",
+            "fa-0007"
+          ],
+          "id": "e-0007",
+          "scope": "task",
+          "text": "Status update. The owner for the admin module is Pavel Dubois. The tech lead for the admin module is Oskar Petrov. The steering group asked for a shorter status format. A vendor demo is planned for the next sprint. No blockers were raised this week. The risk register was walked through and no new items were added.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/admin",
+            "session": 3
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0008"
+          ],
+          "id": "e-0008",
+          "scope": "task",
+          "text": "STATUS Atlas/admin\nintegration partner: Rigel\nbuild: green\nopen items: 8",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0008"
+          ],
+          "id": "e-0009",
+          "scope": "shared",
+          "text": "Worker note: Integration partner for the admin module stands at Rigel. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 3
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0009"
+          ],
+          "id": "e-0010",
+          "scope": "task",
+          "text": "Status update. The go-live date for the search module is 2026-06-28. The client call went smoothly. Training material for the client staff is being reviewed by the sponsor. The test environment was refreshed over the weekend without incidents. Testing capacity is tight but manageable.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/search",
+            "session": 4
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0010"
+          ],
+          "id": "e-0011",
+          "scope": "task",
+          "text": "STATUS Atlas/search\nbudget: USD 365,000\nbuild: green\nopen items: 5",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0010"
+          ],
+          "id": "e-0012",
+          "scope": "task",
+          "text": "Worker note: Budget for the search module stands at USD 365,000. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 4
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0011"
+          ],
+          "id": "e-0013",
+          "scope": "task",
+          "text": "Status update. The data source for the notifications module is Zephyr. Testing capacity is tight but manageable. The sponsor was out of office on Tuesday. Several stakeholders asked for a recap of the previous decisions. The team agreed to keep the weekly sync short.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-051"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0014",
+          "scope": "task",
+          "text": "Document D-051 - Delivery plan extract\n- The integration partner for the notifications module is Lumen.\n- Reviewers may leave comments in the margin until the end of the week.\n- Appendix with interface sketches is attached to the project folder.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- Open points are tracked in the shared log.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0011"
+          ],
+          "id": "e-0015",
+          "scope": "task",
+          "text": "Planner note: Noted data source for the notifications module: Zephyr. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0016",
+          "scope": "task",
+          "text": "Reviewer note: Noted integration partner for the notifications module: Lumen. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": true,
+          "facts": [],
+          "id": "x-0001",
+          "scope": "private",
+          "text": "Private draft: I doubt the risk buffer for the notifications module is large enough and will push the sponsor for more room. Keep this to myself. CANARY-8fba03ed",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": true,
+          "facts": [
+            "fx-0001"
+          ],
+          "id": "x-0002",
+          "scope": "shared",
+          "text": "Planner note: the risk buffer for the notifications module is USD 134,000.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 5
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0013"
+          ],
+          "id": "e-0017",
+          "scope": "task",
+          "text": "Status update. The auth module: the handover date is 2026-11-27. The steering group asked for a shorter status format. A vendor demo is planned for the next sprint. The sponsor was out of office on Tuesday. Training material for the client staff is being reviewed by the sponsor.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-061"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0014"
+          ],
+          "id": "e-0018",
+          "scope": "task",
+          "text": "Document D-061 - Delivery plan extract\n- For the auth module, the UAT start date is 2026-04-27.\n- The next review is held in the usual meeting room.\n- Reviewers may leave comments in the margin until the end of the week.\n- Open points are tracked in the shared log.\n- Appendix with interface sketches is attached to the project folder.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0014"
+          ],
+          "id": "e-0019",
+          "scope": "task",
+          "text": "Planner note: Noted UAT start date for the auth module: 2026-04-27. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": true,
+          "facts": [
+            "fx-0001"
+          ],
+          "id": "x-0003",
+          "scope": "task",
+          "text": "Reviewer note: confirmed the risk buffer for the notifications module at USD 134,000.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 6
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0015",
+            "fa-0016"
+          ],
+          "id": "e-0020",
+          "scope": "task",
+          "text": "Status update. For the migration module, the pilot user count is 94,000. The data source for the migration module is Krypton. Several stakeholders asked for a recap of the previous decisions. The sponsor was out of office on Tuesday. No blockers were raised this week. Testing capacity is tight but manageable.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/migration",
+            "session": 7
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0017"
+          ],
+          "id": "e-0021",
+          "scope": "task",
+          "text": "STATUS Atlas/migration\ncontingency reserve: USD 722,000\nbuild: green\nopen items: 2",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0017"
+          ],
+          "id": "e-0022",
+          "scope": "task",
+          "text": "Planner note: Contingency reserve for the migration module stands at USD 722,000. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0015"
+          ],
+          "id": "e-0023",
+          "scope": "task",
+          "text": "Worker note: Noted pilot user count for the migration module: 94,000. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 7
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0018",
+            "fa-0019"
+          ],
+          "id": "e-0024",
+          "scope": "task",
+          "text": "Status update. The contingency reserve for the analytics module is USD 959,000. The pilot user count for the analytics module is 70,500. The test environment was refreshed over the weekend without incidents. Several stakeholders asked for a recap of the previous decisions. The sponsor was out of office on Tuesday. The client call went smoothly.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0018"
+          ],
+          "id": "e-0025",
+          "scope": "task",
+          "text": "Worker note: Contingency reserve for the analytics module stands at USD 959,000. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0018"
+          ],
+          "id": "e-0026",
+          "scope": "task",
+          "text": "Worker note: Contingency reserve for the analytics module stands at USD 959,000. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 8
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0020",
+            "fa-0021"
+          ],
+          "id": "e-0027",
+          "scope": "task",
+          "text": "Status update. The reporting module: the contingency reserve is USD 656,000. The pilot user count for the reporting module is 28,000. The team agreed to keep the weekly sync short. The sponsor was out of office on Tuesday. Documentation work continues in parallel. The client call went smoothly.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0021"
+          ],
+          "id": "e-0028",
+          "scope": "shared",
+          "text": "Worker note: Noted pilot user count for the reporting module: 28,000. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 9
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0022",
+            "fa-0023"
+          ],
+          "id": "e-0029",
+          "scope": "task",
+          "text": "Status update. For the analytics module, the data source is Vega. The integration partner for the analytics module is Quasar. The client call went smoothly. No blockers were raised this week. A vendor demo is planned for the next sprint. Several stakeholders asked for a recap of the previous decisions.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0023"
+          ],
+          "id": "e-0030",
+          "scope": "shared",
+          "text": "Reviewer note: Integration partner for the analytics module stands at Quasar. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 10
+    }
+  ],
+  "split": "eval",
+  "variant": "none"
+}

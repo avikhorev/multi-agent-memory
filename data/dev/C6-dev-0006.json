@@ -1,0 +1,924 @@
+{
+  "category": "C6",
+  "checkpoints": [
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "2026-04-25",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "2026-04-25"
+        ]
+      },
+      "factor": false,
+      "id": "cp-1",
+      "kind": "value",
+      "required_events": [
+        "e-0002"
+      ],
+      "role": "planner",
+      "session": 8,
+      "task_text": "What is the current UAT start date for the reporting module?"
+    },
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "Quasar",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "Quasar"
+        ]
+      },
+      "factor": false,
+      "id": "cp-2",
+      "kind": "value",
+      "required_events": [
+        "e-0007",
+        "e-0010"
+      ],
+      "role": "worker",
+      "session": 9,
+      "task_text": "What is the current integration partner for the analytics module?"
+    },
+    {
+      "action": {
+        "forbidden": [],
+        "required": []
+      },
+      "answer": {
+        "disputed": false,
+        "expect": "Zephyr",
+        "stale": []
+      },
+      "context": {
+        "absent": [],
+        "absent_outside_quoted": [],
+        "disputed_both": [],
+        "present": [
+          "Zephyr"
+        ]
+      },
+      "factor": false,
+      "id": "cp-3",
+      "kind": "value",
+      "required_events": [
+        "e-0026",
+        "e-0029"
+      ],
+      "role": "reviewer",
+      "session": 10,
+      "task_text": "What is the current data source for the auth module?"
+    }
+  ],
+  "constraints": [],
+  "facts": [
+    {
+      "attribute": "handover_date",
+      "entity": "Atlas/reporting",
+      "id": "fa-0001",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 0,
+      "valid_to": null,
+      "value": "2026-07-27"
+    },
+    {
+      "attribute": "uat_start_date",
+      "entity": "Atlas/reporting",
+      "id": "fa-0002",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 5,
+      "valid_to": null,
+      "value": "2026-04-25"
+    },
+    {
+      "attribute": "owner",
+      "entity": "Atlas/analytics",
+      "id": "fa-0003",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 11,
+      "valid_to": null,
+      "value": "Tomas Iyer"
+    },
+    {
+      "attribute": "tech_lead",
+      "entity": "Atlas/analytics",
+      "id": "fa-0004",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 7,
+      "valid_to": null,
+      "value": "Dmitri Costa"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/analytics",
+      "id": "fa-0005",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 13,
+      "valid_to": null,
+      "value": "Quasar"
+    },
+    {
+      "attribute": "owner",
+      "entity": "Atlas/archive",
+      "id": "fa-0006",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 16,
+      "valid_to": null,
+      "value": "Elena Novak"
+    },
+    {
+      "attribute": "tech_lead",
+      "entity": "Atlas/archive",
+      "id": "fa-0007",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 16,
+      "valid_to": null,
+      "value": "Selma Berg"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/archive",
+      "id": "fa-0008",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 14,
+      "valid_to": null,
+      "value": "Titan"
+    },
+    {
+      "attribute": "go_live_date",
+      "entity": "Atlas/auth",
+      "id": "fa-0009",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 24,
+      "valid_to": null,
+      "value": "2026-06-24"
+    },
+    {
+      "attribute": "budget_usd",
+      "entity": "Atlas/auth",
+      "id": "fa-0010",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 25,
+      "valid_to": null,
+      "value": "921000"
+    },
+    {
+      "attribute": "handover_date",
+      "entity": "Atlas/migration",
+      "id": "fa-0011",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 32,
+      "valid_to": null,
+      "value": "2026-09-14"
+    },
+    {
+      "attribute": "uat_start_date",
+      "entity": "Atlas/migration",
+      "id": "fa-0012",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 31,
+      "valid_to": null,
+      "value": "2026-05-07"
+    },
+    {
+      "attribute": "go_live_date",
+      "entity": "Atlas/mobile",
+      "id": "fa-0013",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 37,
+      "valid_to": null,
+      "value": "2026-10-06"
+    },
+    {
+      "attribute": "budget_usd",
+      "entity": "Atlas/mobile",
+      "id": "fa-0014",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 35,
+      "valid_to": null,
+      "value": "956000"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas/auth",
+      "id": "fa-0015",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 43,
+      "valid_to": null,
+      "value": "Zephyr"
+    },
+    {
+      "attribute": "integration",
+      "entity": "Atlas/auth",
+      "id": "fa-0016",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 42,
+      "valid_to": null,
+      "value": "Willow"
+    },
+    {
+      "attribute": "user_count",
+      "entity": "Atlas/archive",
+      "id": "fa-0017",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 54,
+      "valid_to": null,
+      "value": "34500"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas/archive",
+      "id": "fa-0018",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 51,
+      "valid_to": null,
+      "value": "Pegasus"
+    },
+    {
+      "attribute": "contingency_usd",
+      "entity": "Atlas/archive",
+      "id": "fa-0019",
+      "source": "tool",
+      "supersedes": null,
+      "valid_from": 54,
+      "valid_to": null,
+      "value": "416000"
+    },
+    {
+      "attribute": "go_live_date",
+      "entity": "Atlas/search",
+      "id": "fa-0020",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 61,
+      "valid_to": null,
+      "value": "2026-03-20"
+    },
+    {
+      "attribute": "budget_usd",
+      "entity": "Atlas/search",
+      "id": "fa-0021",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 61,
+      "valid_to": null,
+      "value": "969000"
+    },
+    {
+      "attribute": "user_count",
+      "entity": "Atlas",
+      "id": "fa-0022",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 64,
+      "valid_to": null,
+      "value": "20500"
+    },
+    {
+      "attribute": "data_source",
+      "entity": "Atlas",
+      "id": "fa-0023",
+      "source": "user",
+      "supersedes": null,
+      "valid_from": 63,
+      "valid_to": null,
+      "value": "Falcon"
+    },
+    {
+      "attribute": "contingency_usd",
+      "entity": "Atlas",
+      "id": "fa-0024",
+      "source": "document",
+      "supersedes": null,
+      "valid_from": 69,
+      "valid_to": null,
+      "value": "384000"
+    }
+  ],
+  "id": "C6-dev-0006",
+  "n_sessions": 10,
+  "resolution": "none",
+  "seed": 606,
+  "sessions": [
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0001",
+          "scope": "task",
+          "text": "Status update. For the reporting module, the handover date is 2026-07-27. No blockers were raised this week. Training material for the client staff is being reviewed by the sponsor. The sponsor was out of office on Tuesday. The steering group asked for a shorter status format.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-011"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0002"
+          ],
+          "id": "e-0002",
+          "scope": "task",
+          "text": "Document D-011 - Delivery plan extract\n- The reporting module: the UAT start date is 2026-04-25.\n- Appendix with interface sketches is attached to the project folder.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- Reviewers may leave comments in the margin until the end of the week.\n- The next review is held in the usual meeting room.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0003",
+          "scope": "shared",
+          "text": "Planner note: Handover date for the reporting module stands at 2026-07-27. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0004",
+          "scope": "shared",
+          "text": "Reviewer note: Handover date for the reporting module stands at 2026-07-27. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0001"
+          ],
+          "id": "e-0005",
+          "scope": "shared",
+          "text": "Worker note: Noted handover date for the reporting module: 2026-07-27. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 1
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0003",
+            "fa-0004"
+          ],
+          "id": "e-0006",
+          "scope": "task",
+          "text": "Status update. For the analytics module, the owner is Tomas Iyer. The analytics module: the tech lead is Dmitri Costa. The team agreed to keep the weekly sync short. The risk register was walked through and no new items were added. The steering group asked for a shorter status format. Several stakeholders asked for a recap of the previous decisions.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-021"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0005"
+          ],
+          "id": "e-0007",
+          "scope": "task",
+          "text": "Document D-021 - Kickoff minutes\n- For the analytics module, the integration partner is Quasar.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- Distribution list unchanged since the last revision.\n- Appendix with interface sketches is attached to the project folder.\n- The next review is held in the usual meeting room.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0003"
+          ],
+          "id": "e-0008",
+          "scope": "task",
+          "text": "Worker note: Noted owner for the analytics module: Tomas Iyer. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0004"
+          ],
+          "id": "e-0009",
+          "scope": "shared",
+          "text": "Planner note: Tech lead for the analytics module stands at Dmitri Costa. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0005"
+          ],
+          "id": "e-0010",
+          "scope": "task",
+          "text": "Planner note: Integration partner for the analytics module stands at Quasar. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 2
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0006",
+            "fa-0007"
+          ],
+          "id": "e-0011",
+          "scope": "task",
+          "text": "Status update. The owner for the archive module is Elena Novak. The archive module: the tech lead is Selma Berg. The team agreed to keep the weekly sync short. Documentation work continues in parallel. The risk register was walked through and no new items were added. Several stakeholders asked for a recap of the previous decisions.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-031"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0008"
+          ],
+          "id": "e-0012",
+          "scope": "task",
+          "text": "Document D-031 - Steering group pack\n- The archive module: the integration partner is Titan.\n- Appendix with interface sketches is attached to the project folder.\n- Open points are tracked in the shared log.\n- Earlier versions of this sheet are archived and should not be edited.\n- Reviewers may leave comments in the margin until the end of the week.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0008"
+          ],
+          "id": "e-0013",
+          "scope": "task",
+          "text": "Worker note: Noted integration partner for the archive module: Titan. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0006"
+          ],
+          "id": "e-0014",
+          "scope": "shared",
+          "text": "Worker note: Owner for the archive module stands at Elena Novak. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 3
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0009"
+          ],
+          "id": "e-0015",
+          "scope": "task",
+          "text": "Status update. The go-live date for the auth module is 2026-06-24. The client call went smoothly. A vendor demo is planned for the next sprint. Testing capacity is tight but manageable. The test environment was refreshed over the weekend without incidents.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/auth",
+            "session": 4
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0010"
+          ],
+          "id": "e-0016",
+          "scope": "task",
+          "text": "STATUS Atlas/auth\nbudget: USD 921,000\nbuild: green\nopen items: 6",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0009"
+          ],
+          "id": "e-0017",
+          "scope": "shared",
+          "text": "Reviewer note: Noted go-live date for the auth module: 2026-06-24. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0009"
+          ],
+          "id": "e-0018",
+          "scope": "shared",
+          "text": "Worker note: Go-live date for the auth module stands at 2026-06-24. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 4
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0011"
+          ],
+          "id": "e-0019",
+          "scope": "task",
+          "text": "Status update. The migration module: the handover date is 2026-09-14. The risk register was walked through and no new items were added. A vendor demo is planned for the next sprint. Documentation work continues in parallel. The test environment was refreshed over the weekend without incidents.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-051"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0020",
+          "scope": "task",
+          "text": "Document D-051 - Kickoff minutes\n- The migration module: the UAT start date is 2026-05-07.\n- The next review is held in the usual meeting room.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- Open points are tracked in the shared log.\n- Appendix with interface sketches is attached to the project folder.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0021",
+          "scope": "shared",
+          "text": "Reviewer note: Noted UAT start date for the migration module: 2026-05-07. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0022",
+          "scope": "shared",
+          "text": "Planner note: Noted UAT start date for the migration module: 2026-05-07. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0012"
+          ],
+          "id": "e-0023",
+          "scope": "shared",
+          "text": "Worker note: UAT start date for the migration module stands at 2026-05-07. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 5
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0013"
+          ],
+          "id": "e-0024",
+          "scope": "task",
+          "text": "Status update. For the mobile module, the go-live date is 2026-10-06. A vendor demo is planned for the next sprint. The team agreed to keep the weekly sync short. The test environment was refreshed over the weekend without incidents. No blockers were raised this week.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-061"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0014"
+          ],
+          "id": "e-0025",
+          "scope": "task",
+          "text": "Document D-061 - Delivery plan extract\n- The budget for the mobile module is USD 956,000.\n- Appendix with interface sketches is attached to the project folder.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- Open points are tracked in the shared log.\n- Earlier versions of this sheet are archived and should not be edited.",
+          "tool": "read_document",
+          "type": "tool_data"
+        }
+      ],
+      "index": 6
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0015"
+          ],
+          "id": "e-0026",
+          "scope": "task",
+          "text": "Status update. The data source for the auth module is Zephyr. A vendor demo is planned for the next sprint. The risk register was walked through and no new items were added. Training material for the client staff is being reviewed by the sponsor. The test environment was refreshed over the weekend without incidents.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-071"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0016"
+          ],
+          "id": "e-0027",
+          "scope": "task",
+          "text": "Document D-071 - Delivery plan extract\n- For the auth module, the integration partner is Willow.\n- Open points are tracked in the shared log.\n- Reviewers may leave comments in the margin until the end of the week.\n- Action owners were confirmed during the call and the minutes were circulated afterwards.\n- The next review is held in the usual meeting room.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0016"
+          ],
+          "id": "e-0028",
+          "scope": "shared",
+          "text": "Reviewer note: Integration partner for the auth module stands at Willow. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0015"
+          ],
+          "id": "e-0029",
+          "scope": "shared",
+          "text": "Planner note: Noted data source for the auth module: Zephyr. Source was checked against the session log.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 7
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0017",
+            "fa-0018"
+          ],
+          "id": "e-0030",
+          "scope": "task",
+          "text": "Status update. For the archive module, the pilot user count is 34,500. The data source for the archive module is Pegasus. The risk register was walked through and no new items were added. Several stakeholders asked for a recap of the previous decisions. The test environment was refreshed over the weekend without incidents. The sponsor was out of office on Tuesday.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "entity": "Atlas/archive",
+            "session": 8
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0019"
+          ],
+          "id": "e-0031",
+          "scope": "task",
+          "text": "STATUS Atlas/archive\ncontingency reserve: USD 416,000\nbuild: green\nopen items: 1",
+          "tool": "read_status",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0017"
+          ],
+          "id": "e-0032",
+          "scope": "task",
+          "text": "Worker note: Noted pilot user count for the archive module: 34,500. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 8
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0020",
+            "fa-0021"
+          ],
+          "id": "e-0033",
+          "scope": "task",
+          "text": "Status update. For the search module, the go-live date is 2026-03-20. The budget for the search module is USD 969,000. Training material for the client staff is being reviewed by the sponsor. The team agreed to keep the weekly sync short. Testing capacity is tight but manageable. The sponsor was out of office on Tuesday.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": null,
+          "author": "reviewer",
+          "factor": false,
+          "facts": [
+            "fa-0021"
+          ],
+          "id": "e-0034",
+          "scope": "shared",
+          "text": "Reviewer note: Noted budget for the search module: USD 969,000. Will be repeated in the next hand-over.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "planner",
+          "factor": false,
+          "facts": [
+            "fa-0020"
+          ],
+          "id": "e-0035",
+          "scope": "shared",
+          "text": "Planner note: Go-live date for the search module stands at 2026-03-20. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 9
+    },
+    {
+      "events": [
+        {
+          "args": null,
+          "author": "user",
+          "factor": false,
+          "facts": [
+            "fa-0022",
+            "fa-0023"
+          ],
+          "id": "e-0036",
+          "scope": "task",
+          "text": "Status update. For the Atlas project, the pilot user count is 20,500. For the Atlas project, the data source is Falcon. Documentation work continues in parallel. The risk register was walked through and no new items were added. Testing capacity is tight but manageable. The team agreed to keep the weekly sync short.",
+          "tool": null,
+          "type": "user_message"
+        },
+        {
+          "args": {
+            "doc_id": "D-101"
+          },
+          "author": "tool",
+          "factor": false,
+          "facts": [
+            "fa-0024"
+          ],
+          "id": "e-0037",
+          "scope": "task",
+          "text": "Document D-101 - Kickoff minutes\n- For the Atlas project, the contingency reserve is USD 384,000.\n- Reviewers may leave comments in the margin until the end of the week.\n- Open points are tracked in the shared log.\n- Appendix with interface sketches is attached to the project folder.\n- Earlier versions of this sheet are archived and should not be edited.",
+          "tool": "read_document",
+          "type": "tool_data"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0024"
+          ],
+          "id": "e-0038",
+          "scope": "task",
+          "text": "Worker note: Contingency reserve for the Atlas project stands at USD 384,000. Nobody objected during the call.",
+          "tool": null,
+          "type": "note"
+        },
+        {
+          "args": null,
+          "author": "worker",
+          "factor": false,
+          "facts": [
+            "fa-0024"
+          ],
+          "id": "e-0039",
+          "scope": "shared",
+          "text": "Worker note: Contingency reserve for the Atlas project stands at USD 384,000. No follow-up needed at this point.",
+          "tool": null,
+          "type": "note"
+        }
+      ],
+      "index": 10
+    }
+  ],
+  "split": "dev",
+  "variant": "none"
+}
