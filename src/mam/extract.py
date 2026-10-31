@@ -216,6 +216,7 @@ class LLMExtractor:
         self.llm = llm
         self.calls: list = []
         self.parse_errors = 0
+        self._log: list[dict] = []
 
     @staticmethod
     def applies(entry: Entry) -> bool:
@@ -227,7 +228,19 @@ class LLMExtractor:
         calls, self.calls = self.calls, []
         return calls
 
+    def drain_log(self) -> list[dict]:
+        log, self._log = self._log, []
+        return log
+
     def extract(self, entry: Entry, known=()) -> Extraction:
+        ex = self._extract(entry, known)
+        if self.applies(entry):
+            self._log.append({"entry_id": entry.id, "session": entry.session, "refused": ex.refused,
+                              "facts": [{"entity": f.entity, "attribute": f.attribute, "value": f.value,
+                                         "valid_from": f.valid_from, "source": f.source} for f in ex.facts]})
+        return ex
+
+    def _extract(self, entry: Entry, known=()) -> Extraction:
         constraints = rule_constraints(entry)
         if not self.applies(entry):
             return Extraction(constraints=constraints)

@@ -88,6 +88,9 @@ class Ours(MemorySystem):
     def drain_llm_calls(self) -> list:
         return self._extractor.drain() if hasattr(self._extractor, "drain") else []
 
+    def drain_extractions(self) -> list[dict]:
+        return self._extractor.drain_log() if hasattr(self._extractor, "drain_log") else []
+
     # ---- reading ----
 
     def _can_see(self, e: Entry, reader: Reader) -> bool:

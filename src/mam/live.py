@@ -77,6 +77,8 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         for role, out in system.drain_llm_calls():
             calls.append(_call_record(role, session, out))
             total += out.latency_s
+        for rec in system.drain_extractions():
+            trace.append(dict(rec, op="extraction", clock=state["clock"]))
         return total
 
     def write(entry: Entry, session: int, event_id: str | None = None) -> None:

@@ -35,6 +35,9 @@ class MemorySystem:
     def drain_llm_calls(self) -> list:
         return []
 
+    def drain_extractions(self) -> list[dict]:
+        return []
+
     def context(self, reader: Reader) -> Context:
         raise NotImplementedError
 
