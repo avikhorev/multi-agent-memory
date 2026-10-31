@@ -9,7 +9,7 @@ venv:
 test:
 	$(PY) -m pytest
 
-.PHONY: dataset test-generator
+.PHONY: dataset test-generator memory-level
 
 dataset:
 	PYTHONPATH=src $(PY) -m mam.generate --split dev --out data/dev
@@ -18,3 +18,9 @@ dataset:
 
 test-generator:
 	$(PY) -m pytest tests/acceptance -m "not memory"
+
+# usage: make memory-level SPLIT=dev
+SPLIT ?= dev
+memory-level:
+	PYTHONPATH=src $(PY) -m mam.memory_eval --split $(SPLIT) --out results/memory_level/$(SPLIT)
+	PYTHONPATH=src $(PY) -m mam.tables results/memory_level/$(SPLIT) --title "$(SPLIT), memory level" > results/memory_level/$(SPLIT)/tables.md
