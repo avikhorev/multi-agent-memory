@@ -285,7 +285,7 @@ class LLMExtractor:
             for i, f in enumerate(rows):
                 try:
                     attribute = f["attribute"]
-                    if attribute not in ATTRIBUTES or not str(f["value"]).strip():
+                    if attribute not in ATTRIBUTES or f["value"] is None or not str(f["value"]).strip():
                         continue
                     as_of = f.get("as_of")
                     time = (date.fromisoformat(as_of) - DAY_ZERO).days if _stated(as_of, entry.text) else UNKNOWN_TIME
