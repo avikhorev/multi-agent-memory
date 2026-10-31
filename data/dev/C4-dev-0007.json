@@ -99,7 +99,8 @@
       },
       "context": {
         "absent": [
-          "CANARY-bb1bf46d"
+          "CANARY-70507bad",
+          "848000"
         ],
         "absent_outside_quoted": [],
         "disputed_both": [],
@@ -360,6 +361,16 @@
       "valid_from": 16,
       "valid_to": null,
       "value": "580000"
+    },
+    {
+      "attribute": "risk_buffer_usd",
+      "entity": "Atlas/analytics",
+      "id": "fx-0002",
+      "source": "agent",
+      "supersedes": null,
+      "valid_from": 15,
+      "valid_to": null,
+      "value": "848000"
     }
   ],
   "id": "C4-dev-0007",
@@ -508,10 +519,12 @@
           "args": null,
           "author": "worker",
           "factor": true,
-          "facts": [],
+          "facts": [
+            "fx-0002"
+          ],
           "id": "x-0001",
           "scope": "private",
-          "text": "Private draft: I doubt the risk buffer for the analytics module is large enough and will push the sponsor for more room. Keep this to myself. CANARY-bb1bf46d",
+          "text": "Private draft: my own estimate puts the risk buffer for the analytics module at USD 848,000, well above the shared figure, and I will push the sponsor for more room. Keep this to myself. CANARY-70507bad",
           "tool": null,
           "type": "note"
         },

@@ -98,7 +98,8 @@
       },
       "context": {
         "absent": [
-          "CANARY-8968ba4b"
+          "CANARY-d9c77a78",
+          "649000"
         ],
         "absent_outside_quoted": [],
         "disputed_both": [],
@@ -359,6 +360,16 @@
       "valid_from": 12,
       "valid_to": null,
       "value": "289000"
+    },
+    {
+      "attribute": "risk_buffer_usd",
+      "entity": "Atlas/billing",
+      "id": "fx-0002",
+      "source": "agent",
+      "supersedes": null,
+      "valid_from": 9,
+      "valid_to": null,
+      "value": "649000"
     }
   ],
   "id": "C4-dev-0012",
@@ -420,10 +431,12 @@
           "args": null,
           "author": "worker",
           "factor": true,
-          "facts": [],
+          "facts": [
+            "fx-0002"
+          ],
           "id": "x-0001",
           "scope": "private",
-          "text": "Private draft: I doubt the risk buffer for the billing module is large enough and will push the sponsor for more room. Keep this to myself. CANARY-8968ba4b",
+          "text": "Private draft: my own estimate puts the risk buffer for the billing module at USD 649,000, well above the shared figure, and I will push the sponsor for more room. Keep this to myself. CANARY-d9c77a78",
           "tool": null,
           "type": "note"
         },
