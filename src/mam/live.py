@@ -37,7 +37,7 @@ def session_source(scenario, session: int):
 
 
 def _source_line(ev) -> str:
-    return f"{ev.tool} {json.dumps(ev.args, sort_keys=True)} - {ev.text.split(chr(10))[0][:60]}"
+    return f"tool: {ev.tool}, args: {json.dumps(ev.args, sort_keys=True)} (about: {ev.text.split(chr(10))[0][:60]})"
 
 
 def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int = 2000) -> dict:
@@ -181,5 +181,10 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
               "memory_s": round(state["memory_s"], 4),
               "input_tokens": sum(c["input_tokens"] + c["cache_creation_tokens"] + c["cache_read_tokens"] for c in calls),
               "output_tokens": sum(c["output_tokens"] for c in calls)}
+    extractor = getattr(system, "_extractor", None)
+    memory = {"quarantined": len(getattr(system, "quarantined", [])),
+              "extraction_refusals": len(getattr(system, "refusals", [])),
+              "parse_errors": getattr(extractor, "parse_errors", 0)}
     return {"scenario": scenario.id, "system": cfg, "repeat": repeat, "checkpoints": checkpoints, "calls": calls,
+            "memory": memory,
             "totals": totals, "trace": trace, "actions": list(sim.action_log)}
