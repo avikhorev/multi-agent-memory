@@ -20,7 +20,7 @@ ROW = {"entity": "Atlas/billing", "attribute": "budget_usd", "value": "USD 281,0
 
 
 def test_facts_are_parsed_normalised_and_dated():
-    ex = LLMExtractor(FakeClient([facts_json(ROW)])).extract(entry("e1", "text"))
+    ex = LLMExtractor(FakeClient([facts_json(ROW)])).extract(entry("e1", "Budget as of 2026-02-03 is USD 281,000."))
     (f,) = ex.facts
     assert (f.entity, f.attribute, f.value, f.valid_from, f.source) == ("Atlas/billing", "budget_usd", "281000", 29, "user")
 
@@ -101,7 +101,7 @@ def test_extractor_llm_needs_a_client():
 
 def test_every_extraction_is_logged_with_its_facts_and_refusal_state():
     ex = LLMExtractor(FakeClient([facts_json(ROW), None, None]))
-    ex.extract(entry("e1", "text"))
+    ex.extract(entry("e1", "Budget as of 2026-02-03 is USD 281,000."))
     ex.extract(entry("e2", "text"))
     log = ex.drain_log()
     assert [l["entry_id"] for l in log] == ["e1", "e2"]
