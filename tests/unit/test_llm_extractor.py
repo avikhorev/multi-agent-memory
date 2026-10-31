@@ -135,8 +135,8 @@ def test_a_null_value_is_not_a_fact():
 
 
 ENV_NOISE = ("billing budget is 281000\n\nStanding notes:\n"
-             "- Environment: /tmp/tmpXXXXXXXX, Linux, bash, not a git repository.\n"
-             "- Working directory: the previous summary lists /tmp/tmpAAA, but the current block lists /tmp/tmpBBB.\n"
+             "- Environment: /tmp/work-a, Linux, bash, not a git repository.\n"
+             "- Working directory: the previous summary lists /tmp/work-b, but the current block lists /tmp/work-c.\n"
              "- Untrusted downloaded files go in their own empty directories; run Python with -I.\n"
              "- Platform: linux\n"
              "Owner of billing is Yara Rossi")
