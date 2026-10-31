@@ -150,7 +150,7 @@ def test_without_pinning_the_constraint_is_dropped():
 
 def test_a_refused_extraction_leaves_no_fact_and_is_counted(tmp_path):
     cache = tmp_path / "c.jsonl"
-    cache.write_text(json.dumps({"entry_id": "e1", "refusal": True}))
+    cache.write_text(json.dumps({"entry_id": "e1", "task_id": TASK, "refusal": True}))
     s = build([entry(1, facts=[fact("100", 5)])], extractor="cache", cache_path=cache)
     assert s.refusals == ["e1"] and texts(s.context(reader())) == ""
 
