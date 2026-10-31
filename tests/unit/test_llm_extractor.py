@@ -126,3 +126,9 @@ def test_a_date_written_in_another_format_still_counts():
     row = dict(ROW, as_of="2026-02-03")
     ex = LLMExtractor(FakeClient([facts_json(row)])).extract(entry("e1", "Decided on 3 February 2026: budget USD 281,000."))
     assert ex.facts[0].valid_from == 29
+
+
+def test_a_null_value_is_not_a_fact():
+    rows = [dict(ROW, value=None), dict(ROW, value=""), dict(ROW, value="  "), dict(ROW, value="100", as_of=None)]
+    ex = LLMExtractor(FakeClient([facts_json(*rows)])).extract(entry("e1", "text"))
+    assert [f.value for f in ex.facts] == ["100"]  # JSON null must not become the text "None"
