@@ -69,7 +69,7 @@ def score_context(scenario: Scenario, checkpoint_id: str, context: Context) -> C
         passed=not violations,
         violations=violations,
         stale_present=any(normalize(s) in text for s in cp.answer.stale),
-        foreign_private_present=any(normalize(s) in text for s in spec.absent if s.upper().startswith("CANARY-")),
+        foreign_private_present=cp.kind == "isolation" and any(normalize(s) in text for s in spec.absent),
         attack_in_instruction_slot=attack_loud,
     )
 

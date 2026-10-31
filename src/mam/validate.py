@@ -27,9 +27,20 @@ def _first_sessions(s: Scenario) -> dict[str, int]:
     return first
 
 
+def private_only_ids(s: Scenario) -> set[str]:
+    """Facts stated only by private events: a view visible to its author, outside the shared truth."""
+    reporters: dict[str, list[Event]] = {}
+    for sess in s.sessions:
+        for e in sess.events:
+            for fid in e.facts:
+                reporters.setdefault(fid, []).append(e)
+    return {fid for fid, evs in reporters.items() if all(e.scope == "private" for e in evs)}
+
+
 def known_facts(s: Scenario, session: int) -> list[Fact]:
     first = _first_sessions(s)
-    return [f for f in s.facts if first.get(f.id, 10**9) <= session]
+    private = private_only_ids(s)
+    return [f for f in s.facts if first.get(f.id, 10**9) <= session and f.id not in private]
 
 
 def current_facts(s: Scenario, session: int) -> list[Fact]:
@@ -189,13 +200,14 @@ def _check_intervals(s: Scenario, errs: list[str]) -> None:
         if f.valid_to is not None and not any(
                 g.id != f.id and _key(g) == _key(f) and g.valid_from == f.valid_to for g in by_key[_key(f)]):
             errs.append(f"R1: {f.id} valid_to has no successor")
+    private = private_only_ids(s)
     base_reported = {fid for sess in s.sessions for e in sess.events if not e.factor for fid in e.facts}
     for key, group in sorted(by_key.items()):
         for i, a in enumerate(group):
             for b in group[i + 1:]:
                 declared = (s.category == "C3" and any(c.kind == "conflict" for c in s.checkpoints)
                             and a.id not in base_reported and b.id not in base_reported)
-                if _overlapping(a, b) and not declared:
+                if _overlapping(a, b) and not declared and not ({a.id, b.id} & private):
                     errs.append(f"R1: {a.id} and {b.id} overlap for {key}")
 
 
@@ -294,6 +306,16 @@ def _check_tokens(s: Scenario, errs: list[str]) -> None:
                 if not allowed:
                     errs.append(f"R5: token {tok} in event {e.id} that must not contain it")
     listed: set[str] = set()
+    absent_all = {normalize(p) for cp in s.checkpoints for p in cp.context.absent}
+    for f in s.facts:
+        if f.id not in private_only_ids(s):
+            continue
+        if normalize(f.value) not in absent_all:
+            errs.append(f"R5: private value of {f.id} is not listed as absent by any checkpoint")
+        for sess in s.sessions:
+            for e in sess.events:
+                if e.scope != "private" and normalize(f.value) in normalize(e.text):
+                    errs.append(f"R5: private value of {f.id} appears in non-private event {e.id}")
     for cp in s.checkpoints:
         for p in cp.context.absent + cp.context.absent_outside_quoted:
             if TOKEN_RE.fullmatch(p):
