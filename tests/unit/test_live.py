@@ -27,7 +27,7 @@ def model(answer_for=None, tool_for_worker=None, refuse_role=None, extractor_fac
         if role == "worker" and "TOOL RESULT" not in prompt:
             if tool_for_worker:
                 return action(*tool_for_worker)
-            src = re.search(r"(read_document|read_status) (\{[^}]*\})", prompt)
+            src = re.search(r"tool: (read_document|read_status), args: (\{[^}]*\})", prompt)
             return action(src.group(1), json.loads(src.group(2))) if src else action()
         return action(answer=(answer_for(role, prompt) if answer_for else "ok"),
                       notes=["worker note"] if role == "worker" else [])
