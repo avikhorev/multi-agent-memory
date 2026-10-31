@@ -148,3 +148,20 @@ def test_the_trace_shows_what_the_model_extracted():
     ex = [t for t in res["trace"] if t["op"] == "extraction"]
     assert ex and {"entry_id", "facts", "refused", "session"} <= ex[0].keys()
     assert ex[0]["facts"][0]["attribute"] == "budget_usd"
+
+
+def test_the_trace_does_not_repeat_the_same_resolution_on_every_read():
+    counter = {"n": 0}
+    base = model()
+
+    def reply(system, messages):
+        if system.startswith("You extract"):
+            counter["n"] += 1  # a new value every time, so every later fact replaces the earlier one
+            return json.dumps({"facts": [{"entity": "Atlas/billing", "attribute": "budget_usd",
+                                          "value": str(100 + counter["n"]), "as_of": None}]})
+        return base(system, messages)
+    res = run_live(generate("C1", 100, variant="explicit"), "ours", FakeClient(reply))
+    ops = [(t["op"], t.get("key"), t.get("winner"), t.get("loser"), t.get("rule"), t.get("entry_id"), t.get("reason"))
+           for t in res["trace"] if t["op"] in ("resolve", "reject", "quarantine")]
+    assert ops, "the scenario must produce resolutions, otherwise the test checks nothing"
+    assert len(ops) == len(set(ops))

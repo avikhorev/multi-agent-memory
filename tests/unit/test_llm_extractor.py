@@ -109,3 +109,17 @@ def test_every_extraction_is_logged_with_its_facts_and_refusal_state():
                                 "valid_from": 29, "source": "user"}] and not log[0]["refused"]
     assert log[1]["refused"] and log[1]["facts"] == []
     assert ex.drain_log() == []
+
+
+def test_a_date_the_model_invents_is_ignored_unless_the_message_contains_it():
+    invented = dict(ROW, as_of="2026-10-31")  # today's date, not written in the message
+    ex = LLMExtractor(FakeClient([facts_json(invented)])).extract(entry("e1", "Selma Berg is now the tech lead."))
+    assert ex.facts[0].valid_from == UNKNOWN_TIME
+    stated = LLMExtractor(FakeClient([facts_json(ROW)])).extract(entry("e2", "Budget as of 2026-02-03 is USD 281,000."))
+    assert stated.facts[0].valid_from == 29
+
+
+def test_a_date_written_in_another_format_still_counts():
+    row = dict(ROW, as_of="2026-02-03")
+    ex = LLMExtractor(FakeClient([facts_json(row)])).extract(entry("e1", "Decided on 3 February 2026: budget USD 281,000."))
+    assert ex.facts[0].valid_from == 29
