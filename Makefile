@@ -9,7 +9,7 @@ venv:
 test:
 	$(PY) -m pytest
 
-.PHONY: dataset test-generator memory-level smoke mutation
+.PHONY: dataset test-generator memory-level smoke mutation extraction-trial
 
 dataset:
 	PYTHONPATH=src $(PY) -m mam.generate --split dev --out data/dev
@@ -32,3 +32,8 @@ smoke:
 mutation:
 	.venv/bin/mutmut run --max-children 4
 	.venv/bin/mutmut results
+
+# trial extraction pass on development scenarios (the first five of every category)
+extraction-trial:
+	PYTHONPATH=src $(PY) -m mam.extraction run --split dev --select trial --out results/extraction/dev_trial --max-cost-usd 3
+	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/dev_trial --out results/extraction/dev_trial/cache.jsonl

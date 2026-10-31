@@ -24,6 +24,13 @@ DEFAULT_SYSTEMS = (
     + [f"ours@oracle-{a}" for a in ABLATIONS])
 
 
+def systems_for(with_cache: bool) -> list[str]:
+    """The cache variants (saved model answers) are added only when a cache file is given."""
+    if not with_cache:
+        return list(DEFAULT_SYSTEMS)
+    return DEFAULT_SYSTEMS + ["rolling_summary@cache", "ours@cache"] + [f"ours@cache-{a}" for a in ABLATIONS]
+
+
 def make_system(cfg: str, limit: int = 2000, cache_path=None):
     """cfg: name, name@extractor or name@extractor-ablation."""
     name, _, rest = cfg.partition("@")
@@ -82,7 +89,7 @@ def main() -> None:
     ap.add_argument("--split", required=True, choices=["dev", "eval", "holdout"])
     ap.add_argument("--data", default=None)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--systems", default=",".join(DEFAULT_SYSTEMS))
+    ap.add_argument("--systems", default=None, help="comma-separated; default depends on --cache")
     ap.add_argument("--limit", type=int, default=2000)
     ap.add_argument("--cache", default=None)
     a = ap.parse_args()
@@ -90,7 +97,7 @@ def main() -> None:
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     scenarios = [load(p) for p in scenario_paths(data_dir)]
-    for cfg in a.systems.split(","):
+    for cfg in (a.systems.split(",") if a.systems else systems_for(a.cache is not None)):
         rows, timing = [], []
         for s in scenarios:
             recs, tm = run_scenario(cfg, s, a.limit, a.cache)

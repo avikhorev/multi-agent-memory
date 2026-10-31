@@ -4,7 +4,7 @@ from __future__ import annotations
 from mam.systems.base import MemorySystem
 from mam.systems.baselines import FullHistory, SharedRagBm25, SlidingWindow
 from mam.systems.ours import Ours
-from mam.systems.summary import LLMSummary, RollingSummary
+from mam.systems.summary import CachedSummary, LLMSummary, RollingSummary
 
 NAMES = ("ours", "full_history", "sliding_window", "rolling_summary", "shared_rag_bm25")
 ABLATIONS = frozenset({"validity", "scopes", "trust", "pinned_constraints"})
@@ -33,5 +33,9 @@ def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str =
             if llm is None:
                 raise ValueError("extractor 'llm' needs a client")
             return LLMSummary(limit, llm)
+        if extractor == "cache":
+            if cache_path is None:
+                raise ValueError("extractor 'cache' needs cache_path")
+            return CachedSummary(limit, cache_path)
         return RollingSummary(limit, extractor, cache_path)
     return Ours(limit, ablate, extractor, cache_path, llm)

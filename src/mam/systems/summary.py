@@ -1,6 +1,9 @@
 """Rolling summary: one digest line per session, oldest lines dropped to fit the limit."""
 from __future__ import annotations
 
+import json
+from pathlib import Path
+
 from mam.extract import make_extractor
 from mam.systems.base import MemorySystem, make_context
 from mam.tokens import count
@@ -44,16 +47,35 @@ _SUMMARY_SYSTEM = ("You maintain a short running summary of a software implement
                    "owners) and standing rules. Reply with the summary only.")
 
 
-class LLMSummary(MemorySystem):
+class _TextSummary(MemorySystem):
+    """A summary kept as text; the context is its newest lines that fit the limit."""
+
+    def __init__(self, limit: int):
+        super().__init__(limit)
+        self._summary = ""
+        self.refusals: list[int] = []
+
+    @property
+    def summary_text(self) -> str:
+        return self._summary
+
+    def context(self, reader: Reader) -> Context:
+        lines = [ln for ln in self._summary.split("\n") if ln.strip()]
+        while lines and count("\n".join(lines)) > self.limit:
+            lines.pop(0)
+        if not lines:
+            return make_context([])
+        return make_context([ContextItem(id="summary", kind="summary", text="\n".join(lines))])
+
+
+class LLMSummary(_TextSummary):
     """The summary baseline written by the model once per session."""
 
     def __init__(self, limit: int, llm):
         super().__init__(limit)
         self.llm = llm
-        self._summary = ""
         self._done: set[str] = set()
         self._calls: list = []
-        self.refusals: list[int] = []
 
     def drain_llm_calls(self) -> list:
         calls, self._calls = self._calls, []
@@ -74,10 +96,25 @@ class LLMSummary(MemorySystem):
         else:
             self._summary = out.text.strip()
 
-    def context(self, reader: Reader) -> Context:
-        lines = [ln for ln in self._summary.split("\n") if ln.strip()]
-        while lines and count("\n".join(lines)) > self.limit:
-            lines.pop(0)
-        if not lines:
-            return make_context([])
-        return make_context([ContextItem(id="summary", kind="summary", text="\n".join(lines))])
+
+class CachedSummary(_TextSummary):
+    """Replays the summaries the model wrote in the extraction pass (rows of kind summary)."""
+
+    def __init__(self, limit: int, cache_path):
+        super().__init__(limit)
+        self._rows: dict[tuple[str, int], dict] = {}
+        for line in Path(cache_path).read_text(encoding="utf-8").splitlines():
+            if line.strip():
+                row = json.loads(line)
+                if row.get("kind") == "summary":
+                    self._rows[(row["task_id"], row["session"])] = row
+
+    def end_session(self, session: int) -> None:
+        task_ids = sorted({e.task_id for e in self._entries.values()})
+        row = next((self._rows[(t, session)] for t in task_ids if (t, session) in self._rows), None)
+        if row is None:
+            return
+        if row.get("refusal"):
+            self.refusals.append(session)
+        else:
+            self._summary = str(row["text"]).strip()

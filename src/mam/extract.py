@@ -141,22 +141,23 @@ class RulesExtractor:
 
 
 class CacheExtractor:
-    """Replays saved model answers: one JSON line per entry id.
+    """Replays saved model answers: one JSON line per (task, entry).
 
-    {"entry_id": "...", "facts": [{"entity", "attribute", "value", "event_time", "source"}],
+    {"task_id": "...", "entry_id": "...", "facts": [{"entity", "attribute", "value", "event_time", "source"}],
      "constraints": ["..."], "refusal": false}
     An entry that is missing from the cache yields nothing (counted as a missed extraction).
     """
 
     def __init__(self, path):
-        self._rows: dict[str, dict] = {}
+        self._rows: dict[tuple[str, str], dict] = {}
         for line in Path(path).read_text(encoding="utf-8").splitlines():
             if line.strip():
                 row = json.loads(line)
-                self._rows[row["entry_id"]] = row
+                if row.get("kind") != "summary":
+                    self._rows[(row["task_id"], row["entry_id"])] = row
 
     def extract(self, entry: Entry) -> Extraction:
-        row = self._rows.get(entry.id)
+        row = self._rows.get((entry.task_id, entry.id))
         if row is None:
             return Extraction()
         if row.get("refusal"):
@@ -239,8 +240,8 @@ class LLMExtractor:
 
     @staticmethod
     def applies(entry: Entry) -> bool:
-        """Sources of facts: user messages, tool outputs, documents and the scripted notes of the scenario."""
-        return entry.kind in ("user_message", "tool_output", "document") or (
+        """Sources of facts: user messages, tool outputs, documents, drafts and the scenario's scripted notes."""
+        return entry.kind in ("user_message", "tool_output", "document", "draft") or (
             entry.kind == "agent_note" and entry.id.startswith("x-"))
 
     def drain(self) -> list:

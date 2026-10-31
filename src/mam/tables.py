@@ -10,7 +10,7 @@ import random
 from collections import defaultdict
 from pathlib import Path
 
-from mam.memory_eval import DEFAULT_SYSTEMS
+from mam.memory_eval import systems_for
 
 BOOTSTRAP = 2000
 SEED = 12345
@@ -57,7 +57,8 @@ def per_scenario(rows: list[dict], category: str, fn, group: str | None) -> dict
 
 
 def render(results: dict[str, list[dict]], title: str = "") -> str:
-    systems = [s for s in DEFAULT_SYSTEMS if s in results] + [s for s in results if s not in DEFAULT_SYSTEMS]
+    known = systems_for(True)
+    systems = [s for s in known if s in results] + [s for s in results if s not in known]
     lines = [f"# {title}".rstrip(), ""] if title else []
     for category in ("C0", "C1", "C2", "C3", "C4", "C5", "C6"):
         for cat, label, fn, group in METRICS:
