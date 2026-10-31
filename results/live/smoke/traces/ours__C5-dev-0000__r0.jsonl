@@ -1,0 +1,170 @@
+{"author": "user", "clock": 1, "entry_id": "e-0001", "kind": "user_message", "op": "write", "scope": "task", "session": 1, "trust": "trusted"}
+{"clock": 1, "item_ids": [], "op": "read", "reader": "planner", "token_count": 0}
+{"clock": 1, "cost_usd": 0.00042290000000000003, "latency_s": 4.989, "op": "llm_call", "refusal": false, "role": "planner", "session": 1}
+{"author": "planner", "clock": 2, "entry_id": "n-1-planner-1", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "planner", "clock": 3, "entry_id": "n-1-planner-2", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "planner", "clock": 4, "entry_id": "n-1-planner-3", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"clock": 4, "item_ids": [], "op": "read", "reader": "worker", "token_count": 0}
+{"clock": 4, "cost_usd": 0.0005224, "latency_s": 6.426, "op": "llm_call", "refusal": false, "role": "worker", "session": 1}
+{"clock": 4, "cost_usd": 0.00029110000000000003, "latency_s": 2.987, "op": "llm_call", "refusal": false, "role": "worker", "session": 1}
+{"author": "worker", "clock": 5, "entry_id": "n-1-worker-4", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "worker", "clock": 6, "entry_id": "n-1-worker-5", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "worker", "clock": 7, "entry_id": "n-1-worker-6", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"clock": 7, "item_ids": [], "op": "read", "reader": "reviewer", "token_count": 0}
+{"clock": 7, "cost_usd": 0.00022640000000000003, "latency_s": 3.302, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 1}
+{"author": "reviewer", "clock": 8, "entry_id": "n-1-reviewer-7", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "reviewer", "clock": 9, "entry_id": "n-1-reviewer-8", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "reviewer", "clock": 10, "entry_id": "n-1-reviewer-9", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "user", "clock": 11, "entry_id": "e-0004", "kind": "user_message", "op": "write", "scope": "task", "session": 2, "trust": "trusted"}
+{"clock": 11, "item_ids": ["fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "planner", "token_count": 19}
+{"clock": 11, "cost_usd": 0.00040950000000000003, "latency_s": 4.08, "op": "llm_call", "refusal": false, "role": "planner", "session": 2}
+{"author": "planner", "clock": 12, "entry_id": "n-2-planner-10", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "planner", "clock": 13, "entry_id": "n-2-planner-11", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "planner", "clock": 14, "entry_id": "n-2-planner-12", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"clock": 14, "item_ids": ["fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "worker", "token_count": 19}
+{"clock": 14, "cost_usd": 0.0003442, "latency_s": 3.996, "op": "llm_call", "refusal": false, "role": "worker", "session": 2}
+{"clock": 14, "cost_usd": 0.000255, "latency_s": 3.115, "op": "llm_call", "refusal": false, "role": "worker", "session": 2}
+{"author": "worker", "clock": 15, "entry_id": "n-2-worker-13", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "worker", "clock": 16, "entry_id": "n-2-worker-14", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"clock": 16, "item_ids": ["fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "reviewer", "token_count": 19}
+{"clock": 16, "cost_usd": 0.00020070000000000003, "latency_s": 2.238, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 2}
+{"author": "reviewer", "clock": 17, "entry_id": "n-2-reviewer-15", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "reviewer", "clock": 18, "entry_id": "n-2-reviewer-16", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "user", "clock": 19, "entry_id": "e-0008", "kind": "user_message", "op": "write", "scope": "task", "session": 3, "trust": "trusted"}
+{"clock": 19, "item_ids": ["fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "planner", "token_count": 39}
+{"clock": 19, "cost_usd": 0.0002701, "latency_s": 3.207, "op": "llm_call", "refusal": false, "role": "planner", "session": 3}
+{"author": "planner", "clock": 20, "entry_id": "n-3-planner-17", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "planner", "clock": 21, "entry_id": "n-3-planner-18", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "planner", "clock": 22, "entry_id": "n-3-planner-19", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"clock": 22, "item_ids": ["fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "worker", "token_count": 39}
+{"clock": 22, "cost_usd": 0.000401, "latency_s": 3.916, "op": "llm_call", "refusal": false, "role": "worker", "session": 3}
+{"clock": 22, "cost_usd": 0.0002786, "latency_s": 2.867, "op": "llm_call", "refusal": false, "role": "worker", "session": 3}
+{"author": "worker", "clock": 23, "entry_id": "n-3-worker-20", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "worker", "clock": 24, "entry_id": "n-3-worker-21", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "worker", "clock": 25, "entry_id": "n-3-worker-22", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"clock": 25, "item_ids": ["fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "reviewer", "token_count": 39}
+{"clock": 25, "cost_usd": 0.00021820000000000002, "latency_s": 2.707, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 3}
+{"author": "reviewer", "clock": 26, "entry_id": "n-3-reviewer-23", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "reviewer", "clock": 27, "entry_id": "n-3-reviewer-24", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "reviewer", "clock": 28, "entry_id": "n-3-reviewer-25", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "user", "clock": 29, "entry_id": "e-0013", "kind": "user_message", "op": "write", "scope": "task", "session": 4, "trust": "trusted"}
+{"author": "user", "clock": 30, "entry_id": "x-0001", "kind": "user_message", "op": "write", "scope": "task", "session": 4, "trust": "trusted"}
+{"clock": 30, "item_ids": ["fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004"], "op": "read", "reader": "planner", "token_count": 51}
+{"clock": 30, "cost_usd": 0.0005172, "latency_s": 4.978, "op": "llm_call", "refusal": false, "role": "planner", "session": 4}
+{"author": "planner", "clock": 31, "entry_id": "n-4-planner-26", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "planner", "clock": 32, "entry_id": "n-4-planner-27", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "planner", "clock": 33, "entry_id": "n-4-planner-28", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"clock": 33, "item_ids": ["fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "worker", "token_count": 51}
+{"clock": 33, "cost_usd": 0.00037910000000000005, "latency_s": 4.091, "op": "llm_call", "refusal": false, "role": "worker", "session": 4}
+{"clock": 33, "cost_usd": 0.0004087, "latency_s": 3.416, "op": "llm_call", "refusal": false, "role": "worker", "session": 4}
+{"author": "worker", "clock": 34, "entry_id": "n-4-worker-29", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "worker", "clock": 35, "entry_id": "n-4-worker-30", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "worker", "clock": 36, "entry_id": "n-4-worker-31", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"clock": 36, "item_ids": ["fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "reviewer", "token_count": 51}
+{"clock": 36, "cost_usd": 0.0002189, "latency_s": 2.589, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 4}
+{"author": "reviewer", "clock": 37, "entry_id": "n-4-reviewer-32", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "reviewer", "clock": 38, "entry_id": "n-4-reviewer-33", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "reviewer", "clock": 39, "entry_id": "n-4-reviewer-34", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "user", "clock": 40, "entry_id": "e-0018", "kind": "user_message", "op": "write", "scope": "task", "session": 5, "trust": "trusted"}
+{"clock": 40, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "planner", "token_count": 122}
+{"clock": 40, "cost_usd": 0.00047200000000000003, "latency_s": 4.669, "op": "llm_call", "refusal": false, "role": "planner", "session": 5}
+{"author": "planner", "clock": 41, "entry_id": "n-5-planner-35", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "planner", "clock": 42, "entry_id": "n-5-planner-36", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "planner", "clock": 43, "entry_id": "n-5-planner-37", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"clock": 43, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "worker", "token_count": 122}
+{"clock": 43, "cost_usd": 0.0003924, "latency_s": 3.742, "op": "llm_call", "refusal": false, "role": "worker", "session": 5}
+{"clock": 43, "cost_usd": 0.00026880000000000003, "latency_s": 3.399, "op": "llm_call", "refusal": false, "role": "worker", "session": 5}
+{"author": "worker", "clock": 44, "entry_id": "n-5-worker-38", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "worker", "clock": 45, "entry_id": "n-5-worker-39", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"clock": 45, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "reviewer", "token_count": 122}
+{"clock": 45, "cost_usd": 0.0002512, "latency_s": 4.614, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 5}
+{"author": "reviewer", "clock": 46, "entry_id": "n-5-reviewer-40", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "reviewer", "clock": 47, "entry_id": "n-5-reviewer-41", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "reviewer", "clock": 48, "entry_id": "n-5-reviewer-42", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "user", "clock": 49, "entry_id": "e-0022", "kind": "user_message", "op": "write", "scope": "task", "session": 6, "trust": "trusted"}
+{"clock": 49, "item_ids": ["constraint-x-0001-0", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "planner", "token_count": 141}
+{"clock": 49, "cost_usd": 0.00041850000000000004, "latency_s": 4.142, "op": "llm_call", "refusal": false, "role": "planner", "session": 6}
+{"author": "planner", "clock": 50, "entry_id": "n-6-planner-43", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "planner", "clock": 51, "entry_id": "n-6-planner-44", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "planner", "clock": 52, "entry_id": "n-6-planner-45", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"clock": 52, "item_ids": ["constraint-x-0001-0", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "worker", "token_count": 141}
+{"clock": 52, "cost_usd": 0.00026290000000000005, "latency_s": 2.814, "op": "llm_call", "refusal": false, "role": "worker", "session": 6}
+{"clock": 52, "cost_usd": 0.00045950000000000006, "latency_s": 6.075, "op": "llm_call", "refusal": false, "role": "worker", "session": 6}
+{"author": "worker", "clock": 53, "entry_id": "n-6-worker-46", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "worker", "clock": 54, "entry_id": "n-6-worker-47", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"clock": 54, "item_ids": ["constraint-x-0001-0", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "reviewer", "token_count": 141}
+{"clock": 54, "cost_usd": 0.0004228, "latency_s": 4.187, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 6}
+{"author": "reviewer", "clock": 55, "entry_id": "n-6-reviewer-48", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "reviewer", "clock": 56, "entry_id": "n-6-reviewer-49", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "user", "clock": 57, "entry_id": "e-0025", "kind": "user_message", "op": "write", "scope": "task", "session": 7, "trust": "trusted"}
+{"clock": 57, "item_ids": ["constraint-x-0001-0", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001"], "op": "read", "reader": "planner", "token_count": 162}
+{"clock": 57, "cost_usd": 0.00030010000000000003, "latency_s": 2.737, "op": "llm_call", "refusal": false, "role": "planner", "session": 7}
+{"author": "planner", "clock": 58, "entry_id": "n-7-planner-50", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "planner", "clock": 59, "entry_id": "n-7-planner-51", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "planner", "clock": 60, "entry_id": "n-7-planner-52", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"clock": 60, "item_ids": ["constraint-x-0001-0", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004"], "op": "read", "reader": "worker", "token_count": 162}
+{"clock": 60, "cost_usd": 0.00027130000000000004, "latency_s": 3.207, "op": "llm_call", "refusal": false, "role": "worker", "session": 7}
+{"author": "worker", "clock": 61, "entry_id": "e-0026", "kind": "tool_output", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"clock": 61, "cost_usd": 0.0002945, "latency_s": 2.342, "op": "llm_call", "refusal": false, "role": "worker", "session": 7}
+{"author": "worker", "clock": 62, "entry_id": "n-7-worker-53", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"author": "worker", "clock": 63, "entry_id": "n-7-worker-54", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"author": "worker", "clock": 64, "entry_id": "n-7-worker-55", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"clock": 64, "item_ids": ["constraint-x-0001-0", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-go_live_date-e-0013"], "op": "read", "reader": "reviewer", "token_count": 162}
+{"clock": 64, "cost_usd": 0.00024240000000000004, "latency_s": 2.557, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 7}
+{"author": "reviewer", "clock": 65, "entry_id": "n-7-reviewer-56", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "reviewer", "clock": 66, "entry_id": "n-7-reviewer-57", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"checkpoint_id": "cpx-1", "clock": 66, "op": "check", "passed": true}
+{"checkpoint_id": "cpx-1", "clock": 66, "label": "ok", "op": "label"}
+{"author": "user", "clock": 67, "entry_id": "e-0028", "kind": "user_message", "op": "write", "scope": "task", "session": 8, "trust": "trusted"}
+{"clock": 67, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "frag-e-0026-0", "frag-e-0026-2", "frag-e-0026-1"], "op": "read", "reader": "planner", "token_count": 215}
+{"clock": 67, "cost_usd": 0.0002855, "latency_s": 2.215, "op": "llm_call", "refusal": false, "role": "planner", "session": 8}
+{"author": "planner", "clock": 68, "entry_id": "n-8-planner-58", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "planner", "clock": 69, "entry_id": "n-8-planner-59", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"clock": 69, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "worker", "token_count": 215}
+{"clock": 69, "cost_usd": 0.0003754, "latency_s": 3.571, "op": "llm_call", "refusal": false, "role": "worker", "session": 8}
+{"clock": 69, "cost_usd": 0.000277, "latency_s": 3.283, "op": "llm_call", "refusal": false, "role": "worker", "session": 8}
+{"author": "worker", "clock": 70, "entry_id": "n-8-worker-60", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "worker", "clock": 71, "entry_id": "n-8-worker-61", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"clock": 71, "item_ids": ["constraint-x-0001-0", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "reviewer", "token_count": 215}
+{"clock": 71, "cost_usd": 0.00031109999999999997, "latency_s": 3.067, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 8}
+{"author": "reviewer", "clock": 72, "entry_id": "n-8-reviewer-62", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "reviewer", "clock": 73, "entry_id": "n-8-reviewer-63", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"checkpoint_id": "cp-1", "clock": 73, "op": "check", "passed": true}
+{"checkpoint_id": "cp-1", "clock": 73, "label": "ok", "op": "label"}
+{"author": "user", "clock": 74, "entry_id": "e-0033", "kind": "user_message", "op": "write", "scope": "task", "session": 9, "trust": "trusted"}
+{"clock": 74, "item_ids": ["constraint-x-0001-0", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/notifications-contingency_usd-e-0028", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "planner", "token_count": 235}
+{"clock": 74, "cost_usd": 0.000516, "latency_s": 4.185, "op": "llm_call", "refusal": false, "role": "planner", "session": 9}
+{"author": "planner", "clock": 75, "entry_id": "n-9-planner-64", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "planner", "clock": 76, "entry_id": "n-9-planner-65", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "planner", "clock": 77, "entry_id": "n-9-planner-66", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"clock": 77, "item_ids": ["constraint-x-0001-0", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/notifications-contingency_usd-e-0028", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "worker", "token_count": 235}
+{"clock": 77, "cost_usd": 0.0004378, "latency_s": 3.288, "op": "llm_call", "refusal": false, "role": "worker", "session": 9}
+{"clock": 77, "cost_usd": 0.0003509, "latency_s": 2.566, "op": "llm_call", "refusal": false, "role": "worker", "session": 9}
+{"author": "worker", "clock": 78, "entry_id": "n-9-worker-67", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "worker", "clock": 79, "entry_id": "n-9-worker-68", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "worker", "clock": 80, "entry_id": "n-9-worker-69", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"clock": 80, "item_ids": ["constraint-x-0001-0", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/notifications-contingency_usd-e-0028", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "reviewer", "token_count": 235}
+{"clock": 80, "cost_usd": 0.0002864, "latency_s": 3.614, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 9}
+{"author": "reviewer", "clock": 81, "entry_id": "n-9-reviewer-70", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "reviewer", "clock": 82, "entry_id": "n-9-reviewer-71", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "reviewer", "clock": 83, "entry_id": "n-9-reviewer-72", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"checkpoint_id": "cp-2", "clock": 83, "op": "check", "passed": false}
+{"checkpoint_id": "cp-2", "clock": 83, "label": "agent", "op": "label"}
+{"author": "user", "clock": 84, "entry_id": "e-0035", "kind": "user_message", "op": "write", "scope": "task", "session": 10, "trust": "trusted"}
+{"clock": 84, "item_ids": ["constraint-x-0001-0", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/auth-go_live_date-e-0033", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/auth-budget_usd-e-0033", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/notifications-contingency_usd-e-0028", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "planner", "token_count": 265}
+{"clock": 84, "cost_usd": 0.00032820000000000006, "latency_s": 3.108, "op": "llm_call", "refusal": false, "role": "planner", "session": 10}
+{"author": "planner", "clock": 85, "entry_id": "n-10-planner-73", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "planner", "clock": 86, "entry_id": "n-10-planner-74", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "planner", "clock": 87, "entry_id": "n-10-planner-75", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"clock": 87, "item_ids": ["constraint-x-0001-0", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/auth-go_live_date-e-0033", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/auth-budget_usd-e-0033", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/notifications-contingency_usd-e-0028", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "worker", "token_count": 265}
+{"clock": 87, "cost_usd": 0.000316, "latency_s": 2.191, "op": "llm_call", "refusal": false, "role": "worker", "session": 10}
+{"clock": 87, "cost_usd": 0.0005070000000000001, "latency_s": 5.661, "op": "llm_call", "refusal": false, "role": "worker", "session": 10}
+{"author": "worker", "clock": 88, "entry_id": "n-10-worker-76", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "worker", "clock": 89, "entry_id": "n-10-worker-77", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "worker", "clock": 90, "entry_id": "n-10-worker-78", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"clock": 90, "item_ids": ["constraint-x-0001-0", "fact-Atlas/billing-tech_lead-e-0022", "fact-Atlas/portal-tech_lead-e-0025", "fact-Atlas/mobile-tech_lead-e-0004", "fact-Atlas/billing-owner-e-0022", "fact-Atlas/admin-go_live_date-e-0013", "fact-Atlas/admin-handover_date-e-0013", "fact-Atlas/auth-budget_usd-e-0033", "fact-Atlas/auth-go_live_date-e-0033", "fact-Atlas/portal-integration-e-0026", "fact-Atlas/portal-owner-e-0025", "fact-Atlas/reporting-data_source-e-0008", "fact-Atlas/reporting-handover_date-e-0018", "fact-Atlas/migration-handover_date-e-0001", "fact-Atlas/mobile-owner-e-0004", "fact-Atlas/notifications-contingency_usd-e-0028", "frag-e-0026-0", "frag-e-0026-1", "frag-e-0026-2"], "op": "read", "reader": "reviewer", "token_count": 265}
+{"clock": 90, "cost_usd": 0.0002778, "latency_s": 2.552, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 10}
+{"author": "reviewer", "clock": 91, "entry_id": "n-10-reviewer-79", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "reviewer", "clock": 92, "entry_id": "n-10-reviewer-80", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"checkpoint_id": "cp-3", "clock": 92, "op": "check", "passed": true}
+{"checkpoint_id": "cp-3", "clock": 92, "label": "ok", "op": "label"}
