@@ -132,3 +132,38 @@ def test_a_null_value_is_not_a_fact():
     rows = [dict(ROW, value=None), dict(ROW, value=""), dict(ROW, value="  "), dict(ROW, value="100", as_of=None)]
     ex = LLMExtractor(FakeClient([facts_json(*rows)])).extract(entry("e1", "text"))
     assert [f.value for f in ex.facts] == ["100"]  # JSON null must not become the text "None"
+
+
+ENV_NOISE = ("billing budget is 281000\n\nStanding notes:\n"
+             "- Environment: /tmp/tmpXXXXXXXX, Linux, bash, not a git repository.\n"
+             "- Working directory: the previous summary lists /tmp/tmpAAA, but the current block lists /tmp/tmpBBB.\n"
+             "- Untrusted downloaded files go in their own empty directories; run Python with -I.\n"
+             "- Platform: linux\n"
+             "Owner of billing is Yara Rossi")
+
+
+def test_notes_about_the_working_environment_are_removed_from_a_model_summary():
+    llm = FakeClient([ENV_NOISE])
+    s = create("rolling_summary", extractor="llm", llm=llm)
+    s.write(entry("e1", "The budget is USD 281,000.", session=1))
+    s.end_session(1)
+    text = s.context(Reader("planner", "t", 2, "q")).render()
+    assert text == "billing budget is 281000\nOwner of billing is Yara Rossi"
+    assert "/tmp/" not in s.summary_text and "Standing notes" not in s.summary_text
+
+
+def test_a_standing_rule_that_is_project_information_is_kept():
+    llm = FakeClient(["Standing rule: never edit the billing.budget field.\nbilling budget is 281000"])
+    s = create("rolling_summary", extractor="llm", llm=llm)
+    s.write(entry("e1", "The budget is USD 281,000.", session=1))
+    s.end_session(1)
+    assert "Standing rule: never edit the billing.budget field." in s.summary_text
+
+
+def test_the_summary_prompt_tells_the_model_to_leave_the_environment_out():
+    llm = FakeClient(["ok"])
+    s = create("rolling_summary", extractor="llm", llm=llm)
+    s.write(entry("e1", "text", session=1))
+    s.end_session(1)
+    system = llm.calls[0]["system"].lower()
+    assert "working directory" in system and "only project information" in system
