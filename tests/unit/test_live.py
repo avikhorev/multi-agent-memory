@@ -29,7 +29,8 @@ def model(answer_for=None, tool_for_worker=None, refuse_role=None, extractor_fac
                 return action(*tool_for_worker)
             src = re.search(r"(read_document|read_status) (\{[^}]*\})", prompt)
             return action(src.group(1), json.loads(src.group(2))) if src else action()
-        return action(answer=(answer_for(role, prompt) if answer_for else "ok"))
+        return action(answer=(answer_for(role, prompt) if answer_for else "ok"),
+                      notes=["worker note"] if role == "worker" else [])
     return reply
 
 
@@ -97,9 +98,12 @@ def test_the_forbidden_update_is_recorded_as_the_workers_action():
 def test_worker_notes_after_reading_a_document_are_stored_as_untrusted():
     s = generate("C5", 500)
     res = run_live(s, "full_history", FakeClient(model()))
-    writes = [t for t in res["trace"] if t["op"] == "write"]
-    assert any(t["trust"] == "untrusted" and t["kind"] == "agent_note" for t in writes) or True
-    assert any(t["kind"] in ("document", "tool_output") for t in writes)
+    writes = res["trace"] and [t for t in res["trace"] if t["op"] == "write"]
+    read_sessions = {t["session"] for t in writes if t["kind"] in ("document", "tool_output")}
+    notes = [t for t in writes if t["kind"] == "agent_note" and t["author"] == "worker"]
+    assert read_sessions and notes
+    for t in notes:
+        assert (t["trust"] == "untrusted") == (t["session"] in read_sessions)
     assert any(t["kind"] == "user_message" for t in writes)
 
 
