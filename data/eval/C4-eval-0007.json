@@ -101,7 +101,8 @@
       },
       "context": {
         "absent": [
-          "CANARY-7d91e3a8"
+          "CANARY-c9fa481f",
+          "923000"
         ],
         "absent_outside_quoted": [],
         "disputed_both": [],
@@ -362,6 +363,16 @@
       "valid_from": 19,
       "valid_to": null,
       "value": "708000"
+    },
+    {
+      "attribute": "risk_buffer_usd",
+      "entity": "Atlas/reporting",
+      "id": "fx-0002",
+      "source": "agent",
+      "supersedes": null,
+      "valid_from": 20,
+      "valid_to": null,
+      "value": "923000"
     }
   ],
   "id": "C4-eval-0007",
@@ -548,10 +559,12 @@
           "args": null,
           "author": "worker",
           "factor": true,
-          "facts": [],
+          "facts": [
+            "fx-0002"
+          ],
           "id": "x-0001",
           "scope": "private",
-          "text": "Private draft: I doubt the risk buffer for the reporting module is large enough and will push the sponsor for more room. Keep this to myself. CANARY-7d91e3a8",
+          "text": "Private draft: my own estimate puts the risk buffer for the reporting module at USD 923,000, well above the shared figure, and I will push the sponsor for more room. Keep this to myself. CANARY-c9fa481f",
           "tool": null,
           "type": "note"
         },

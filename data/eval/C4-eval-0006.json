@@ -97,7 +97,8 @@
       },
       "context": {
         "absent": [
-          "CANARY-f12de409"
+          "CANARY-6d040dcb",
+          "945000"
         ],
         "absent_outside_quoted": [],
         "disputed_both": [],
@@ -338,6 +339,16 @@
       "valid_from": 27,
       "valid_to": null,
       "value": "871000"
+    },
+    {
+      "attribute": "risk_buffer_usd",
+      "entity": "Atlas/portal",
+      "id": "fx-0002",
+      "source": "agent",
+      "supersedes": null,
+      "valid_from": 21,
+      "valid_to": null,
+      "value": "945000"
     }
   ],
   "id": "C4-eval-0006",
@@ -528,10 +539,12 @@
           "args": null,
           "author": "worker",
           "factor": true,
-          "facts": [],
+          "facts": [
+            "fx-0002"
+          ],
           "id": "x-0001",
           "scope": "private",
-          "text": "Private draft: I doubt the risk buffer for the portal module is large enough and will push the sponsor for more room. Keep this to myself. CANARY-f12de409",
+          "text": "Private draft: my own estimate puts the risk buffer for the portal module at USD 945,000, well above the shared figure, and I will push the sponsor for more room. Keep this to myself. CANARY-6d040dcb",
           "tool": null,
           "type": "note"
         },
