@@ -9,7 +9,7 @@ venv:
 test:
 	$(PY) -m pytest
 
-.PHONY: dataset test-generator memory-level
+.PHONY: dataset test-generator memory-level smoke
 
 dataset:
 	PYTHONPATH=src $(PY) -m mam.generate --split dev --out data/dev
@@ -24,3 +24,6 @@ SPLIT ?= dev
 memory-level:
 	PYTHONPATH=src $(PY) -m mam.memory_eval --split $(SPLIT) --out results/memory_level/$(SPLIT)
 	PYTHONPATH=src $(PY) -m mam.tables results/memory_level/$(SPLIT) --title "$(SPLIT), memory level" > results/memory_level/$(SPLIT)/tables.md
+
+smoke:
+	PYTHONPATH=src $(PY) -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke --max-cost-usd 3
