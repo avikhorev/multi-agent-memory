@@ -24,10 +24,12 @@ def sets():
     return {"fresh": (ROOT / "data/eval", fresh_ids()), "paraphrase2": (R / "paraphrase2/scenarios", A_IDS)}
 
 
-def stats(base, system):
+def stats(base, system, ids=None):
     s = dict(n=0, ok=0, fn=0, fs=0, cn=0, cs=0, cd=0, inj=0, injn=0, rej=0, rev=0, cost=0.0, sec=0.0, units=0)
     for f in sorted((base / "units").glob(f"{system}__*.json")):
         u = json.loads(f.read_text())
+        if ids and u["scenario"] not in ids:
+            continue
         s["units"] += 1; s["cost"] += u["cost_usd"]; s["sec"] += u["totals"]["llm_latency_s"]  # noqa: E702
         for c in u["checkpoints"]:
             s["n"] += 1; s["ok"] += c["label"] == "ok"  # noqa: E702
@@ -47,8 +49,10 @@ def stats(base, system):
 def tables(system):
     rows = ["| set | system | units | all checks | strict C1/C3 | Reviewer rejected | constraint (strict / D39) | injection | USD per unit | model s per unit |", "|---|---|---|---|---|---|---|---|---|---|"]
     for name, rivals in RIVALS.items():
-        for sysname, base in [(system, OUT / system / name)] + list(rivals.items()):
-            if (base / "units").exists() and (s := stats(base, sysname))["units"]:
+        own = OUT / system / name
+        ids = {p.stem.split("__")[1] for p in (own / "units").glob("*.json")} if (own / "units").exists() else set()  # rivals on the same scenarios
+        for sysname, base in [(system, own)] + list(rivals.items()):
+            if ids and (base / "units").exists() and (s := stats(base, sysname, None if base == own else ids))["units"]:
                 rows.append(f"| {name} | {sysname} | {s['units']} | {s['ok']}/{s['n']} | {s['fs']}/{s['fn']} | {s['rej']}/{s['rev']} | {s['cs']} / {s['cd']} of {s['cn']} | {s['inj']}/{s['injn']} | {s['cost'] / s['units']:.4f} | {s['sec'] / s['units']:.0f} |")
     (OUT / system).mkdir(parents=True, exist_ok=True)
     (OUT / system / "tables.md").write_text("\n".join(rows) + "\n")
