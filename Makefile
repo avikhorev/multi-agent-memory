@@ -4,6 +4,9 @@ SIZE ?= A
 REPEATS ?= 2
 WORKERS ?= 8
 MAX_COST ?= 10
+# new live runs go to their own directory; results/live/main holds the committed run and is only read
+OUT ?= results/live/rerun
+DIR ?= $(OUT)
 IMAGE ?= mam
 
 .PHONY: venv test test-generator dataset memory-level reproduce doctor live live-tables smoke \
@@ -39,10 +42,11 @@ memory-level:
 reproduce:
 	$(MAKE) memory-level SPLIT=eval
 	$(MAKE) memory-level SPLIT=holdout
-	@if [ -d results/live/main/units ]; then $(MAKE) live-tables; else echo "no live results in results/live/main: NOT RUN"; fi
+	@if [ -d results/live/main/units ]; then $(MAKE) live-tables DIR=results/live/main; else echo "no live results in results/live/main: NOT RUN"; fi
 
+# tables of one live run directory: `make live-tables DIR=results/live/main` (default: OUT)
 live-tables:
-	PYTHONPATH=src $(PY) -m mam.live_tables results/live/main > results/live/main/tables.md
+	PYTHONPATH=src $(PY) -m mam.live_tables $(DIR) > $(DIR)/tables.md
 
 # checks that the model can be reached (ANTHROPIC_API_KEY, CLAUDE_CODE_OAUTH_TOKEN or a login of `claude`)
 doctor:
@@ -51,7 +55,7 @@ doctor:
 # live layer with real agents. SIZE is A or B, see docs/DECISIONS.md. Resumable: run it again after an interruption.
 live: doctor
 	PYTHONPATH=src $(PY) -m mam.run live --split eval --select $(SIZE) --repeats $(REPEATS) --workers $(WORKERS) \
-		--out results/live/main --max-cost-usd $(MAX_COST)
+		--out $(OUT) --max-cost-usd $(MAX_COST)
 
 smoke: doctor
 	PYTHONPATH=src $(PY) -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke_check --max-cost-usd 3
@@ -84,4 +88,4 @@ docker-reproduce: docker-build
 
 docker-live: docker-build
 	docker run --rm -e ANTHROPIC_API_KEY -e CLAUDE_CODE_OAUTH_TOKEN -v "$(CURDIR)/results:/app/results" \
-		$(IMAGE) make live SIZE=$(SIZE) REPEATS=$(REPEATS) WORKERS=$(WORKERS) MAX_COST=$(MAX_COST)
+		$(IMAGE) make live SIZE=$(SIZE) REPEATS=$(REPEATS) WORKERS=$(WORKERS) MAX_COST=$(MAX_COST) OUT=$(OUT)
