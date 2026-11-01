@@ -20,8 +20,10 @@ make docker-reproduce   # уровень памяти и все таблицы �
 ```
 
 ```bash
-ANTHROPIC_API_KEY=... make docker-live   # живой слой с настоящими агентами, платный
+ANTHROPIC_API_KEY=... make docker-live   # живой слой с настоящими агентами, платный; пишет в results/live/rerun
 ```
+
+Новые прогоны идут в `results/live/rerun` (переменная `OUT`); каталог `results/live/main` содержит закоммиченный прогон отчёта и только читается. Таблицы нового прогона: `make live-tables DIR=results/live/rerun`.
 
 Без Docker: Python 3.11 или новее, затем `make venv`, после чего те же цели без префикса `docker-`: `make test`, `make reproduce`, `make live`. Для `make live` понадобятся ещё Node.js 18 или новее и закреплённая версия Claude Code:
 
@@ -29,7 +31,7 @@ ANTHROPIC_API_KEY=... make docker-live   # живой слой с настоящ
 npm install -g @anthropic-ai/claude-code@2.1.316
 ```
 
-Сборка образа автором пока не проверялась: команды `make docker-*` и `Dockerfile` проверены только разбором. Если первая сборка потребует правок, это ошибка репозитория, пожалуйста, сообщите.
+Автор образ не собирал (на его машине не было демона контейнеров). При дополнительной проверке на Python 3.11.9 сборка прошла, `make test` дал 419 passed, `make reproduce` отработал без сети с кодом 0. `make docker-live` и запуск по ключу и по подписке: NOT RUN.
 
 ## Доступ к модели (только для живого слоя и прохода извлечения)
 
@@ -48,14 +50,16 @@ npm install -g @anthropic-ai/claude-code@2.1.316
 | Что | Как | Совпадение |
 |---|---|---|
 | Сценарии | `make dataset` | побайтно (Python 3.11–3.13) |
-| Уровень памяти | `make reproduce` | побайтно, кроме файлов `timing/` (это замеры времени) |
+| Уровень памяти | `make reproduce` | побайтно, кроме файлов `timing/` (замеры времени) и одной ячейки `results/memory_level/eval/tables.md` на Python 3.11 (нижняя граница интервала `rolling_summary@cache`, 1086 → 1087) |
 | Проход извлечения | `make extraction` (платный) | ответы модели сохранены в `results/extraction/`, их можно проигрывать без модели |
 | Живой слой | `make live` (платный) | в пределах разброса: температура не задаётся, разброс оценивается повторами |
-| Таблицы живого слоя | `make live-tables` | побайтно из сохранённых единиц |
+| Таблицы живого слоя | `make live-tables DIR=results/live/main` | побайтно из сохранённых единиц |
+| Качество извлечения | `PYTHONPATH=src python -m mam.extraction_quality results/extraction/eval/cache.jsonl data/eval` (без модели) | совпадает с `results/extraction/eval/quality.md` |
+| Дополнительный разбор после заморозки | `python scripts/post_hoc_c1c3.py lenient`, `python scripts/post_hoc_controls.py` (без модели) | совпадает с `results/post_hoc/` |
 
 После `make reproduce` сравните результат с закоммиченным: `git diff --stat results`. Различаться могут только файлы с замерами времени.
 
-Живой прогон возобновляется: после прерывания достаточно запустить `make live` снова, готовые единицы работы пропускаются. Параметры: `SIZE` (размер выборки, см. [`docs/DECISIONS.md`](docs/DECISIONS.md)), `REPEATS` (повторы, по умолчанию 2), `WORKERS` (параллельные вызовы, по умолчанию 8), `MAX_COST` (предел стоимости в долларах, по умолчанию 10; считается по `total_cost_usd` из ответов, при оплате по ключу это реальные деньги).
+Живой прогон возобновляется: после прерывания достаточно запустить `make live` снова с тем же `OUT`, готовые единицы работы пропускаются. Параметры: `SIZE` (размер выборки, см. [`docs/DECISIONS.md`](docs/DECISIONS.md)), `REPEATS` (повторы, по умолчанию 2), `WORKERS` (параллельные вызовы, по умолчанию 8), `MAX_COST` (предел стоимости в долларах, по умолчанию 10; считается по `total_cost_usd` из ответов, при оплате по ключу это реальные деньги).
 
 ## Структура
 
