@@ -55,11 +55,13 @@ npm install -g @anthropic-ai/claude-code@2.1.316
 | Живой слой | `make live` (платный) | в пределах разброса: температура не задаётся, разброс оценивается повторами |
 | Таблицы живого слоя | `make live-tables DIR=results/live/main` | побайтно из сохранённых единиц |
 | Качество извлечения | `PYTHONPATH=src python -m mam.extraction_quality results/extraction/eval/cache.jsonl data/eval` (без модели) | совпадает с `results/extraction/eval/quality.md` |
+| Проверка подачи с префиксом «сессия, автор, вид» (платная для `run`) | `PYTHONPATH=src python scripts/post_hoc_presentation.py plan` (список 48 единиц, без модели); `... run --max-cost-usd 1.5` (платный, пишет в `results/post_hoc/presentation`); `... counts`, `blind`, `join` (разбор сохранённых результатов, без модели) | `counts.md`, `classified.md` |
+| Сравнение контрольного повтора с основным прогоном | `PYTHONPATH=src python scripts/post_hoc_control_repeat.py` (без модели) | совпадает с `results/post_hoc/control_repeat.md` |
 | Дополнительный разбор после заморозки | `python scripts/post_hoc_c1c3.py lenient`, `python scripts/post_hoc_controls.py` (без модели) | совпадает с `results/post_hoc/` |
 
 После `make reproduce` сравните результат с закоммиченным: `git diff --stat results`. Различаться могут только файлы с замерами времени.
 
-Живой прогон возобновляется: после прерывания достаточно запустить `make live` снова с тем же `OUT`, готовые единицы работы пропускаются. Параметры: `SIZE` (размер выборки, см. [`docs/DECISIONS.md`](docs/DECISIONS.md)), `REPEATS` (повторы, по умолчанию 2), `WORKERS` (параллельные вызовы, по умолчанию 8), `MAX_COST` (предел стоимости в долларах, по умолчанию 10; считается по `total_cost_usd` из ответов, при оплате по ключу это реальные деньги).
+Если прогон остановлен по стоимости, `make live` завершается кодом 2 и `make` печатает `Error 2`: это штатный выход, не сбой. Предел `MAX_COST` мягкий: единицы, уже начатые к моменту остановки, доделываются, поэтому итог может немного превысить предел. Живой прогон возобновляется: после прерывания достаточно запустить `make live` снова с тем же `OUT`, готовые единицы работы пропускаются. Параметры: `SIZE` (размер выборки, см. [`docs/DECISIONS.md`](docs/DECISIONS.md)), `REPEATS` (повторы, по умолчанию 2), `WORKERS` (параллельные вызовы, по умолчанию 8), `MAX_COST` (предел стоимости в долларах, по умолчанию 10; считается по `total_cost_usd` из ответов, при оплате по ключу это реальные деньги).
 
 ## Структура
 

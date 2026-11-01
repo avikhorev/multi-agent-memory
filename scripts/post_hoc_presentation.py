@@ -99,6 +99,77 @@ def shuffled(rows):
     return {f"p{k + 1:02d}": rows[i] for k, i in enumerate(idx)}
 
 
+CONTROL = ROOT / "results/live/control"
+
+
+def all_checks(units_dir, repeats=None):
+    """Passed checks on all checkpoints of the C1 and C3 scenarios, per system and repeat."""
+    out = collections.defaultdict(collections.Counter)  # (system, repeat) -> ok / n
+    for f in sorted(Path(units_dir).glob("*.json")):
+        d = json.loads(f.read_text())
+        if d["scenario"][:2] not in ("C1", "C3") or (repeats is not None and d["repeat"] not in repeats):
+            continue
+        name = d["system"][: -len("_meta")] if d["system"].endswith("_meta") else d["system"]
+        for c in d["checkpoints"]:
+            out[(name, d["repeat"])]["n"] += 1
+            out[(name, d["repeat"])]["ok"] += c["label"] == "ok"
+            if not c["factor"]:
+                out[(name, d["repeat"])]["nf_n"] += 1
+                out[(name, d["repeat"])]["nf_ok"] += c["label"] == "ok"
+                out[(name, d["repeat"])]["nf_memory"] += c["label"] == "memory"
+    return out
+
+
+def read_stats(units_dir, system, prefix_scenarios=("C1",)):
+    """Mean number of context items and tokens per memory read of one system on the given categories."""
+    items, toks = [], []
+    for f in sorted(Path(units_dir).glob(f"{system}__*.jsonl" if False else "*.json")):
+        d = json.loads(f.read_text())
+        if d["system"] != system or d["scenario"][:2] not in prefix_scenarios:
+            continue
+        tf = Path(units_dir).parent / "traces" / f"{f.stem}.jsonl"
+        for line in tf.read_text().splitlines():
+            t = json.loads(line)
+            if t["op"] == "read":
+                items.append(len(t["item_ids"]))
+                toks.append(t["token_count"])
+    return (sum(items) / len(items), sum(toks) / len(toks), len(items)) if items else (0, 0, 0)
+
+
+def analyze_all():
+    lines = ["", "## All checkpoints of the C1 and C3 scenarios (48 per system; supplement, not part of the D27 criterion)", "",
+             "| system | without prefix | with prefix | difference |", "|---|---|---|---|"]
+    main = all_checks(MAIN)
+    pres = all_checks(OUT / "units")
+    for b in BASES + ["ours"]:
+        a = sum(main[(b, r)]["ok"] for r in (0, 1))
+        n = sum(main[(b, r)]["n"] for r in (0, 1))
+        if b == "ours":
+            lines.append(f"| ours (not rerun) | {a}/{n} | | |")
+            continue
+        p = sum(pres[(b, r)]["ok"] for r in (0, 1))
+        lines.append(f"| {b} | {a}/{n} | {p}/{sum(pres[(b, r)]['n'] for r in (0, 1))} | {p - a:+d} |")
+    ctrl = all_checks(CONTROL / "units", repeats={0})
+    lines += ["", "Run-to-run spread on the 24 checks of one run (repeat 0 and repeat 1 of the main run, control run):", "",
+              "| system | main r0 | main r1 | control | min-max |", "|---|---|---|---|---|"]
+    for b in BASES + ["ours"]:
+        v = [main[(b, 0)]["ok"], main[(b, 1)]["ok"], ctrl[(b, 0)]["ok"]]
+        lines.append(f"| {b} | {v[0]} | {v[1]} | {v[2]} | {min(v)}-{max(v)} |")
+    lines += ["", "Non-factor checkpoints (36 per system over both repeats), ok and label memory:", "",
+              "| system | ok without prefix | ok with prefix | memory label without prefix | memory label with prefix |", "|---|---|---|---|---|"]
+    for b in BASES:
+        g = lambda d: (sum(d[(b, r)]["nf_ok"] for r in (0, 1)), sum(d[(b, r)]["nf_memory"] for r in (0, 1)), sum(d[(b, r)]["nf_n"] for r in (0, 1)))
+        (ao, am, an), (po, pm, pn) = g(main), g(pres)
+        lines.append(f"| {b} | {ao}/{an} | {po}/{pn} | {am} | {pm} |")
+    lines += ["", "Sliding window on C1 scenarios: mean context items and tokens per memory read:", "",
+              "| variant | items | tokens | reads |", "|---|---|---|---|"]
+    for label, d, name in (("plain, main run", MAIN, "sliding_window"), ("plain, control run", CONTROL / "units", "sliding_window"),
+                           ("with prefix", OUT / "units", "sliding_window_meta")):
+        i, t, n = read_stats(d, name)
+        lines.append(f"| {label} | {i:.1f} | {t:.0f} | {n} |")
+    return "\n".join(lines) + "\n"
+
+
 def analyze(cmd):
     pres = factor_rows(OUT / "units")
     out = OUT
@@ -111,7 +182,7 @@ def analyze(cmd):
             for b in names:
                 sel = [r for r in rs if r["system"] in (b, f"{b}_meta")]
                 lines.append(f"| {b} | {sum(r['strict'] for r in sel)} | {sum(lenient_ok(r) for r in sel)} | {len(sel)} |")
-        text = "\n".join(lines) + "\n"
+        text = "\n".join(lines) + "\n" + analyze_all()
         (out / "counts.md").write_text(text)
         print(text)
     elif cmd == "blind":
