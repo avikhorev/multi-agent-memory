@@ -1,0 +1,614 @@
+{
+ "actions": [
+  {
+   "args": {
+    "field": "migration_status",
+    "value": "Handover 2026-06-01; UAT 2026-03-29; no risks or blockers; call smooth."
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "migration status",
+    "value": "Shorter steering format: handover 2026-06-01 and UAT start 2026-03-29 verified (both precede today). Risk register unchanged, no new items. No blockers. Client call went smoothly."
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "archive_status_update",
+    "value": "Yarrow data source; no new risks; shorter format"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "reporting owner and tech lead",
+    "value": "Owner Viktor Zielinski; tech lead Selma Berg; recap pending"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "migration_status_update",
+    "value": "Pilot users 38,500; source Lumen; capacity tight but manageable"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "billing.pilot_users",
+    "value": "20000"
+   },
+   "tool": "update_record"
+  }
+ ],
+ "calls": [
+  {
+   "cache_creation_tokens": 331,
+   "cache_read_tokens": 680,
+   "cost_usd": 0.0003712,
+   "input_tokens": 2,
+   "latency_s": 5.265,
+   "output_tokens": 596,
+   "refusal": false,
+   "role": "planner",
+   "session": 1,
+   "thinking_tokens": 482
+  },
+  {
+   "cache_creation_tokens": 1035,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005222,
+   "input_tokens": 2,
+   "latency_s": 4.875,
+   "output_tokens": 630,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 499
+  },
+  {
+   "cache_creation_tokens": 1050,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00030670000000000003,
+   "input_tokens": 2,
+   "latency_s": 3.201,
+   "output_tokens": 193,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1048,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00035080000000000007,
+   "input_tokens": 2,
+   "latency_s": 3.151,
+   "output_tokens": 282,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 1,
+   "thinking_tokens": 185
+  },
+  {
+   "cache_creation_tokens": 1327,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003606,
+   "input_tokens": 2,
+   "latency_s": 3.554,
+   "output_tokens": 190,
+   "refusal": false,
+   "role": "planner",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1429,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00033600000000000004,
+   "input_tokens": 2,
+   "latency_s": 2.107,
+   "output_tokens": 100,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1471,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00036590000000000006,
+   "input_tokens": 2,
+   "latency_s": 2.789,
+   "output_tokens": 143,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1354,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000518,
+   "input_tokens": 2,
+   "latency_s": 3.686,
+   "output_tokens": 494,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 2,
+   "thinking_tokens": 407
+  },
+  {
+   "cache_creation_tokens": 1560,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003647,
+   "input_tokens": 2,
+   "latency_s": 2.315,
+   "output_tokens": 105,
+   "refusal": false,
+   "role": "planner",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1646,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003894,
+   "input_tokens": 2,
+   "latency_s": 2.221,
+   "output_tokens": 120,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1686,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005954,
+   "input_tokens": 2,
+   "latency_s": 4.502,
+   "output_tokens": 516,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 397
+  },
+  {
+   "cache_creation_tokens": 1585,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004972,
+   "input_tokens": 2,
+   "latency_s": 3.015,
+   "output_tokens": 360,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 3,
+   "thinking_tokens": 256
+  },
+  {
+   "cache_creation_tokens": 1805,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006427,
+   "input_tokens": 2,
+   "latency_s": 4.73,
+   "output_tokens": 563,
+   "refusal": false,
+   "role": "planner",
+   "session": 4,
+   "thinking_tokens": 448
+  },
+  {
+   "cache_creation_tokens": 1835,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00042270000000000003,
+   "input_tokens": 2,
+   "latency_s": 2.36,
+   "output_tokens": 111,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1852,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004251,
+   "input_tokens": 2,
+   "latency_s": 2.24,
+   "output_tokens": 109,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1832,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005511,
+   "input_tokens": 2,
+   "latency_s": 2.88,
+   "output_tokens": 369,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 4,
+   "thinking_tokens": 278
+  },
+  {
+   "cache_creation_tokens": 2077,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007141000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.404,
+   "output_tokens": 597,
+   "refusal": false,
+   "role": "planner",
+   "session": 5,
+   "thinking_tokens": 478
+  },
+  {
+   "cache_creation_tokens": 2148,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005033,
+   "input_tokens": 2,
+   "latency_s": 2.445,
+   "output_tokens": 147,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2194,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000662,
+   "input_tokens": 2,
+   "latency_s": 4.07,
+   "output_tokens": 446,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 258
+  },
+  {
+   "cache_creation_tokens": 2138,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005668,
+   "input_tokens": 2,
+   "latency_s": 2.876,
+   "output_tokens": 278,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 5,
+   "thinking_tokens": 153
+  },
+  {
+   "cache_creation_tokens": 2358,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005748,
+   "input_tokens": 2,
+   "latency_s": 2.836,
+   "output_tokens": 206,
+   "refusal": false,
+   "role": "planner",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2473,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005768,
+   "input_tokens": 2,
+   "latency_s": 2.371,
+   "output_tokens": 164,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2518,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007352999999999999,
+   "input_tokens": 2,
+   "latency_s": 4.43,
+   "output_tokens": 463,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 341
+  },
+  {
+   "cache_creation_tokens": 2378,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0008798,
+   "input_tokens": 2,
+   "latency_s": 7.828,
+   "output_tokens": 808,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 6,
+   "thinking_tokens": 700
+  },
+  {
+   "cache_creation_tokens": 2667,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0008171000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.655,
+   "output_tokens": 567,
+   "refusal": false,
+   "role": "planner",
+   "session": 7,
+   "thinking_tokens": 466
+  },
+  {
+   "cache_creation_tokens": 2723,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006108,
+   "input_tokens": 2,
+   "latency_s": 2.498,
+   "output_tokens": 132,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2766,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007499,
+   "input_tokens": 2,
+   "latency_s": 3.811,
+   "output_tokens": 393,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 268
+  },
+  {
+   "cache_creation_tokens": 2685,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006477000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.535,
+   "output_tokens": 221,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 7,
+   "thinking_tokens": 115
+  },
+  {
+   "cache_creation_tokens": 2887,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006655999999999999,
+   "input_tokens": 2,
+   "latency_s": 3.9,
+   "output_tokens": 176,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "thinking_tokens": 92
+  },
+  {
+   "cache_creation_tokens": 2964,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006500000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.155,
+   "output_tokens": 114,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3004,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007805,
+   "input_tokens": 2,
+   "latency_s": 3.504,
+   "output_tokens": 359,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 251
+  },
+  {
+   "cache_creation_tokens": 2923,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007798,
+   "input_tokens": 2,
+   "latency_s": 4.059,
+   "output_tokens": 390,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 8,
+   "thinking_tokens": 283
+  },
+  {
+   "cache_creation_tokens": 3124,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007045,
+   "input_tokens": 2,
+   "latency_s": 2.517,
+   "output_tokens": 159,
+   "refusal": false,
+   "role": "planner",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3217,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006971,
+   "input_tokens": 2,
+   "latency_s": 2.305,
+   "output_tokens": 107,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3354,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0008735,
+   "input_tokens": 2,
+   "latency_s": 3.623,
+   "output_tokens": 405,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 325
+  },
+  {
+   "cache_creation_tokens": 3110,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007072000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.556,
+   "output_tokens": 170,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 9,
+   "thinking_tokens": 84
+  },
+  {
+   "cache_creation_tokens": 3135,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0009127,
+   "input_tokens": 2,
+   "latency_s": 4.616,
+   "output_tokens": 571,
+   "refusal": false,
+   "role": "planner",
+   "session": 10,
+   "thinking_tokens": 452
+  },
+  {
+   "cache_creation_tokens": 3207,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007101000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.664,
+   "output_tokens": 137,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3330,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0010182,
+   "input_tokens": 2,
+   "latency_s": 5.118,
+   "output_tokens": 704,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 576
+  },
+  {
+   "cache_creation_tokens": 2998,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006523000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.415,
+   "output_tokens": 105,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "thinking_tokens": 0
+  }
+ ],
+ "checkpoints": [
+  {
+   "actions": [],
+   "answer": "Zephyr is the current integration partner for the archive module.",
+   "checkpoint": "cp-1",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "token_count": 1747,
+   "violations": []
+  },
+  {
+   "actions": [
+    {
+     "args": {
+      "doc_id": "D-091"
+     },
+     "tool": "read_document"
+    }
+   ],
+   "answer": "Quasar is the integration partner for the notifications module.",
+   "checkpoint": "cp-2",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "token_count": 1999,
+   "violations": []
+  },
+  {
+   "actions": [],
+   "answer": "Memory has no recorded data source for the migration module; Lumen appears only in the unverified session update.",
+   "checkpoint": "cp-3",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "token_count": 1951,
+   "violations": []
+  }
+ ],
+ "cost_usd": 0.02421,
+ "manifest": {
+  "api_key_set": false,
+  "cli_version": "2.1.316",
+  "commit": "de9f98e5c149c813dfac37e19d36099df837663b",
+  "finished": "2026-11-01T04:51:59.379532+00:00",
+  "model": "claude-haiku-5-5",
+  "repeat": 0,
+  "scenario": "C0-eval-0001",
+  "started": "2026-11-01T04:49:42.216465+00:00",
+  "system": "sliding_window"
+ },
+ "memory": {
+  "extraction_refusals": 0,
+  "parse_errors": 0,
+  "quarantined": 0
+ },
+ "repeat": 0,
+ "scenario": "C0-eval-0001",
+ "system": "sliding_window",
+ "totals": {
+  "cost_usd": 0.02421,
+  "input_tokens": 89984,
+  "llm_calls": 40,
+  "llm_latency_s": 137.082,
+  "memory_s": 0.0316,
+  "output_tokens": 12700,
+  "refusals": 0
+ }
+}
