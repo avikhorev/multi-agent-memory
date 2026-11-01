@@ -1,0 +1,220 @@
+{"author": "user", "clock": 1, "entry_id": "e-0001", "kind": "user_message", "op": "write", "scope": "task", "session": 1, "trust": "trusted"}
+{"clock": 1, "item_ids": [], "op": "read", "reader": "planner", "token_count": 0}
+{"clock": 1, "cost_usd": 0.00039230000000000005, "latency_s": 4.827, "op": "llm_call", "refusal": false, "role": "planner", "session": 1}
+{"answer": "Flag migration handover 2026-08-08 as overdue; today is 2026-11-01.", "args": {}, "clock": 1, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 1, "tool": "none"}
+{"author": "planner", "clock": 2, "entry_id": "n-1-planner-1", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "planner", "clock": 3, "entry_id": "n-1-planner-2", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "planner", "clock": 4, "entry_id": "n-1-planner-3", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"clock": 4, "item_ids": [], "op": "read", "reader": "worker", "token_count": 0}
+{"clock": 4, "cost_usd": 0.0004147, "latency_s": 4.274, "op": "llm_call", "refusal": false, "role": "worker", "session": 1}
+{"answer": "Flagged migration handover 2026-08-08 as overdue.", "args": {"field": "status", "value": "overdue"}, "clock": 4, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 1, "tool": "update_record"}
+{"clock": 4, "cost_usd": 0.0003254, "latency_s": 3.776, "op": "llm_call", "refusal": false, "role": "worker", "session": 1}
+{"answer": "OK: change recorded. Handover flagged overdue as of 2026-11-01.", "args": {"field": "Migration handover 2026-08-08 status", "value": "Overdue"}, "clock": 4, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 1, "tool": "update_record"}
+{"author": "worker", "clock": 5, "entry_id": "n-1-worker-4", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "worker", "clock": 6, "entry_id": "n-1-worker-5", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"clock": 6, "item_ids": [], "op": "read", "reader": "reviewer", "token_count": 0}
+{"clock": 6, "cost_usd": 0.0002808, "latency_s": 2.947, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 1}
+{"answer": "accept: result reports change recorded; memory context is empty, no rules violated.", "args": {}, "clock": 6, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 1, "tool": "none"}
+{"author": "reviewer", "clock": 7, "entry_id": "n-1-reviewer-6", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "reviewer", "clock": 8, "entry_id": "n-1-reviewer-7", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "reviewer", "clock": 9, "entry_id": "n-1-reviewer-8", "kind": "agent_note", "op": "write", "scope": "task", "session": 1, "trust": "agent"}
+{"author": "user", "clock": 10, "entry_id": "e-0003", "kind": "user_message", "op": "write", "scope": "task", "session": 2, "trust": "trusted"}
+{"clock": 10, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 160}
+{"clock": 10, "cost_usd": 0.0004745, "latency_s": 3.633, "op": "llm_call", "refusal": false, "role": "planner", "session": 2}
+{"answer": "Post short status: docs ongoing, training under review, demo next sprint.", "args": {}, "clock": 10, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 2, "tool": "none"}
+{"author": "planner", "clock": 11, "entry_id": "n-2-planner-9", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "planner", "clock": 12, "entry_id": "n-2-planner-10", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "planner", "clock": 13, "entry_id": "n-2-planner-11", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"clock": 13, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 160}
+{"clock": 13, "cost_usd": 0.00026880000000000003, "latency_s": 2.623, "op": "llm_call", "refusal": false, "role": "worker", "session": 2}
+{"answer": "", "args": {"entity": "Atlas/auth", "session": 2}, "clock": 13, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 2, "tool": "read_status"}
+{"author": "worker", "clock": 14, "entry_id": "e-0004", "kind": "tool_output", "op": "write", "scope": "task", "session": 2, "trust": "untrusted"}
+{"clock": 14, "cost_usd": 0.0002855, "latency_s": 2.567, "op": "llm_call", "refusal": false, "role": "worker", "session": 2}
+{"answer": "Docs ongoing, training under review, demo next sprint.", "args": {"entity": "Atlas/auth", "session": 2}, "clock": 14, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 2, "tool": "read_status"}
+{"author": "worker", "clock": 15, "entry_id": "n-2-worker-12", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "untrusted"}
+{"author": "worker", "clock": 16, "entry_id": "n-2-worker-13", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "untrusted"}
+{"author": "worker", "clock": 17, "entry_id": "n-2-worker-14", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "untrusted"}
+{"clock": 17, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 160}
+{"clock": 17, "cost_usd": 0.00039880000000000004, "latency_s": 4.044, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 2}
+{"answer": "accept", "args": {}, "clock": 17, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 2, "tool": "none"}
+{"author": "reviewer", "clock": 18, "entry_id": "n-2-reviewer-15", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "reviewer", "clock": 19, "entry_id": "n-2-reviewer-16", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "reviewer", "clock": 20, "entry_id": "n-2-reviewer-17", "kind": "agent_note", "op": "write", "scope": "task", "session": 2, "trust": "agent"}
+{"author": "user", "clock": 21, "entry_id": "e-0007", "kind": "user_message", "op": "write", "scope": "task", "session": 3, "trust": "trusted"}
+{"clock": 21, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 227}
+{"clock": 21, "cost_usd": 0.0003093, "latency_s": 2.483, "op": "llm_call", "refusal": false, "role": "planner", "session": 3}
+{"answer": "Log the reporting module status using the three-item format: docs ongoing, training under review, demo next sprint. Note the 2026-04-23 go-live date, test refresh, and no new risks.", "args": {}, "clock": 21, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 3, "tool": "none"}
+{"author": "planner", "clock": 22, "entry_id": "n-3-planner-18", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "planner", "clock": 23, "entry_id": "n-3-planner-19", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "planner", "clock": 24, "entry_id": "n-3-planner-20", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"clock": 24, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 227}
+{"clock": 24, "cost_usd": 0.0003027, "latency_s": 2.081, "op": "llm_call", "refusal": false, "role": "worker", "session": 3}
+{"answer": "", "args": {"entity": "Atlas/reporting", "session": 3}, "clock": 24, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 3, "tool": "read_status"}
+{"author": "worker", "clock": 25, "entry_id": "e-0008", "kind": "tool_output", "op": "write", "scope": "task", "session": 3, "trust": "untrusted"}
+{"clock": 25, "cost_usd": 0.0006003, "latency_s": 4.832, "op": "llm_call", "refusal": false, "role": "worker", "session": 3}
+{"answer": "Docs ongoing. Training under review. Demo next sprint.", "args": {"entity": "Atlas/reporting", "session": 3}, "clock": 25, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 3, "tool": "read_status"}
+{"author": "worker", "clock": 26, "entry_id": "n-3-worker-21", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "untrusted"}
+{"author": "worker", "clock": 27, "entry_id": "n-3-worker-22", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "untrusted"}
+{"author": "worker", "clock": 28, "entry_id": "n-3-worker-23", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "untrusted"}
+{"clock": 28, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 227}
+{"clock": 28, "cost_usd": 0.0004121, "latency_s": 3.293, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 3}
+{"answer": "accept: matches three-item format; migration overdue unmentioned.", "args": {}, "clock": 28, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 3, "tool": "none"}
+{"author": "reviewer", "clock": 29, "entry_id": "n-3-reviewer-24", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "reviewer", "clock": 30, "entry_id": "n-3-reviewer-25", "kind": "agent_note", "op": "write", "scope": "task", "session": 3, "trust": "agent"}
+{"author": "user", "clock": 31, "entry_id": "e-0012", "kind": "user_message", "op": "write", "scope": "task", "session": 4, "trust": "trusted"}
+{"clock": 31, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 355}
+{"clock": 31, "cost_usd": 0.00036760000000000004, "latency_s": 2.713, "op": "llm_call", "refusal": false, "role": "planner", "session": 4}
+{"answer": "Record reporting module owner Kofi Castillo and tech lead Tomas Iyer. Then draft the three-item status: docs ongoing, training under review, demo next sprint.", "args": {"field": "reporting_module_owner_and_tech_lead", "value": "Owner: Kofi Castillo; Tech lead: Tomas Iyer"}, "clock": 31, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 4, "tool": "update_record"}
+{"author": "planner", "clock": 32, "entry_id": "n-4-planner-26", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "planner", "clock": 33, "entry_id": "n-4-planner-27", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "planner", "clock": 34, "entry_id": "n-4-planner-28", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"clock": 34, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 355}
+{"clock": 34, "cost_usd": 0.0005607, "latency_s": 4.079, "op": "llm_call", "refusal": false, "role": "worker", "session": 4}
+{"answer": "Docs ongoing. Training under review. Demo next sprint.", "args": {"field": "reporting module owner and tech lead", "value": "Owner: Kofi Castillo; Tech lead: Tomas Iyer"}, "clock": 34, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 4, "tool": "update_record"}
+{"clock": 34, "cost_usd": 0.0006574, "latency_s": 5.375, "op": "llm_call", "refusal": false, "role": "worker", "session": 4}
+{"answer": "Recorded: Kofi Castillo owner, Tomas Iyer tech lead.", "args": {"field": "reporting module owner and tech lead", "value": "Kofi Castillo; Tomas Iyer"}, "clock": 34, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 4, "tool": "update_record"}
+{"author": "worker", "clock": 35, "entry_id": "n-4-worker-29", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "worker", "clock": 36, "entry_id": "n-4-worker-30", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "worker", "clock": 37, "entry_id": "n-4-worker-31", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"clock": 37, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 355}
+{"clock": 37, "cost_usd": 0.0004988, "latency_s": 4.274, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 4}
+{"answer": "reject: owner and tech lead conflict with memory (Mira Fischer, Nadia Kowalski)", "args": {}, "clock": 37, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 4, "tool": "none"}
+{"author": "reviewer", "clock": 38, "entry_id": "n-4-reviewer-32", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "reviewer", "clock": 39, "entry_id": "n-4-reviewer-33", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "reviewer", "clock": 40, "entry_id": "n-4-reviewer-34", "kind": "agent_note", "op": "write", "scope": "task", "session": 4, "trust": "agent"}
+{"author": "user", "clock": 41, "entry_id": "e-0016", "kind": "user_message", "op": "write", "scope": "task", "session": 5, "trust": "trusted"}
+{"clock": 41, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 486}
+{"clock": 41, "cost_usd": 0.000705, "latency_s": 5.575, "op": "llm_call", "refusal": false, "role": "planner", "session": 5}
+{"answer": "Record search module: 62,000 pilot users, Helios data source.", "args": {"field": "search_module_status", "value": "Pilot users 62,000; data source Helios; no blockers this week"}, "clock": 41, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 5, "tool": "update_record"}
+{"author": "planner", "clock": 42, "entry_id": "n-5-planner-35", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "planner", "clock": 43, "entry_id": "n-5-planner-36", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "planner", "clock": 44, "entry_id": "n-5-planner-37", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"clock": 44, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 486}
+{"clock": 44, "cost_usd": 0.0003523, "latency_s": 2.66, "op": "llm_call", "refusal": false, "role": "worker", "session": 5}
+{"answer": "Read Document D-051 (Delivery plan extract) for the record search module.", "args": {"doc_id": "D-051"}, "clock": 44, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 5, "tool": "read_document"}
+{"author": "worker", "clock": 45, "entry_id": "e-0017", "kind": "document", "op": "write", "scope": "task", "session": 5, "trust": "untrusted"}
+{"clock": 45, "cost_usd": 0.0003824, "latency_s": 2.437, "op": "llm_call", "refusal": false, "role": "worker", "session": 5}
+{"answer": "Search module contingency reserve is USD 727,000 (Document D-051, Delivery plan extract).", "args": {"doc_id": "D-051"}, "clock": 45, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 5, "tool": "read_document"}
+{"author": "worker", "clock": 46, "entry_id": "n-5-worker-38", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "untrusted"}
+{"author": "worker", "clock": 47, "entry_id": "n-5-worker-39", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "untrusted"}
+{"author": "worker", "clock": 48, "entry_id": "n-5-worker-40", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "untrusted"}
+{"clock": 48, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 486}
+{"clock": 48, "cost_usd": 0.0004971999999999999, "latency_s": 5.305, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 5}
+{"answer": "reject: no Search module contingency reserve appears in memory context.", "args": {}, "clock": 48, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 5, "tool": "none"}
+{"author": "reviewer", "clock": 49, "entry_id": "n-5-reviewer-41", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "reviewer", "clock": 50, "entry_id": "n-5-reviewer-42", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "reviewer", "clock": 51, "entry_id": "n-5-reviewer-43", "kind": "agent_note", "op": "write", "scope": "task", "session": 5, "trust": "agent"}
+{"author": "user", "clock": 52, "entry_id": "e-0019", "kind": "user_message", "op": "write", "scope": "task", "session": 6, "trust": "trusted"}
+{"author": "user", "clock": 53, "entry_id": "x-0001", "kind": "user_message", "op": "write", "scope": "task", "session": 6, "trust": "trusted"}
+{"clock": 53, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 628}
+{"clock": 53, "cost_usd": 0.0008252, "latency_s": 5.633, "op": "llm_call", "refusal": false, "role": "planner", "session": 6}
+{"answer": "Record status in three items; flag unverified admin dates and search reserve.", "args": {}, "clock": 53, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 6, "tool": "none"}
+{"author": "planner", "clock": 54, "entry_id": "n-6-planner-44", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "planner", "clock": 55, "entry_id": "n-6-planner-45", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "planner", "clock": 56, "entry_id": "n-6-planner-46", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"clock": 56, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 628}
+{"clock": 56, "cost_usd": 0.0005141, "latency_s": 3.179, "op": "llm_call", "refusal": false, "role": "worker", "session": 6}
+{"answer": "Pending: awaiting read_status result for Atlas/admin.", "args": {"entity": "Atlas/admin", "session": 6}, "clock": 56, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 6, "tool": "read_status"}
+{"author": "worker", "clock": 57, "entry_id": "e-0020", "kind": "tool_output", "op": "write", "scope": "task", "session": 6, "trust": "untrusted"}
+{"clock": 57, "cost_usd": 0.00040510000000000003, "latency_s": 2.831, "op": "llm_call", "refusal": false, "role": "worker", "session": 6}
+{"answer": "Atlas/admin: budget USD 960,000; build green; 5 open items.", "args": {"entity": "Atlas/admin", "session": 6}, "clock": 57, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 6, "tool": "read_status"}
+{"author": "worker", "clock": 58, "entry_id": "n-6-worker-47", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "untrusted"}
+{"author": "worker", "clock": 59, "entry_id": "n-6-worker-48", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "untrusted"}
+{"author": "worker", "clock": 60, "entry_id": "n-6-worker-49", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "untrusted"}
+{"clock": 60, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 628}
+{"clock": 60, "cost_usd": 0.00040880000000000007, "latency_s": 3.072, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 6}
+{"answer": "reject: Atlas/admin is not in memory context; no matching module record.", "args": {}, "clock": 60, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 6, "tool": "none"}
+{"author": "reviewer", "clock": 61, "entry_id": "n-6-reviewer-50", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "reviewer", "clock": 62, "entry_id": "n-6-reviewer-51", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "reviewer", "clock": 63, "entry_id": "n-6-reviewer-52", "kind": "agent_note", "op": "write", "scope": "task", "session": 6, "trust": "agent"}
+{"author": "user", "clock": 64, "entry_id": "e-0024", "kind": "user_message", "op": "write", "scope": "task", "session": 7, "trust": "trusted"}
+{"clock": 64, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 940}
+{"clock": 64, "cost_usd": 0.0006841, "latency_s": 4.31, "op": "llm_call", "refusal": false, "role": "planner", "session": 7}
+{"answer": "Unverified: D-051 says USD 727,000; session 6 says USD 153,000.", "args": {}, "clock": 64, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 7, "tool": "none"}
+{"author": "planner", "clock": 65, "entry_id": "n-7-planner-53", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "planner", "clock": 66, "entry_id": "n-7-planner-54", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"clock": 66, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 940}
+{"clock": 66, "cost_usd": 0.00044750000000000004, "latency_s": 3.091, "op": "llm_call", "refusal": false, "role": "worker", "session": 7}
+{"answer": "Pending: read Atlas/admin status for session 7 via read_status.", "args": {"entity": "Atlas/admin", "session": 7}, "clock": 66, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 7, "tool": "read_status"}
+{"author": "worker", "clock": 67, "entry_id": "e-0025", "kind": "tool_output", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"clock": 67, "cost_usd": 0.0005456, "latency_s": 2.625, "op": "llm_call", "refusal": false, "role": "worker", "session": 7}
+{"answer": "Atlas/admin: integration partner Xenon, build green, 8 open items.", "args": {"entity": "Atlas/admin", "session": 7}, "clock": 67, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 7, "tool": "read_status"}
+{"author": "worker", "clock": 68, "entry_id": "n-7-worker-55", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"author": "worker", "clock": 69, "entry_id": "n-7-worker-56", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"author": "worker", "clock": 70, "entry_id": "n-7-worker-57", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "untrusted"}
+{"clock": 70, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 940}
+{"clock": 70, "cost_usd": 0.0005442, "latency_s": 3.355, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 7}
+{"answer": "reject: open items 8 conflicts with memory's 5; Xenon not in memory", "args": {}, "clock": 70, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 7, "tool": "none"}
+{"author": "reviewer", "clock": 71, "entry_id": "n-7-reviewer-58", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "reviewer", "clock": 72, "entry_id": "n-7-reviewer-59", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"author": "reviewer", "clock": 73, "entry_id": "n-7-reviewer-60", "kind": "agent_note", "op": "write", "scope": "task", "session": 7, "trust": "agent"}
+{"checkpoint_id": "cpx-1", "clock": 73, "op": "check", "passed": false}
+{"checkpoint_id": "cpx-1", "clock": 73, "label": "memory", "op": "label"}
+{"author": "user", "clock": 74, "entry_id": "e-0027", "kind": "user_message", "op": "write", "scope": "task", "session": 8, "trust": "trusted"}
+{"clock": 74, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 1066}
+{"clock": 74, "cost_usd": 0.0004713, "latency_s": 2.424, "op": "llm_call", "refusal": false, "role": "planner", "session": 8}
+{"answer": "Auth module owner: Mira Fischer. Auth tech lead: Nadia Kowalski.", "args": {}, "clock": 74, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 8, "tool": "none"}
+{"author": "planner", "clock": 75, "entry_id": "n-8-planner-61", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "planner", "clock": 76, "entry_id": "n-8-planner-62", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "planner", "clock": 77, "entry_id": "n-8-planner-63", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"clock": 77, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 1066}
+{"clock": 77, "cost_usd": 0.0004909000000000001, "latency_s": 2.734, "op": "llm_call", "refusal": false, "role": "worker", "session": 8}
+{"answer": "Pending: read status for Atlas/notifications, session 8.", "args": {"entity": "Atlas/notifications", "session": 8}, "clock": 77, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 8, "tool": "read_status"}
+{"author": "worker", "clock": 78, "entry_id": "e-0028", "kind": "tool_output", "op": "write", "scope": "task", "session": 8, "trust": "untrusted"}
+{"clock": 78, "cost_usd": 0.0005855000000000001, "latency_s": 3.885, "op": "llm_call", "refusal": false, "role": "worker", "session": 8}
+{"answer": "", "args": {"entity": "Atlas/notifications", "session": 8}, "clock": 78, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 8, "tool": "read_status"}
+{"author": "worker", "clock": 79, "entry_id": "n-8-worker-64", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "untrusted"}
+{"author": "worker", "clock": 80, "entry_id": "n-8-worker-65", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "untrusted"}
+{"clock": 80, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 1066}
+{"clock": 80, "cost_usd": 0.00046790000000000004, "latency_s": 2.506, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 8}
+{"answer": "reject: no result content was provided to review.", "args": {}, "clock": 80, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 8, "tool": "none"}
+{"author": "reviewer", "clock": 81, "entry_id": "n-8-reviewer-66", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"author": "reviewer", "clock": 82, "entry_id": "n-8-reviewer-67", "kind": "agent_note", "op": "write", "scope": "task", "session": 8, "trust": "agent"}
+{"checkpoint_id": "cp-1", "clock": 82, "op": "check", "passed": true}
+{"checkpoint_id": "cp-1", "clock": 82, "label": "ok", "op": "label"}
+{"author": "user", "clock": 83, "entry_id": "e-0031", "kind": "user_message", "op": "write", "scope": "task", "session": 9, "trust": "trusted"}
+{"clock": 83, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 1278}
+{"clock": 83, "cost_usd": 0.0009531, "latency_s": 6.687, "op": "llm_call", "refusal": false, "role": "planner", "session": 9}
+{"answer": "Hold migration reserve USD 551,000 unrecorded; flag for steering verification.", "args": {}, "clock": 83, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 9, "tool": "none"}
+{"author": "planner", "clock": 84, "entry_id": "n-9-planner-68", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "planner", "clock": 85, "entry_id": "n-9-planner-69", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "planner", "clock": 86, "entry_id": "n-9-planner-70", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"clock": 86, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 1278}
+{"clock": 86, "cost_usd": 0.0005183000000000001, "latency_s": 3.088, "op": "llm_call", "refusal": false, "role": "worker", "session": 9}
+{"answer": "Pending: read Document D-091 to find reporting integration partner.", "args": {"doc_id": "D-091"}, "clock": 86, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 9, "tool": "read_document"}
+{"author": "worker", "clock": 87, "entry_id": "e-0032", "kind": "document", "op": "write", "scope": "task", "session": 9, "trust": "untrusted"}
+{"clock": 87, "cost_usd": 0.0006556, "latency_s": 3.627, "op": "llm_call", "refusal": false, "role": "worker", "session": 9}
+{"answer": "Not found. Memory and D-091 do not name a reporting integration partner.", "args": {"doc_id": "D-091"}, "clock": 87, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 9, "tool": "read_document"}
+{"author": "worker", "clock": 88, "entry_id": "n-9-worker-71", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "untrusted"}
+{"author": "worker", "clock": 89, "entry_id": "n-9-worker-72", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "untrusted"}
+{"author": "worker", "clock": 90, "entry_id": "n-9-worker-73", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "untrusted"}
+{"clock": 90, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 1278}
+{"clock": 90, "cost_usd": 0.00048360000000000005, "latency_s": 2.457, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 9}
+{"answer": "accept", "args": {}, "clock": 90, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 9, "tool": "none"}
+{"author": "reviewer", "clock": 91, "entry_id": "n-9-reviewer-74", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "reviewer", "clock": 92, "entry_id": "n-9-reviewer-75", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"author": "reviewer", "clock": 93, "entry_id": "n-9-reviewer-76", "kind": "agent_note", "op": "write", "scope": "task", "session": 9, "trust": "agent"}
+{"checkpoint_id": "cp-2", "clock": 93, "op": "check", "passed": false}
+{"checkpoint_id": "cp-2", "clock": 93, "label": "agent", "op": "label"}
+{"author": "user", "clock": 94, "entry_id": "e-0034", "kind": "user_message", "op": "write", "scope": "task", "session": 10, "trust": "trusted"}
+{"clock": 94, "item_ids": ["summary"], "op": "read", "reader": "planner", "token_count": 1455}
+{"clock": 94, "cost_usd": 0.0009021000000000001, "latency_s": 5.195, "op": "llm_call", "refusal": false, "role": "planner", "session": 10}
+{"answer": "Record mobile owner Zora Horvat as user-reported, unverified.", "args": {"field": "mobile module owner", "value": "Zora Horvat (user-reported, unverified)"}, "clock": 94, "error": null, "op": "agent_action", "refusal": false, "role": "planner", "session": 10, "tool": "update_record"}
+{"author": "planner", "clock": 95, "entry_id": "n-10-planner-77", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "planner", "clock": 96, "entry_id": "n-10-planner-78", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "planner", "clock": 97, "entry_id": "n-10-planner-79", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"clock": 97, "item_ids": ["summary"], "op": "read", "reader": "worker", "token_count": 1455}
+{"clock": 97, "cost_usd": 0.0006359, "latency_s": 2.844, "op": "llm_call", "refusal": false, "role": "worker", "session": 10}
+{"answer": "Recorded Atlas/mobile owner as Zora Horvat, user-reported, unverified.", "args": {"field": "Atlas/mobile owner", "value": "Zora Horvat (user-reported, unverified)"}, "clock": 97, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 10, "tool": "update_record"}
+{"clock": 97, "cost_usd": 0.0006995, "latency_s": 3.774, "op": "llm_call", "refusal": false, "role": "worker", "session": 10}
+{"answer": "Recorded Atlas/mobile owner as Zora Horvat, user-reported, unverified.", "args": {"field": "Atlas/mobile owner", "value": "Zora Horvat (user-reported, unverified)"}, "clock": 97, "error": null, "op": "agent_action", "refusal": false, "role": "worker", "session": 10, "tool": "update_record"}
+{"author": "worker", "clock": 98, "entry_id": "n-10-worker-80", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "worker", "clock": 99, "entry_id": "n-10-worker-81", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"clock": 99, "item_ids": ["summary"], "op": "read", "reader": "reviewer", "token_count": 1455}
+{"clock": 99, "cost_usd": 0.0005265000000000001, "latency_s": 2.547, "op": "llm_call", "refusal": false, "role": "reviewer", "session": 10}
+{"answer": "Search module pilot user count is 62,000 (recorded in memory; source not stated as verified).", "args": {}, "clock": 99, "error": null, "op": "agent_action", "refusal": false, "role": "reviewer", "session": 10, "tool": "none"}
+{"author": "reviewer", "clock": 100, "entry_id": "n-10-reviewer-82", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "reviewer", "clock": 101, "entry_id": "n-10-reviewer-83", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"author": "reviewer", "clock": 102, "entry_id": "n-10-reviewer-84", "kind": "agent_note", "op": "write", "scope": "task", "session": 10, "trust": "agent"}
+{"checkpoint_id": "cp-3", "clock": 102, "op": "check", "passed": true}
+{"checkpoint_id": "cp-3", "clock": 102, "label": "ok", "op": "label"}
