@@ -14,8 +14,8 @@ from graphiti_adapter import Graphiti3  # noqa: E402
 
 def stub(system, messages):
     """An empty but valid answer for the schema that the adapter puts into the prompt."""
-    schema = json.loads(system.split("follows this JSON schema: ", 1)[1]) if "JSON schema" in system else {}
-    return json.dumps({k: [] if schema["properties"][k].get("type") == "array" else "" for k in schema.get("required", [])})
+    shape = json.loads(system.split("replaced by the answer: ", 1)[1]) if "placeholders" in system else {}
+    return json.dumps({k: [] if isinstance(v, list) else "" for k, v in shape.items()})
 
 
 def entry(i, text, scope="task", author="user"):
