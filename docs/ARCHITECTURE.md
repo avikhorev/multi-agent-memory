@@ -12,28 +12,26 @@ flowchart TB
 
     subgraph harness["Живой прогон: run_live"]
         loop["Цикл сессий"]
-        sim["Simulator<br/>read_document, read_status, update_record"]
-        scorer["Оценщик<br/>score_action, score_context, label_failure"]
+        sim["Simulator<br/>инструменты Worker"]
+        scorer["Оценщик<br/>проверки и метки провалов"]
     end
 
-    subgraph agents["Агенты без состояния: run_agent"]
+    subgraph memory["Память"]
+        api["MemorySystem<br/>write, context, end_session"]
+    end
+
+    subgraph agents["Агенты без состояния"]
         planner["Planner"]
         worker["Worker"]
         reviewer["Reviewer"]
     end
 
-    subgraph memory["Память: MemorySystem"]
-        api["write, context, end_session"]
-    end
-
-    llm["LLMClient<br/>ClaudeCliClient, claude-haiku-5-5"]
+    llm["LLMClient<br/>ClaudeCliClient<br/>claude-haiku-5-5"]
     results["Единицы results/live/<br/>таблицы и REPORT.md"]
 
-    loop -->|"контекст и задача"| agents
-    agents -->|"ответ, действие, заметки"| loop
-    loop -->|"записи"| api
-    api -->|"контекст до 2000 токенов"| loop
-    loop <-->|"вызов инструмента"| sim
+    loop <-->|"записи и контекст до 2000 токенов"| api
+    loop <-->|"контекст и задача, ответ и действие"| agents
+    loop <--> sim
     loop --> scorer
     scorer --> results
     agents --> llm
@@ -108,13 +106,11 @@ flowchart TB
         close["end_session: записи сессии по порядку clock"]
         extractor["Экстрактор<br/>факты с датой и источником"]
         rule["rule_constraints<br/>только доверенные записи"]
-        check{"Недоверенный документ<br/>или вывод инструмента?"}
         guard["split_untrusted<br/>разбор по строкам"]
         entry --> close
         close --> extractor
         close --> rule
-        close --> check
-        check -->|"да"| guard
+        close -->|"недоверенные документы<br/>и выводы инструментов"| guard
     end
 
     subgraph stores["Хранилища"]
@@ -129,11 +125,11 @@ flowchart TB
     guard -->|"значение не извлечено как факт"| fragments
     guard -->|"похоже на инструкцию"| quarantine
 
-    subgraph reading["Чтение: context для читателя"]
+    subgraph reading["Чтение: context"]
         scope["Фильтр видимости<br/>private, task, shared"]
-        first["1. Ограничения<br/>ошибка, если не помещаются в лимит"]
-        resolve["2. Факты<br/>разрешение версий, метки DISPUTED и data"]
-        rest["3. Фрагменты"]
+        first["Ограничения идут первыми<br/>ошибка, если не помещаются в лимит"]
+        resolve["Факты<br/>разрешение версий, метки DISPUTED и data"]
+        rest["Фрагменты"]
         rank["Отбор по BM25 и времени<br/>сначала факты, затем фрагменты"]
         limit["Заполнение до 2000 токенов"]
         scope --> first
