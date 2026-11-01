@@ -4,7 +4,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from post_hoc_ours2 import Ours2  # noqa: E402
+from post_hoc_ours2 import Ours2, Ours3  # noqa: E402
 
 from mam.tokens import count  # noqa: E402
 from mam.types import Entry, Fact, Reader  # noqa: E402
@@ -91,3 +91,44 @@ def test_the_limit_is_never_exceeded():
     entries = [entry(i, ("Billing budget note %d " % i) * 20, session=1 if i < 6 else 2) for i in range(1, 12)]
     ctx = system(entries, ended=(1,), limit=300).context(reader())
     assert ctx.token_count <= 300 and sum(count(t) for t in texts(ctx)) <= 300
+
+
+# ---- ours3: redaction of lost values in the filler and a 300-token filler cap ------------------------
+
+def fact_of(attr, value, time, source="user"):
+    return Fact(f"f-{attr}-{value}", "Atlas/billing", attr, value, time, None, None, source)
+
+
+def system3(entries, ended, limit=2000):
+    s = Ours3(limit)
+    for e in entries:
+        s.write(e)
+    for k in ended:
+        s.end_session(k)
+    return s
+
+
+def filler_texts(ctx):
+    return [i.text for i in ctx.items if i.id.startswith("fill-")]
+
+
+def test_a_lost_number_is_redacted_in_every_written_form():
+    old = entry(1, "Billing budget is 100,000 dollars.", [fact_of("budget_usd", "100000", 1)], session=1)
+    new = entry(2, "Billing budget changed to 200,000 dollars, it was 100000.", [fact_of("budget_usd", "200000", 2)], session=2)
+    note = entry(3, "Reminder: the old billing budget of 100 000 dollars is gone.", author="reviewer", kind="agent_note", session=2)
+    texts_ = filler_texts(system3([old, new, note], ended=(1, 2)).context(reader()))
+    assert texts_ and not any(v in t for t in texts_ for v in ("100,000", "100 000", "100000"))
+    assert any("[outdated]" in t for t in texts_) and any("200,000" in t for t in texts_)
+
+
+def test_a_value_that_is_current_for_another_fact_is_not_redacted():
+    a1 = entry(1, "Billing budget 300 and pilot users 300.", [fact_of("budget_usd", "300", 1), fact_of("pilot_users", "300", 1)], session=1)
+    a2 = entry(2, "Billing budget is now 500.", [fact_of("budget_usd", "500", 2)], session=2)
+    texts_ = filler_texts(system3([a1, a2], ended=(1, 2)).context(reader()))
+    assert any("pilot users 300" in t for t in texts_)
+
+
+def test_the_filler_never_exceeds_300_tokens():
+    entries = [entry(i, ("Billing budget review note %d " % i) * 8, session=1) for i in range(1, 30)]
+    ctx = system3(entries, ended=(1,)).context(reader(query="billing budget review"))
+    assert 0 < sum(count(t) for t in filler_texts(ctx)) <= 300

@@ -8,6 +8,7 @@ Order under the limit: constraints, buffer, facts, fragments, filler.
 """
 import argparse
 import json
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -27,6 +28,7 @@ class Ours2(Ours):
     def __init__(self, limit, ablate2=frozenset(), **kw):
         super().__init__(limit, **kw)
         self.off = frozenset(ablate2)
+        self.filler_cap = None  # tokens of the filler inside the limit; None: the rest of the limit
 
     def _resolve(self, versions):
         n = len(self.last_trace)
@@ -78,12 +80,51 @@ class Ours2(Ours):
         finally:
             self.limit = limit
         used += sum(count(i.text) for i in rest)
-        fill = []
+        fill, spent = [], 0
         for item in self._filler(reader) if "filler" not in self.off else []:
-            if used + count(item.text) <= limit:
+            cost = count(item.text)
+            if used + cost <= limit and (self.filler_cap is None or spent + cost <= self.filler_cap):
                 fill.append(item)
-                used += count(item.text)
+                used += cost
+                spent += cost
         return make_context(cons + buf + rest + fill)
+
+
+def _pattern(value):
+    """Regex for a value as written in a record: digits with or without thousand separators, or the exact text."""
+    v = value.strip()
+    if v.isdigit() and len(v) > 3:
+        r = len(v) % 3 or 3
+        groups = [v[:r]] + [v[i:i + 3] for i in range(r, len(v), 3)]
+        return re.compile(r"(?<!\d)" + r"[,\s.]?".join(groups) + r"(?!\d)")
+    return re.compile(r"(?<!\w)" + re.escape(v) + r"(?!\w)", re.I)
+
+
+class Ours3(Ours2):
+    """ours2 with the lost values redacted in the filler (instead of dropping the records) and a 300-token filler."""
+
+    def __init__(self, limit, **kw):
+        super().__init__(limit, **kw)
+        self.filler_cap = 300
+
+    def _filler(self, reader):
+        lost, current = set(), set()
+        for versions in self._versions.values():
+            seen = [v for v in versions if self._can_see(v.entry, reader)]
+            if seen:
+                cur = {c.fact.value for c in self._resolve(seen)}
+                current |= cur
+                lost |= {v.fact.value for v in seen} - cur
+        patterns = [_pattern(v) for v in lost - current]
+        docs = [e for e in self._entries.values() if e.id in self._done and e.trust != "untrusted" and self._can_see(e, reader)]
+        texts = []
+        for e in docs:
+            t = e.text
+            for p in patterns:
+                t = p.sub("[outdated]", t)
+            texts.append(t)
+        ranked = sorted(zip(bm25_scores(reader.query, texts), docs, texts), key=lambda p: (-p[0], -p[1].clock))
+        return [ContextItem(f"fill-{e.id}", "raw", t, (e.id,)) for _, e, t in ranked]
 
 
 # ---- memory-level run and comparison (no model) ---------------------------------------------------------
@@ -94,30 +135,34 @@ OUT = ROOT / "results/post_hoc/ours2"
 
 
 def make_system(cfg, limit=2000, cache_path=None):
-    """memory_eval.make_system for the ours2 names: ours2@cache or ours2@cache-no_<change>."""
-    _, _, rest = cfg.partition("@")
+    """memory_eval.make_system for the new names: ours2@cache, ours2@cache-no_<change>, ours3@cache."""
+    name, _, rest = cfg.partition("@")
     extractor, _, off = rest.partition("-")
+    if name == "ours3":
+        return Ours3(limit, extractor=extractor, cache_path=cache_path)
     return Ours2(limit, ablate2={off[3:]} if off else frozenset(), extractor=extractor, cache_path=cache_path)
 
 
-def memory_level():
+def memory_level(variants=None, out=None):
     from mam import memory_eval
+    variants, out = variants or VARIANTS, out or OUT
     original = memory_eval.make_system
     memory_eval.make_system = lambda cfg, limit=2000, cache_path=None: (
-        make_system(cfg, limit, cache_path) if cfg.startswith("ours2") else original(cfg, limit, cache_path))
+        make_system(cfg, limit, cache_path) if cfg.startswith(("ours2", "ours3")) else original(cfg, limit, cache_path))
     for split in ("eval", "holdout"):
-        sys.argv = ["memory_eval", "--split", split, "--out", str(OUT / split), "--systems", ",".join(VARIANTS),
+        sys.argv = ["memory_eval", "--split", split, "--out", str(out / split), "--systems", ",".join(variants),
                     "--cache", str(ROOT / f"results/extraction/{split}/cache.jsonl")]
         memory_eval.main()
 
 
-def compare():
+def compare(variants=None, out=None, title="ours2"):
     from mam.tables import METRICS
-    lines = ["# ours2 against ours@cache at the memory level (no model; post hoc)", ""]
+    variants, OUT_ = variants or VARIANTS, out or OUT
+    lines = [f"# {title} against ours@cache at the memory level (no model; post hoc)", ""]
     for split in ("eval", "holdout"):
         res = {}
         for name, path in [("ours@cache", ROOT / f"results/memory_level/{split}/ours@cache.jsonl")] + \
-                          [(v, OUT / split / f"{v}.jsonl") for v in VARIANTS]:
+                          [(v, OUT_ / split / f"{v}.jsonl") for v in variants]:
             res[name] = [r for r in map(json.loads, path.read_text().splitlines()) if r["record"] == "checkpoint"]
         lines += [f"## {split}", "", "| metric | " + " | ".join(res) + " |", "|---|" + "---|" * len(res)]
         lines.append("| checkpoints passed | " + " | ".join(f"{sum(r['passed'] for r in rs)}/{len(rs)}" for rs in res.values()) + " |")
@@ -128,7 +173,7 @@ def compare():
                 cells.append(f"{sum(map(float, sel)) / len(sel):.2f}" if sel else "-")
             lines.append(f"| {cat} {label} | " + " | ".join(cells) + " |")
         lines.append("")
-    (OUT / "memory_level.md").write_text("\n".join(lines))
+    (OUT_ / "memory_level.md").write_text("\n".join(lines))
     print("\n".join(lines))
 
 
@@ -209,11 +254,13 @@ def criteria(variant="ours2"):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["memory", "compare", "live", "criteria"])
+    ap.add_argument("cmd", choices=["memory", "compare", "live", "criteria", "memory3", "compare3"])
     ap.add_argument("--variant", choices=list(VARIANTS_LIVE), default="ours2")
     ap.add_argument("--max-cost-usd", type=float, default=1.5)
     ap.add_argument("--max-minutes", type=float, default=25)
     a = ap.parse_args()
     if a.cmd == "live":
         run_live_stage(a.max_cost_usd, a.max_minutes, variant=a.variant)
-    {"memory": memory_level, "compare": compare, "criteria": lambda: criteria(a.variant)}.get(a.cmd, lambda: None)()
+    O3 = ROOT / "results/post_hoc/ours3"
+    {"memory": memory_level, "compare": compare, "criteria": lambda: criteria(a.variant),
+     "memory3": lambda: memory_level(["ours3@cache"], O3), "compare3": lambda: compare(["ours3@cache"], O3, "ours3")}.get(a.cmd, lambda: None)()
