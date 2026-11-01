@@ -4,6 +4,7 @@
 
 - Постановка, метрики и гипотезы проигрыша: [`docs/PROBLEM.md`](docs/PROBLEM.md); модель угроз: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md); допущения: [`docs/ASSUMPTIONS.md`](docs/ASSUMPTIONS.md).
 - Формат сценариев, правила оценки и интерфейс памяти: [`docs/SCENARIO_FORMAT.md`](docs/SCENARIO_FORMAT.md).
+- Схемы системы, сессии, памяти и разрешения конфликта: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 - Принятые решения с числами: [`docs/DECISIONS.md`](docs/DECISIONS.md); измерения вызова модели: [`docs/PILOT.md`](docs/PILOT.md).
 - Отчёт с результатами: [`REPORT.md`](REPORT.md).
 

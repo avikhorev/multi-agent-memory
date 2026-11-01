@@ -29,7 +29,7 @@
 
 ## 2. Дизайн
 
-Устройство памяти `ours`, правила разрешения конфликтов, фильтр доверия, закреплённые ограничения, базовые линии: [`docs/DECISIONS.md`](docs/DECISIONS.md) (D12, D15), модель угроз: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
+Схемы системы, сессии, памяти `ours` и разрешения конфликта: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md). Устройство памяти `ours`, правила разрешения конфликтов, фильтр доверия, закреплённые ограничения, базовые линии: [`docs/DECISIONS.md`](docs/DECISIONS.md) (D12, D15), модель угроз: [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md).
 
 ## 3. Бенчмарк
 
