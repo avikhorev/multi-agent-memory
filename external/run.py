@@ -57,14 +57,14 @@ def tables(system):
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("system"); ap.add_argument("cmd", choices=["pilot", "run", "tables"]); ap.add_argument("--max-cost-usd", type=float, default=1.0); ap.add_argument("--fresh-cats", default="")  # noqa: E702
+    ap.add_argument("system"); ap.add_argument("cmd", choices=["pilot", "run", "tables"]); ap.add_argument("--max-cost-usd", type=float, default=1.0); ap.add_argument("--fresh-cats", default=""); ap.add_argument("--only", default="")  # noqa: E702
     a = ap.parse_args()
     if a.cmd == "tables":
         tables(a.system); sys.exit()  # noqa: E702
     mod, llm, orig = importlib.import_module(f"{a.system}_adapter"), ClaudeCliClient(), live.create
     live.create = lambda name, **kw: mod.create(kw.get("limit", 2000), llm) if name == a.system else orig(name, **kw)
     todo = {"pilot": {"pilot": (ROOT / "data/eval", ["C2-eval-0003"])}, "run": sets()}[a.cmd]
-    for name, (data, ids) in todo.items():
+    for name, (data, ids) in [(n, v) for n, v in todo.items() if not a.only or n == a.only]:
         ids = [i for i in ids if name != "fresh" or not a.fresh_cats or i[:2] in a.fresh_cats.split(",")]  # D43: shortened set B
         r = run_units(plan_units([a.system], ids, 1), llm, data, OUT / a.system / name, workers=8, max_minutes=25, max_cost_usd=a.max_cost_usd)
         print(name, f"done {r.done}, skipped {r.skipped}, failed {r.failed}, cost ${r.cost_usd:.3f}, stopped_by {r.stopped_by}")
