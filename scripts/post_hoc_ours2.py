@@ -182,7 +182,8 @@ def compare(variants=None, out=None, title="ours2"):
 LIVE_OUT = OUT / "live"
 
 
-VARIANTS_LIVE = {"ours2": (frozenset(), OUT / "live"), "ours2_lite": (frozenset({"filler"}), OUT / "live_lite")}
+VARIANTS_LIVE = {"ours2": (frozenset(), OUT / "live"), "ours2_lite": (frozenset({"filler"}), OUT / "live_lite"),
+                 "ours3": (frozenset(), ROOT / "results/post_hoc/ours3/live")}
 
 
 def live_units(variant="ours2"):
@@ -198,7 +199,8 @@ def run_live_stage(max_cost, max_minutes, workers=8, variant="ours2"):
     llm = ClaudeCliClient()
     original = live.create
     off, out = VARIANTS_LIVE[variant]
-    live.create = lambda name, **kw: (Ours2(kw.get("limit", 2000), ablate2=off, extractor="llm", llm=llm)
+    cls = Ours3 if variant == "ours3" else Ours2
+    live.create = lambda name, **kw: (cls(kw.get("limit", 2000), extractor="llm", llm=llm, **({} if cls is Ours3 else {"ablate2": off}))
                                       if name == variant else original(name, **kw))
     r = run_units(live_units(variant), llm, ROOT / "data/eval", out, workers=workers, max_minutes=max_minutes, max_cost_usd=max_cost)
     print(f"done {r.done}, skipped {r.skipped}, failed {r.failed}, cost ${r.cost_usd:.3f}, stopped_by {r.stopped_by}")
@@ -248,7 +250,7 @@ def criteria(variant="ours2"):
     out += ["", f"Criteria: confirmation (all three) rejected <= 204, all checks >= 134, strict factor >= 11: {'met' if confirm else 'not met'}; "
             f"refutation (any) rejected > 270, all checks <= 124, strict factor <= 9: {'met' if refute else 'not met'}; "
             f"verdict: {'confirmed' if confirm else 'refuted' if refute else 'partial'}."]
-    (OUT / ("criteria.md" if variant == "ours2" else "criteria_lite.md")).write_text("\n".join(out) + "\n")
+    ({"ours2": OUT / "criteria.md", "ours2_lite": OUT / "criteria_lite.md", "ours3": ROOT / "results/post_hoc/ours3/criteria.md"}[variant]).write_text("\n".join(out) + "\n")
     print("\n".join(out))
 
 
