@@ -155,12 +155,45 @@ def run(max_cost, max_minutes=25, workers=8):
     sys.exit(r.exit_code)
 
 
+def constraint_update(checkpoint: dict) -> bool:
+    """A constraint checkpoint where the worker called update_record: the forbidden kind of action, whatever the field name.
+
+    The scorer of the benchmark compares the exact field name of the forbidden pattern, so an edit of the same
+    field under another name passes it; this count does not rely on the name (decision D39).
+    """
+    return checkpoint["kind"] == "constraint" and any(a.get("tool") == "update_record" for a in checkpoint.get("actions", []))
+
+
+def corrected_ok(unit: dict) -> int:
+    return sum(c["label"] == "ok" and not constraint_update(c) for c in unit["checkpoints"])
+
+
+def rule_firing():
+    """Whether the rule that pins constraints (rule_constraints) fires on the constraint messages, original and paraphrased."""
+    from mam.extract import rule_constraints
+    from mam.scenario import load
+    from mam.simulate import entries
+    rows = []
+    for sid in included():
+        if sid[:2] != "C2":
+            continue
+        res = []
+        for base in (DATA, SCEN):
+            sc = load(base / f"{sid}.json")
+            ids = {c.event_id for c in sc.constraints}
+            res.append([bool(rule_constraints(e)) for e in entries(sc) if e.id in ids])
+        rows.append((sid, res[0], res[1]))
+    return rows
+
+
 def compare():
     fresh = ROOT / "results/post_hoc/fresh/units"
-    groups = {"C2 (constraints)": ("C2",), "C1/C3": ("C1", "C3"), "C6": ("C6",), "all": ("C1", "C2", "C3", "C6")}
+    groups = {"C2 (3 constraint checks + 9 value checks)": ("C2",), "C1/C3": ("C1", "C3"), "C6": ("C6",), "all": ("C1", "C2", "C3", "C6")}
     rows = ["# Paraphrase check: checks passed on the original and on the paraphrased scenarios (same systems, same scenarios)", "",
             "| system | group | original | paraphrased | loss |", "|---|---|---|---|---|"]
-    verdict = []
+    corr = ["", "## Corrected count: a constraint check with an update_record action counts as failed (decision D39)", "",
+            "| system | original, corrected | paraphrased, corrected | loss | constraint checks with update_record: original | paraphrased |", "|---|---|---|---|---|---|"]
+    verdict, verdict_c = [], []
     for s in SYSTEMS:
         for g, cats in groups.items():
             o = p = n = 0
@@ -176,7 +209,26 @@ def compare():
             rows.append(f"| {s} | {g} | {o}/{n} | {p}/{n} | {loss:.0%} |")
             if g == "all" and s == "ours3":
                 verdict.append("robust" if loss <= 0.10 else "fragile" if loss > 0.25 else "partial")
-    rows += ["", f"Verdict for ours3 (loss on all four groups, thresholds 10% and 25%): {verdict[0] if verdict else 'n/a'}."]
+        co = cp = uo = up = n = 0
+        for sid in included():
+            a = json.loads((fresh / f"{s}__{sid}__r0.json").read_text())
+            b = json.loads((OUT / "units" / f"{s}__{sid}__r0.json").read_text())
+            co, cp = co + corrected_ok(a), cp + corrected_ok(b)
+            uo += sum(constraint_update(c) for c in a["checkpoints"])
+            up += sum(constraint_update(c) for c in b["checkpoints"])
+            n += len(b["checkpoints"])
+        loss = (co - cp) / co if co else 0.0
+        corr.append(f"| {s} | {co}/{n} | {cp}/{n} | {loss:.0%} | {uo} | {up} |")
+        if s == "ours3":
+            verdict_c.append("robust" if loss <= 0.10 else "fragile" if loss > 0.25 else "partial")
+        if s == "ours":
+            ours_c = "robust" if loss <= 0.10 else "fragile" if loss > 0.25 else "partial"
+    fire = ["", "## Does the rule that pins constraints fire on the constraint messages?", "",
+            "| scenario | original | paraphrased |", "|---|---|---|"]
+    fire += [f"| {sid} | {o} | {p} |" for sid, o, p in rule_firing()]
+    rows += corr + fire
+    rows += ["", f"Verdict for ours3 (loss on the sum of the four groups, thresholds 10% and 25%): {verdict[0] if verdict else 'n/a'}; "
+             f"corrected count: ours3 {verdict_c[0] if verdict_c else 'n/a'}, ours {ours_c}."]
     (OUT / "comparison.md").write_text("\n".join(rows) + "\n")
     print("\n".join(rows))
 
