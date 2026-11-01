@@ -64,9 +64,21 @@ def violations(old: str, new: str, keep: list[str]) -> list[str]:
     return bad
 
 
+COST: list[float] = []  # cost of every rewriting call (recorded since decision D40)
+
+
+def configure_v2():
+    """The set of decision D40: C2-eval-0006..0011 and C5-eval-0006..0008, results in results/post_hoc/paraphrase2."""
+    global SCENARIOS, OUT, SCEN
+    SCENARIOS = [f"C2-eval-{n:04d}" for n in range(6, 12)] + [f"C5-eval-{n:04d}" for n in (6, 7, 8)]
+    OUT = ROOT / "results/post_hoc/paraphrase2"
+    SCEN = OUT / "scenarios"
+
+
 def ask(llm, items: list[dict]) -> dict:
     prompt = "Items:\n" + json.dumps(items, ensure_ascii=False)
     out = llm.complete(SYSTEM_PROMPT, [{"role": "user", "content": prompt}], {})
+    COST.append(float(getattr(out.usage, "cost_usd", 0) or 0))
     if out.refusal:
         return {}
     m = re.search(r"\{.*\}", out.text, re.S)
@@ -135,7 +147,8 @@ def paraphrase_all(max_cost):
             else:
                 (SCEN / f"{sid}.json").write_text(json.dumps(sc, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
     (OUT / "excluded.md").write_text("# Excluded scenarios\n\n" + ("\n".join(f"- {s}: {w}" for s, w in excluded) or "none") + "\n")
-    print("paraphrased", len(SCENARIOS) - len(excluded), "excluded", excluded)
+    (OUT / "cost.json").write_text(json.dumps({"rewriting_calls": len(COST), "cost_usd": round(sum(COST), 6)}) + "\n")
+    print("paraphrased", len(SCENARIOS) - len(excluded), "excluded", excluded, "cost", round(sum(COST), 4))
 
 
 def included():
