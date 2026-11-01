@@ -57,7 +57,7 @@ npm install -g @anthropic-ai/claude-code@2.1.316
 | Качество извлечения | `PYTHONPATH=src python -m mam.extraction_quality results/extraction/eval/cache.jsonl data/eval` (без модели) | совпадает с `results/extraction/eval/quality.md` |
 | Проверка подачи с префиксом «сессия, автор, вид» (платная для `run`) | `PYTHONPATH=src python scripts/post_hoc_presentation.py plan` (список 48 единиц, без модели); `... run --max-cost-usd 1.5` (платный, пишет в `results/post_hoc/presentation`); `... counts`, `blind`, `join` (разбор сохранённых результатов, без модели) | `counts.md`, `classified.md` |
 | Сравнение контрольного повтора с основным прогоном | `PYTHONPATH=src python scripts/post_hoc_control_repeat.py` (без модели) | совпадает с `results/post_hoc/control_repeat.md` |
-| Итерация `ours2` (post hoc), уровень памяти | `PYTHONPATH=src python scripts/post_hoc_ours2.py memory` и `... compare` (без модели); тесты: `pytest scripts/test_post_hoc_ours2.py` | совпадает с `results/post_hoc/ours2/` |
+| Итерация `ours2` (post hoc), уровень памяти | `PYTHONPATH=src python scripts/post_hoc_ours2.py memory` и `... compare` (без модели); тесты: `pytest scripts/test_post_hoc_ours2.py`; живой слой (платный): `... live --variant ours2_lite`, критерии `... criteria --variant ours2_lite` | совпадает с `results/post_hoc/ours2/` |
 | Дополнительный разбор после заморозки | `python scripts/post_hoc_c1c3.py lenient`, `python scripts/post_hoc_controls.py` (без модели) | совпадает с `results/post_hoc/` |
 
 После `make reproduce` сравните результат с закоммиченным: `git diff --stat results`. Различаться могут только файлы с замерами времени.
