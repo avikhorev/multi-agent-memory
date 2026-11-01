@@ -137,32 +137,37 @@ def compare():
 LIVE_OUT = OUT / "live"
 
 
-def live_units():
+VARIANTS_LIVE = {"ours2": (frozenset(), OUT / "live"), "ours2_lite": (frozenset({"filler"}), OUT / "live_lite")}
+
+
+def live_units(variant="ours2"):
     from mam.run import plan_units
     from mam.selection import select_live
-    return plan_units(["ours2"], select_live(ROOT / "data/eval/manifest.json", "A"), 2)
+    return plan_units([variant], select_live(ROOT / "data/eval/manifest.json", "A"), 2)
 
 
-def run_live_stage(max_cost, max_minutes, workers=8):
+def run_live_stage(max_cost, max_minutes, workers=8, variant="ours2"):
     import mam.live as live
     from mam.llm import ClaudeCliClient
     from mam.run import run_units
     llm = ClaudeCliClient()
     original = live.create
-    live.create = lambda name, **kw: Ours2(kw.get("limit", 2000), extractor="llm", llm=llm) if name == "ours2" else original(name, **kw)
-    r = run_units(live_units(), llm, ROOT / "data/eval", LIVE_OUT, workers=workers, max_minutes=max_minutes, max_cost_usd=max_cost)
+    off, out = VARIANTS_LIVE[variant]
+    live.create = lambda name, **kw: (Ours2(kw.get("limit", 2000), ablate2=off, extractor="llm", llm=llm)
+                                      if name == variant else original(name, **kw))
+    r = run_units(live_units(variant), llm, ROOT / "data/eval", out, workers=workers, max_minutes=max_minutes, max_cost_usd=max_cost)
     print(f"done {r.done}, skipped {r.skipped}, failed {r.failed}, cost ${r.cost_usd:.3f}, stopped_by {r.stopped_by}")
     sys.exit(r.exit_code)
 
 
-def criteria():
+def criteria(variant="ours2"):
     sys.path.insert(0, str(ROOT / "scripts"))
     import post_hoc_control_repeat as cr
     from mam.live_tables import category
     rows = {}
-    for label, d in (("ours (main, 2 repeats)", ROOT / "results/live/main"), ("ours2 (2 repeats)", LIVE_OUT)):
+    for label, d in (("ours (main, 2 repeats)", ROOT / "results/live/main"), (f"{variant} (2 repeats)", VARIANTS_LIVE[variant][1])):
         us = [json.loads(f.read_text()) for f in sorted((d / "units").glob("*.json"))]
-        us = [u for u in us if u["system"] in ("ours", "ours2")]
+        us = [u for u in us if u["system"] in ("ours", variant)]
         rej = n_rev = ok = n = fs = fn = read = offered = 0
         for u in us:
             sc = u["scenario"]
@@ -192,22 +197,23 @@ def criteria():
            "| system | Reviewer rejected | all checks ok | strict factor C1/C3 | Worker read the offered source | cost per unit, USD | units |", "|---|---|---|---|---|---|---|"]
     for k, v in rows.items():
         out.append(f"| {k} | {v[0]}/{v[1]} | {v[2]}/{v[3]} | {v[4]}/{v[5]} | {v[6]}/{v[7]} | {v[8]:.4f} | {v[9]} |")
-    r2 = rows["ours2 (2 repeats)"]
+    r2 = rows[f"{variant} (2 repeats)"]
     confirm = r2[0] <= 204 and r2[2] >= 134 and r2[4] >= 11
     refute = r2[0] > 270 or r2[2] <= 124 or r2[4] <= 9
     out += ["", f"Criteria: confirmation (all three) rejected <= 204, all checks >= 134, strict factor >= 11: {'met' if confirm else 'not met'}; "
             f"refutation (any) rejected > 270, all checks <= 124, strict factor <= 9: {'met' if refute else 'not met'}; "
             f"verdict: {'confirmed' if confirm else 'refuted' if refute else 'partial'}."]
-    (OUT / "criteria.md").write_text("\n".join(out) + "\n")
+    (OUT / ("criteria.md" if variant == "ours2" else "criteria_lite.md")).write_text("\n".join(out) + "\n")
     print("\n".join(out))
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("cmd", choices=["memory", "compare", "live", "criteria"])
+    ap.add_argument("--variant", choices=list(VARIANTS_LIVE), default="ours2")
     ap.add_argument("--max-cost-usd", type=float, default=1.5)
     ap.add_argument("--max-minutes", type=float, default=25)
     a = ap.parse_args()
     if a.cmd == "live":
-        run_live_stage(a.max_cost_usd, a.max_minutes)
-    {"memory": memory_level, "compare": compare, "criteria": criteria}.get(a.cmd, lambda: None)()
+        run_live_stage(a.max_cost_usd, a.max_minutes, variant=a.variant)
+    {"memory": memory_level, "compare": compare, "criteria": lambda: criteria(a.variant)}.get(a.cmd, lambda: None)()
