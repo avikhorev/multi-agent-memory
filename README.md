@@ -31,7 +31,7 @@ ANTHROPIC_API_KEY=... make docker-live   # живой слой с настоящ
 npm install -g @anthropic-ai/claude-code@2.1.316
 ```
 
-Автор образ не собирал (на его машине не было демона контейнеров). При дополнительной проверке на Python 3.11.9 сборка прошла, `make test` дал 419 passed, `make reproduce` отработал без сети с кодом 0. `make docker-live` и запуск по ключу и по подписке: NOT RUN.
+Сборка образа, `make docker-test` (419 passed) и `make docker-reproduce` без сети проверены на Python 3.11.9. `make docker-live` и запуск по ключу и по подписке: NOT RUN.
 
 ## Доступ к модели (только для живого слоя и прохода извлечения)
 

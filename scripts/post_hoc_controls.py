@@ -54,12 +54,16 @@ def agent_behaviour(us):
         sc = load(ROOT / "data/eval" / f"{m['scenario']}.json")
         c6 = m["scenario"].startswith("C6")
         st = stats[m["system"]]
-        first_worker = {}
+        first_worker, planner_tool, worker_any_update = {}, {}, set()
         for t in trace(u):
             if t["op"] != "agent_action":
                 continue
+            if t["role"] == "planner":
+                planner_tool[t["session"]] = t.get("tool")
             if t["role"] == "worker":
                 first_worker.setdefault(t["session"], t)
+                if t.get("tool") == "update_record":
+                    worker_any_update.add(t["session"])
             if t["role"] == "reviewer":
                 st["reviews"] += 1
                 rej = str(t.get("answer", "")).lower().startswith("reject")
@@ -68,6 +72,10 @@ def agent_behaviour(us):
                     st["reviews5"] += 1
                     st["rejected5"] += rej
         for k, t in first_worker.items():
+            if planner_tool.get(k) == "update_record":
+                st["planner_update"] += 1
+                st["worker_update_after_planner_update"] += t.get("tool") == "update_record"
+                st["worker_any_update"] += k in worker_any_update
             src = session_source(sc, k)
             if src is None:
                 continue
@@ -79,6 +87,9 @@ def agent_behaviour(us):
             if c6:
                 st["offered_c6"] += 1
                 st["read_c6"] += read
+    lines.append("Planner chose update_record, and what the Worker did first in those sessions:\n")
+    table(["system", "Planner chose update_record (sessions)", "Worker's first action was update_record", "Worker called update_record in either call"],
+          [[s, stats[s]["planner_update"], stats[s]["worker_update_after_planner_update"], stats[s]["worker_any_update"]] for s in SYSTEMS])
     table(["system", "Worker read the offered source (sessions with a source)", "of them on C6",
            "first action update_record (offered source)", "Reviewer rejected", "rejected in sessions 5+"],
           [[s, f"{stats[s]['read']} of {stats[s]['offered']}", f"{stats[s]['read_c6']} of {stats[s]['offered_c6']}",

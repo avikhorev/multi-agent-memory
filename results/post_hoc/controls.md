@@ -2,6 +2,16 @@
 
 ## 1. Agent behaviour per system (same prompts for all systems)
 
+Planner chose update_record, and what the Worker did first in those sessions:
+
+| system | Planner chose update_record (sessions) | Worker's first action was update_record | Worker called update_record in either call |
+|---|---|---|---|
+| full_history | 234 | 128 | 170 |
+| ours | 237 | 169 | 186 |
+| rolling_summary | 182 | 97 | 123 |
+| shared_rag_bm25 | 206 | 101 | 152 |
+| sliding_window | 222 | 123 | 167 |
+
 | system | Worker read the offered source (sessions with a source) | of them on C6 | first action update_record (offered source) | Reviewer rejected | rejected in sessions 5+ |
 |---|---|---|---|---|---|
 | full_history | 264 of 378 | 68 of 92 | 104 | 146 of 480 | 78 of 312 |
