@@ -1,0 +1,818 @@
+{
+ "actions": [
+  {
+   "args": {
+    "field": "status_update",
+    "value": "Handover 2026-09-14; vendor demo next sprint; client call positive; sponsor reviewing training"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "migration_module_status",
+    "value": "Owner Leila Okafor; tech lead Bruno Weber; vendor demo date unconfirmed"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "Reporting module status",
+    "value": "Pilot 50,000 users; source Lumen; no blockers; test refreshed"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "Atlas/portal status",
+    "value": "Data source Willow; demo next sprint; no blockers this week"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "analytics pilot user count",
+    "value": "33,000"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "Atlas/notifications owner",
+    "value": "Yara Rossi"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "Atlas/notifications owner",
+    "value": "Yara Rossi"
+   },
+   "tool": "update_record"
+  }
+ ],
+ "calls": [
+  {
+   "cache_creation_tokens": 991,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002649,
+   "input_tokens": 2,
+   "latency_s": 2.465,
+   "output_tokens": 133,
+   "refusal": false,
+   "role": "planner",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1111,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002814,
+   "input_tokens": 2,
+   "latency_s": 3.826,
+   "output_tokens": 118,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1159,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000689,
+   "input_tokens": 2,
+   "latency_s": 6.823,
+   "output_tokens": 914,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 770
+  },
+  {
+   "cache_creation_tokens": 1044,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002705,
+   "input_tokens": 2,
+   "latency_s": 3.667,
+   "output_tokens": 123,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 329,
+   "cache_read_tokens": 638,
+   "cost_usd": 9.938e-05,
+   "input_tokens": 2,
+   "latency_s": 2.427,
+   "output_tokens": 54,
+   "refusal": false,
+   "role": "extractor",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 331,
+   "cache_read_tokens": 613,
+   "cost_usd": 0.00010053000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.353,
+   "output_tokens": 56,
+   "refusal": false,
+   "role": "extractor",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1275,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003532,
+   "input_tokens": 2,
+   "latency_s": 3.877,
+   "output_tokens": 196,
+   "refusal": false,
+   "role": "planner",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1349,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003185,
+   "input_tokens": 2,
+   "latency_s": 3.422,
+   "output_tokens": 97,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1473,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005258,
+   "input_tokens": 2,
+   "latency_s": 4.819,
+   "output_tokens": 462,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 328
+  },
+  {
+   "cache_creation_tokens": 1362,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006836,
+   "input_tokens": 2,
+   "latency_s": 5.865,
+   "output_tokens": 822,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 2,
+   "thinking_tokens": 706
+  },
+  {
+   "cache_creation_tokens": 331,
+   "cache_read_tokens": 695,
+   "cost_usd": 0.00016435,
+   "input_tokens": 2,
+   "latency_s": 2.576,
+   "output_tokens": 182,
+   "refusal": false,
+   "role": "extractor",
+   "session": 2,
+   "thinking_tokens": 84
+  },
+  {
+   "cache_creation_tokens": 332,
+   "cache_read_tokens": 752,
+   "cost_usd": 9.912000000000001e-05,
+   "input_tokens": 2,
+   "latency_s": 2.644,
+   "output_tokens": 50,
+   "refusal": false,
+   "role": "extractor",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1583,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004113,
+   "input_tokens": 2,
+   "latency_s": 3.485,
+   "output_tokens": 189,
+   "refusal": false,
+   "role": "planner",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1690,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003887,
+   "input_tokens": 2,
+   "latency_s": 3.302,
+   "output_tokens": 101,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1813,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006963,
+   "input_tokens": 2,
+   "latency_s": 5.421,
+   "output_tokens": 667,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 527
+  },
+  {
+   "cache_creation_tokens": 1681,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005454,
+   "input_tokens": 2,
+   "latency_s": 4.65,
+   "output_tokens": 418,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 3,
+   "thinking_tokens": 312
+  },
+  {
+   "cache_creation_tokens": 332,
+   "cache_read_tokens": 749,
+   "cost_usd": 0.00011959,
+   "input_tokens": 2,
+   "latency_s": 2.734,
+   "output_tokens": 91,
+   "refusal": false,
+   "role": "extractor",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 330,
+   "cache_read_tokens": 799,
+   "cost_usd": 0.00014569000000000002,
+   "input_tokens": 2,
+   "latency_s": 3.669,
+   "output_tokens": 143,
+   "refusal": false,
+   "role": "extractor",
+   "session": 3,
+   "thinking_tokens": 91
+  },
+  {
+   "cache_creation_tokens": 1651,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004224,
+   "input_tokens": 2,
+   "latency_s": 3.317,
+   "output_tokens": 184,
+   "refusal": false,
+   "role": "planner",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1780,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004187,
+   "input_tokens": 2,
+   "latency_s": 3.587,
+   "output_tokens": 125,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1821,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006774000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.291,
+   "output_tokens": 626,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 492
+  },
+  {
+   "cache_creation_tokens": 1734,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000546,
+   "input_tokens": 2,
+   "latency_s": 3.796,
+   "output_tokens": 398,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 4,
+   "thinking_tokens": 295
+  },
+  {
+   "cache_creation_tokens": 1101,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002879,
+   "input_tokens": 2,
+   "latency_s": 2.837,
+   "output_tokens": 135,
+   "refusal": false,
+   "role": "extractor",
+   "session": 4,
+   "thinking_tokens": 86
+  },
+  {
+   "cache_creation_tokens": 1058,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002738,
+   "input_tokens": 2,
+   "latency_s": 3.323,
+   "output_tokens": 124,
+   "refusal": false,
+   "role": "extractor",
+   "session": 4,
+   "thinking_tokens": 76
+  },
+  {
+   "cache_creation_tokens": 1774,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000645,
+   "input_tokens": 2,
+   "latency_s": 5.228,
+   "output_tokens": 580,
+   "refusal": false,
+   "role": "planner",
+   "session": 5,
+   "thinking_tokens": 477
+  },
+  {
+   "cache_creation_tokens": 1879,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004355,
+   "input_tokens": 2,
+   "latency_s": 2.946,
+   "output_tokens": 119,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1926,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006099,
+   "input_tokens": 2,
+   "latency_s": 4.161,
+   "output_tokens": 449,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 308
+  },
+  {
+   "cache_creation_tokens": 1857,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004351,
+   "input_tokens": 2,
+   "latency_s": 3.175,
+   "output_tokens": 127,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1132,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002721,
+   "input_tokens": 2,
+   "latency_s": 2.246,
+   "output_tokens": 91,
+   "refusal": false,
+   "role": "extractor",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1068,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00023979999999999997,
+   "input_tokens": 2,
+   "latency_s": 2.538,
+   "output_tokens": 52,
+   "refusal": false,
+   "role": "extractor",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1851,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004374,
+   "input_tokens": 2,
+   "latency_s": 4.133,
+   "output_tokens": 134,
+   "refusal": false,
+   "role": "planner",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1926,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00043940000000000006,
+   "input_tokens": 2,
+   "latency_s": 3.376,
+   "output_tokens": 108,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2067,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006146,
+   "input_tokens": 2,
+   "latency_s": 4.742,
+   "output_tokens": 402,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 273
+  },
+  {
+   "cache_creation_tokens": 1982,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00047159999999999997,
+   "input_tokens": 2,
+   "latency_s": 2.729,
+   "output_tokens": 150,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 6,
+   "thinking_tokens": 86
+  },
+  {
+   "cache_creation_tokens": 1122,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002701,
+   "input_tokens": 2,
+   "latency_s": 3.148,
+   "output_tokens": 91,
+   "refusal": false,
+   "role": "extractor",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1155,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003052,
+   "input_tokens": 2,
+   "latency_s": 3.559,
+   "output_tokens": 148,
+   "refusal": false,
+   "role": "extractor",
+   "session": 6,
+   "thinking_tokens": 96
+  },
+  {
+   "cache_creation_tokens": 2020,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006592000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.908,
+   "output_tokens": 510,
+   "refusal": false,
+   "role": "planner",
+   "session": 7,
+   "thinking_tokens": 407
+  },
+  {
+   "cache_creation_tokens": 2029,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000565,
+   "input_tokens": 2,
+   "latency_s": 4.666,
+   "output_tokens": 318,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 205
+  },
+  {
+   "cache_creation_tokens": 2045,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005687,
+   "input_tokens": 2,
+   "latency_s": 3.996,
+   "output_tokens": 319,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 206
+  },
+  {
+   "cache_creation_tokens": 2040,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005917,
+   "input_tokens": 2,
+   "latency_s": 3.362,
+   "output_tokens": 367,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 7,
+   "thinking_tokens": 256
+  },
+  {
+   "cache_creation_tokens": 1128,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002708,
+   "input_tokens": 2,
+   "latency_s": 2.405,
+   "output_tokens": 90,
+   "refusal": false,
+   "role": "extractor",
+   "session": 7,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2015,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004547,
+   "input_tokens": 2,
+   "latency_s": 2.453,
+   "output_tokens": 103,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2111,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004944,
+   "input_tokens": 2,
+   "latency_s": 4.605,
+   "output_tokens": 144,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2158,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006043000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.144,
+   "output_tokens": 345,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 220
+  },
+  {
+   "cache_creation_tokens": 2071,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005554,
+   "input_tokens": 2,
+   "latency_s": 3.253,
+   "output_tokens": 282,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 8,
+   "thinking_tokens": 178
+  },
+  {
+   "cache_creation_tokens": 332,
+   "cache_read_tokens": 782,
+   "cost_usd": 0.00011992,
+   "input_tokens": 2,
+   "latency_s": 2.995,
+   "output_tokens": 91,
+   "refusal": false,
+   "role": "extractor",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1060,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002382,
+   "input_tokens": 2,
+   "latency_s": 1.892,
+   "output_tokens": 52,
+   "refusal": false,
+   "role": "extractor",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2078,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004818,
+   "input_tokens": 2,
+   "latency_s": 3.037,
+   "output_tokens": 132,
+   "refusal": false,
+   "role": "planner",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2160,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006297000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.305,
+   "output_tokens": 395,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 310
+  },
+  {
+   "cache_creation_tokens": 2177,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005811000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.071,
+   "output_tokens": 291,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 195
+  },
+  {
+   "cache_creation_tokens": 2081,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00048340000000000004,
+   "input_tokens": 2,
+   "latency_s": 3.654,
+   "output_tokens": 134,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 9,
+   "thinking_tokens": 63
+  },
+  {
+   "cache_creation_tokens": 1118,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002508,
+   "input_tokens": 2,
+   "latency_s": 3.723,
+   "output_tokens": 54,
+   "refusal": false,
+   "role": "extractor",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2138,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006463,
+   "input_tokens": 2,
+   "latency_s": 4.256,
+   "output_tokens": 437,
+   "refusal": false,
+   "role": "planner",
+   "session": 10,
+   "thinking_tokens": 301
+  },
+  {
+   "cache_creation_tokens": 2235,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006342,
+   "input_tokens": 2,
+   "latency_s": 4.247,
+   "output_tokens": 374,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 248
+  },
+  {
+   "cache_creation_tokens": 2251,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006494000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.409,
+   "output_tokens": 398,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 269
+  },
+  {
+   "cache_creation_tokens": 2116,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005453999999999999,
+   "input_tokens": 2,
+   "latency_s": 3.697,
+   "output_tokens": 244,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "thinking_tokens": 142
+  },
+  {
+   "cache_creation_tokens": 1139,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002785,
+   "input_tokens": 2,
+   "latency_s": 2.915,
+   "output_tokens": 101,
+   "refusal": false,
+   "role": "extractor",
+   "session": 10,
+   "thinking_tokens": 0
+  }
+ ],
+ "checkpoints": [
+  {
+   "actions": [],
+   "answer": "The current UAT start date for the mobile module (Atlas/mobile) is 2026-05-08.",
+   "checkpoint": "cp-1",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "token_count": 977,
+   "violations": []
+  },
+  {
+   "actions": [],
+   "answer": "The current contingency reserve for the reporting module is USD 884,000.",
+   "checkpoint": "cp-2",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "token_count": 1081,
+   "violations": []
+  },
+  {
+   "actions": [],
+   "answer": "The auth module contingency reserve is USD 877,000 (Atlas/auth contingency_usd: 877000).",
+   "checkpoint": "cp-3",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "token_count": 1135,
+   "violations": []
+  }
+ ],
+ "cost_usd": 0.024262,
+ "manifest": {
+  "api_key_set": false,
+  "cli_version": "2.1.316",
+  "commit": "6210b36ce1721a60d3cf899e8e7345348045a896",
+  "finished": "2026-11-01T11:11:41.147210+00:00",
+  "model": "claude-haiku-5-5",
+  "repeat": 0,
+  "scenario": "C0-eval-0005",
+  "started": "2026-11-01T11:08:13.800160+00:00",
+  "system": "ours3"
+ },
+ "memory": {
+  "extraction_refusals": 0,
+  "parse_errors": 0,
+  "quarantined": 0
+ },
+ "repeat": 0,
+ "scenario": "C0-eval-0005",
+ "system": "ours3",
+ "totals": {
+  "cost_usd": 0.024262,
+  "input_tokens": 91044,
+  "llm_calls": 57,
+  "llm_latency_s": 207.15,
+  "memory_s": 0.1487,
+  "output_tokens": 14040,
+  "refusals": 0
+ }
+}
