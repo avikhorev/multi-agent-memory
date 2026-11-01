@@ -1,7 +1,7 @@
 """Graphiti for the benchmark (D42). graphiti-core 0.31.2, defaults except: the model is the benchmark client (Haiku, answers asked
 as JSON of a given shape), the embedder is local fastembed (BAAI/bge-small-en-v1.5, 384 dim.), no reranker, the graph is the
 embedded Kuzu in a temporary folder with full-text indexes made by the library's own queries. Records go to add_episode at
-end_session in clock order, dated a base day plus the clock in days; context() keeps valid facts of episodes the reader may see."""
+end_session in clock order, dated a base day plus the clock; context() = valid facts, node summaries and raw episodes of search_()."""
 import asyncio, json, os, re, tempfile  # noqa: E401
 from datetime import datetime, timedelta, timezone
 
@@ -39,7 +39,7 @@ class ClientLLM(LLMClient):
     async def _generate_response(self, messages, response_model=None, max_tokens=8192, model_size=None, **kw):
         system = "\n".join(m.content for m in messages if m.role == "system")
         if response_model:
-            system += "\nReply with one JSON object only, in exactly this shape with the placeholders replaced by the answer: " + json.dumps(shape(sc := response_model.model_json_schema(), sc.get("$defs", {})))
+            system += "\nReply with one JSON object only, in exactly this shape with the placeholders replaced by the answer (empty lists when there is nothing; never leave placeholder text): " + json.dumps(shape(sc := response_model.model_json_schema(), sc.get("$defs", {})))
         user = "\n".join(m.content for m in messages if m.role != "system")
         out = await asyncio.get_running_loop().run_in_executor(None, self.llm.complete, system, [{"role": "user", "content": user}], {})
         self.calls.append(("memory", out))
@@ -85,15 +85,15 @@ class Graphiti3(MemorySystem):
         return calls
 
     def context(self, reader):
-        edges = self.loop.run_until_complete(self.g.search(reader.query, num_results=20))
+        r = self.loop.run_until_complete(self.g.search_(reader.query))  # the library's default combined search
         hidden = {u for u, e in self.eid.items() if e.scope == "private" and e.author != reader.role}
+        texts = [e.fact for e in r.edges if not (e.invalid_at or e.expired_at) and not (set(e.episodes or []) and set(e.episodes) <= hidden)]
+        texts += [n.summary for n in r.nodes if n.summary] + [x.content for x in r.episodes if x.uuid not in hidden]
         items, used = [], 0
-        for ed in edges:
-            if ed.invalid_at or ed.expired_at or (set(ed.episodes or []) and set(ed.episodes) <= hidden):
-                continue
-            if used + count(ed.fact) <= self.limit:
-                items.append(ContextItem(id=f"graphiti-{ed.uuid}", kind="raw", text=ed.fact))
-                used += count(ed.fact)
+        for i, t in enumerate(texts):
+            if used + count(t) <= self.limit:
+                items.append(ContextItem(id=f"graphiti-{i}", kind="raw", text=t))
+                used += count(t)
         return make_context(items)
 
 

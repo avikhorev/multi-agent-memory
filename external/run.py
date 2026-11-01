@@ -65,6 +65,6 @@ if __name__ == "__main__":
     live.create = lambda name, **kw: mod.create(kw.get("limit", 2000), llm) if name == a.system else orig(name, **kw)
     todo = {"pilot": {"pilot": (ROOT / "data/eval", ["C2-eval-0003"])}, "run": sets()}[a.cmd]
     for name, (data, ids) in [(n, v) for n, v in todo.items() if not a.only or n == a.only]:
-        ids = [i for i in ids if name != "fresh" or not a.fresh_cats or i[:2] in a.fresh_cats.split(",")]  # D43: shortened set B
+        ids = [i for i in ids if not a.fresh_cats or i[:2] in a.fresh_cats.split(",")]  # D43: shortened sets
         r = run_units(plan_units([a.system], ids, 1), llm, data, OUT / a.system / name, workers=8, max_minutes=25, max_cost_usd=a.max_cost_usd)
         print(name, f"done {r.done}, skipped {r.skipped}, failed {r.failed}, cost ${r.cost_usd:.3f}, stopped_by {r.stopped_by}")
