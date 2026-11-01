@@ -1,0 +1,619 @@
+{
+ "actions": [
+  {
+   "args": {
+    "field": "search_module_progress",
+    "value": "Go-live 2026-07-01; docs ongoing; no new risks; brief sync; limited testing capacity"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "status_log",
+    "value": "Reporting budget USD 201,000; supplier demo next sprint; no new risks."
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "status_log",
+    "value": "Reporting module: USD 201,000 buffer; supplier demo next sprint"
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "mobile_progress_report",
+    "value": "Concise mobile progress report. UAT start 2026-08-24 and handover 2026-09-04 both passed as of 2026-11-01."
+   },
+   "tool": "update_record"
+  },
+  {
+   "args": {
+    "field": "mobile_progress_report",
+    "value": "Concise report; UAT 2026-08-24 and handover 2026-09-04 flagged as passed"
+   },
+   "tool": "update_record"
+  }
+ ],
+ "calls": [
+  {
+   "cache_creation_tokens": 331,
+   "cache_read_tokens": 708,
+   "cost_usd": 0.00015298000000000002,
+   "input_tokens": 2,
+   "latency_s": 3.025,
+   "output_tokens": 159,
+   "refusal": false,
+   "role": "planner",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1092,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0002771,
+   "input_tokens": 2,
+   "latency_s": 2.159,
+   "output_tokens": 117,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1108,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00027580000000000004,
+   "input_tokens": 2,
+   "latency_s": 4.092,
+   "output_tokens": 108,
+   "refusal": false,
+   "role": "worker",
+   "session": 1,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1035,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00048719999999999997,
+   "input_tokens": 2,
+   "latency_s": 4.633,
+   "output_tokens": 560,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 1,
+   "thinking_tokens": 476
+  },
+  {
+   "cache_creation_tokens": 1219,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004355,
+   "input_tokens": 2,
+   "latency_s": 3.698,
+   "output_tokens": 383,
+   "refusal": false,
+   "role": "planner",
+   "session": 2,
+   "thinking_tokens": 269
+  },
+  {
+   "cache_creation_tokens": 1305,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003162,
+   "input_tokens": 2,
+   "latency_s": 3.064,
+   "output_tokens": 110,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1440,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006177,
+   "input_tokens": 2,
+   "latency_s": 6.189,
+   "output_tokens": 659,
+   "refusal": false,
+   "role": "worker",
+   "session": 2,
+   "thinking_tokens": 535
+  },
+  {
+   "cache_creation_tokens": 1380,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00030869999999999997,
+   "input_tokens": 2,
+   "latency_s": 2.949,
+   "output_tokens": 65,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 2,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1566,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00039390000000000003,
+   "input_tokens": 2,
+   "latency_s": 3.472,
+   "output_tokens": 161,
+   "refusal": false,
+   "role": "planner",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1708,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0003868000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.32,
+   "output_tokens": 90,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1751,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006039,
+   "input_tokens": 2,
+   "latency_s": 4.91,
+   "output_tokens": 507,
+   "refusal": false,
+   "role": "worker",
+   "session": 3,
+   "thinking_tokens": 381
+  },
+  {
+   "cache_creation_tokens": 1616,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.00037640000000000004,
+   "input_tokens": 2,
+   "latency_s": 3.167,
+   "output_tokens": 106,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 3,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1863,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004293000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.109,
+   "output_tokens": 113,
+   "refusal": false,
+   "role": "planner",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 1955,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0004542000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.786,
+   "output_tokens": 126,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2080,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006727,
+   "input_tokens": 2,
+   "latency_s": 3.581,
+   "output_tokens": 513,
+   "refusal": false,
+   "role": "worker",
+   "session": 4,
+   "thinking_tokens": 388
+  },
+  {
+   "cache_creation_tokens": 1954,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007005,
+   "input_tokens": 2,
+   "latency_s": 5.112,
+   "output_tokens": 619,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 4,
+   "thinking_tokens": 519
+  },
+  {
+   "cache_creation_tokens": 2219,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007480000000000001,
+   "input_tokens": 2,
+   "latency_s": 5.765,
+   "output_tokens": 608,
+   "refusal": false,
+   "role": "planner",
+   "session": 5,
+   "thinking_tokens": 494
+  },
+  {
+   "cache_creation_tokens": 2295,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005192,
+   "input_tokens": 2,
+   "latency_s": 3.381,
+   "output_tokens": 120,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2334,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006665000000000001,
+   "input_tokens": 2,
+   "latency_s": 6.246,
+   "output_tokens": 399,
+   "refusal": false,
+   "role": "worker",
+   "session": 5,
+   "thinking_tokens": 294
+  },
+  {
+   "cache_creation_tokens": 2246,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005434000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.005,
+   "output_tokens": 188,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 5,
+   "thinking_tokens": 94
+  },
+  {
+   "cache_creation_tokens": 2504,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0005995,
+   "input_tokens": 2,
+   "latency_s": 3.061,
+   "output_tokens": 197,
+   "refusal": false,
+   "role": "planner",
+   "session": 6,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2621,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0009644,
+   "input_tokens": 2,
+   "latency_s": 6.797,
+   "output_tokens": 880,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 758
+  },
+  {
+   "cache_creation_tokens": 2637,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007146,
+   "input_tokens": 2,
+   "latency_s": 4.555,
+   "output_tokens": 374,
+   "refusal": false,
+   "role": "worker",
+   "session": 6,
+   "thinking_tokens": 254
+  },
+  {
+   "cache_creation_tokens": 2481,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006914,
+   "input_tokens": 2,
+   "latency_s": 4.596,
+   "output_tokens": 390,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 6,
+   "thinking_tokens": 297
+  },
+  {
+   "cache_creation_tokens": 2724,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.000771,
+   "input_tokens": 2,
+   "latency_s": 4.432,
+   "output_tokens": 452,
+   "refusal": false,
+   "role": "planner",
+   "session": 7,
+   "thinking_tokens": 330
+  },
+  {
+   "cache_creation_tokens": 2818,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006343000000000001,
+   "input_tokens": 2,
+   "latency_s": 4.435,
+   "output_tokens": 141,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2934,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006525000000000001,
+   "input_tokens": 2,
+   "latency_s": 2.477,
+   "output_tokens": 131,
+   "refusal": false,
+   "role": "worker",
+   "session": 7,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 2863,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006073000000000001,
+   "input_tokens": 2,
+   "latency_s": 3.055,
+   "output_tokens": 69,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 7,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3057,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007396,
+   "input_tokens": 2,
+   "latency_s": 3.209,
+   "output_tokens": 256,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "thinking_tokens": 178
+  },
+  {
+   "cache_creation_tokens": 3120,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006707,
+   "input_tokens": 2,
+   "latency_s": 3.053,
+   "output_tokens": 93,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3166,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006914,
+   "input_tokens": 2,
+   "latency_s": 3.289,
+   "output_tokens": 116,
+   "refusal": false,
+   "role": "worker",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3043,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006583,
+   "input_tokens": 2,
+   "latency_s": 3.104,
+   "output_tokens": 99,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 8,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3107,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006746,
+   "input_tokens": 2,
+   "latency_s": 3.135,
+   "output_tokens": 106,
+   "refusal": false,
+   "role": "planner",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3065,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007322,
+   "input_tokens": 2,
+   "latency_s": 3.695,
+   "output_tokens": 238,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 151
+  },
+  {
+   "cache_creation_tokens": 3082,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007636,
+   "input_tokens": 2,
+   "latency_s": 5.144,
+   "output_tokens": 294,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "thinking_tokens": 208
+  },
+  {
+   "cache_creation_tokens": 3011,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0006774,
+   "input_tokens": 2,
+   "latency_s": 3.123,
+   "output_tokens": 150,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 9,
+   "thinking_tokens": 0
+  },
+  {
+   "cache_creation_tokens": 3111,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0010539,
+   "input_tokens": 2,
+   "latency_s": 6.325,
+   "output_tokens": 863,
+   "refusal": false,
+   "role": "planner",
+   "session": 10,
+   "thinking_tokens": 708
+  },
+  {
+   "cache_creation_tokens": 3066,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0009349,
+   "input_tokens": 2,
+   "latency_s": 4.47,
+   "output_tokens": 643,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 456
+  },
+  {
+   "cache_creation_tokens": 3079,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0008900000000000002,
+   "input_tokens": 2,
+   "latency_s": 4.788,
+   "output_tokens": 548,
+   "refusal": false,
+   "role": "worker",
+   "session": 10,
+   "thinking_tokens": 408
+  },
+  {
+   "cache_creation_tokens": 2992,
+   "cache_read_tokens": 0,
+   "cost_usd": 0.0007251,
+   "input_tokens": 2,
+   "latency_s": 3.273,
+   "output_tokens": 253,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "thinking_tokens": 173
+  }
+ ],
+ "checkpoints": [
+  {
+   "actions": [],
+   "answer": "Admin module sign-off date is 2026-09-14, per vendor paperwork as of 2026-01-30.",
+   "checkpoint": "cpx-1",
+   "context_passed": false,
+   "factor": true,
+   "kind": "conflict",
+   "label": "memory",
+   "passed": false,
+   "reachable": true,
+   "refusal": false,
+   "role": "planner",
+   "session": 7,
+   "token_count": 1639,
+   "violations": [
+    "answer lacks expected value: 2026-05-24",
+    "answer contains stale value: 2026-09-14"
+   ]
+  },
+  {
+   "actions": [],
+   "answer": "Vega is the integration partner for the auth module.",
+   "checkpoint": "cp-1",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "planner",
+   "session": 8,
+   "token_count": 1955,
+   "violations": []
+  },
+  {
+   "actions": [],
+   "answer": "Mistral is the integration partner for the archive module.",
+   "checkpoint": "cp-2",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "worker",
+   "session": 9,
+   "token_count": 1997,
+   "violations": []
+  },
+  {
+   "actions": [],
+   "answer": "USD 201,000, per the reporting module buffer budget.",
+   "checkpoint": "cp-3",
+   "context_passed": true,
+   "factor": false,
+   "kind": "value",
+   "label": "ok",
+   "passed": true,
+   "reachable": true,
+   "refusal": false,
+   "role": "reviewer",
+   "session": 10,
+   "token_count": 1993,
+   "violations": []
+  }
+ ],
+ "cost_usd": 0.024213,
+ "manifest": {
+  "api_key_set": false,
+  "cli_version": "2.1.316",
+  "commit": "758b96a6b7446fa4578ec4075cd0aa6f5bf666df",
+  "finished": "2026-11-01T12:23:49.485209+00:00",
+  "model": "claude-haiku-5-5",
+  "repeat": 0,
+  "scenario": "C3-eval-0005",
+  "started": "2026-11-01T12:21:08.666119+00:00",
+  "system": "shared_rag_bm25"
+ },
+ "memory": {
+  "extraction_refusals": 0,
+  "parse_errors": 0,
+  "quarantined": 0
+ },
+ "repeat": 0,
+ "scenario": "C3-eval-0005",
+ "system": "shared_rag_bm25",
+ "totals": {
+  "cost_usd": 0.024213,
+  "input_tokens": 91766,
+  "llm_calls": 40,
+  "llm_latency_s": 160.679,
+  "memory_s": 0.0621,
+  "output_tokens": 12004,
+  "refusals": 0
+ }
+}
