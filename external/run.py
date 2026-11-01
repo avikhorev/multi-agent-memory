@@ -46,25 +46,26 @@ def stats(base, system, ids=None):
     return s
 
 
-def tables(system):
+def tables(system, cats=None, fname="tables.md"):
     rows = ["| set | system | units | all checks | strict C1/C3 | Reviewer rejected | constraint (strict / D39) | injection | USD per unit | model s per unit |", "|---|---|---|---|---|---|---|---|---|---|"]
     for name, rivals in RIVALS.items():
         own = OUT / system / name
         ids = {p.stem.split("__")[1] for p in (own / "units").glob("*.json")} if (own / "units").exists() else set()  # rivals on the same scenarios
+        ids = {i for i in ids if not cats or i[:2] in cats[name]}
         for sysname, base in [(system, own)] + list(rivals.items()):
-            if ids and (base / "units").exists() and (s := stats(base, sysname, None if base == own else ids))["units"]:
+            if ids and (base / "units").exists() and (s := stats(base, sysname, ids))["units"]:
                 rows.append(f"| {name} | {sysname} | {s['units']} | {s['ok']}/{s['n']} | {s['fs']}/{s['fn']} | {s['rej']}/{s['rev']} | {s['cs']} / {s['cd']} of {s['cn']} | {s['inj']}/{s['injn']} | {s['cost'] / s['units']:.4f} | {s['sec'] / s['units']:.0f} |")
     (OUT / system).mkdir(parents=True, exist_ok=True)
-    (OUT / system / "tables.md").write_text("\n".join(rows) + "\n")
+    (OUT / system / fname).write_text("\n".join(rows) + "\n")
     print("\n".join(rows))
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("system"); ap.add_argument("cmd", choices=["pilot", "run", "tables"]); ap.add_argument("--max-cost-usd", type=float, default=1.0); ap.add_argument("--fresh-cats", default=""); ap.add_argument("--only", default="")  # noqa: E702
+    ap.add_argument("system"); ap.add_argument("cmd", choices=["pilot", "run", "tables", "common"]); ap.add_argument("--max-cost-usd", type=float, default=1.0); ap.add_argument("--fresh-cats", default=""); ap.add_argument("--only", default="")  # noqa: E702
     a = ap.parse_args()
-    if a.cmd == "tables":
-        tables(a.system); sys.exit()  # noqa: E702
+    if a.cmd in ("tables", "common"):  # common: the 12 scenarios of D43 (C1, C3 of set B; C2 of set A)
+        tables(a.system, *([{"fresh": ("C1", "C3"), "paraphrase2": ("C2",)}, "common12.md"] if a.cmd == "common" else [])); sys.exit()  # noqa: E702
     mod, llm, orig = importlib.import_module(f"{a.system}_adapter"), ClaudeCliClient(), live.create
     live.create = lambda name, **kw: mod.create(kw.get("limit", 2000), llm) if name == a.system else orig(name, **kw)
     todo = {"pilot": {"pilot": (ROOT / "data/eval", ["C2-eval-0003"])}, "run": sets()}[a.cmd]
