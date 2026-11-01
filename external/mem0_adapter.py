@@ -33,7 +33,7 @@ class Mem0(MemorySystem):
         super().__init__(limit)
         self.calls, self._sent, tmp = [], set(), tempfile.mkdtemp(prefix="mem0-")
         self.m = Memory.from_config({
-            "llm": {"provider": "ollama", "config": {}},  # replaced below; this provider needs no key
+            "llm": {"provider": "vllm", "config": {}},  # replaced below; this provider needs no key and makes no call
             "embedder": {"provider": "fastembed", "config": {"model": "BAAI/bge-small-en-v1.5"}},
             "vector_store": {"provider": "qdrant", "config": {"path": tmp, "embedding_model_dims": 384, "on_disk": True}},
             "history_db_path": os.path.join(tmp, "history.db")})
