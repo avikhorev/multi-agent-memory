@@ -132,8 +132,82 @@ def compare():
     print("\n".join(lines))
 
 
+# ---- live stage (stage B of D30, paid) and the criteria -------------------------------------------------
+
+LIVE_OUT = OUT / "live"
+
+
+def live_units():
+    from mam.run import plan_units
+    from mam.selection import select_live
+    return plan_units(["ours2"], select_live(ROOT / "data/eval/manifest.json", "A"), 2)
+
+
+def run_live_stage(max_cost, max_minutes, workers=8):
+    import mam.live as live
+    from mam.llm import ClaudeCliClient
+    from mam.run import run_units
+    llm = ClaudeCliClient()
+    original = live.create
+    live.create = lambda name, **kw: Ours2(kw.get("limit", 2000), extractor="llm", llm=llm) if name == "ours2" else original(name, **kw)
+    r = run_units(live_units(), llm, ROOT / "data/eval", LIVE_OUT, workers=workers, max_minutes=max_minutes, max_cost_usd=max_cost)
+    print(f"done {r.done}, skipped {r.skipped}, failed {r.failed}, cost ${r.cost_usd:.3f}, stopped_by {r.stopped_by}")
+    sys.exit(r.exit_code)
+
+
+def criteria():
+    sys.path.insert(0, str(ROOT / "scripts"))
+    import post_hoc_control_repeat as cr
+    from mam.live_tables import category
+    rows = {}
+    for label, d in (("ours (main, 2 repeats)", ROOT / "results/live/main"), ("ours2 (2 repeats)", LIVE_OUT)):
+        us = [json.loads(f.read_text()) for f in sorted((d / "units").glob("*.json"))]
+        us = [u for u in us if u["system"] in ("ours", "ours2")]
+        rej = n_rev = ok = n = fs = fn = read = offered = 0
+        for u in us:
+            sc = u["scenario"]
+            for c in u["checkpoints"]:
+                n += 1
+                ok += c["label"] == "ok"
+                if category(u) in ("C1", "C3") and c["factor"]:
+                    fn += 1
+                    fs += c["passed"]
+            tf = d / "traces" / f"{u['system']}__{sc}__r{u['repeat']}.jsonl"
+            first = {}
+            scn = cr.load(ROOT / "data/eval" / f"{sc}.json")
+            for line in tf.read_text().splitlines():
+                t = json.loads(line)
+                if t["op"] == "agent_action" and t["role"] == "reviewer":
+                    n_rev += 1
+                    rej += str(t.get("answer", "")).lower().startswith("reject")
+                if t["op"] == "agent_action" and t["role"] == "worker":
+                    first.setdefault(t["session"], t)
+            for k, t in first.items():
+                src = cr.session_source(scn, k)
+                if src is not None:
+                    offered += 1
+                    read += t.get("tool") == src.tool and json.dumps(t.get("args"), sort_keys=True) == json.dumps(src.args, sort_keys=True)
+        rows[label] = (rej, n_rev, ok, n, fs, fn, read, offered, sum(u["cost_usd"] for u in us) / len(us), len(us))
+    out = ["# ours2 live stage against ours (criteria of D30)", "",
+           "| system | Reviewer rejected | all checks ok | strict factor C1/C3 | Worker read the offered source | cost per unit, USD | units |", "|---|---|---|---|---|---|---|"]
+    for k, v in rows.items():
+        out.append(f"| {k} | {v[0]}/{v[1]} | {v[2]}/{v[3]} | {v[4]}/{v[5]} | {v[6]}/{v[7]} | {v[8]:.4f} | {v[9]} |")
+    r2 = rows["ours2 (2 repeats)"]
+    confirm = r2[0] <= 204 and r2[2] >= 134 and r2[4] >= 11
+    refute = r2[0] > 270 or r2[2] <= 124 or r2[4] <= 9
+    out += ["", f"Criteria: confirmation (all three) rejected <= 204, all checks >= 134, strict factor >= 11: {'met' if confirm else 'not met'}; "
+            f"refutation (any) rejected > 270, all checks <= 124, strict factor <= 9: {'met' if refute else 'not met'}; "
+            f"verdict: {'confirmed' if confirm else 'refuted' if refute else 'partial'}."]
+    (OUT / "criteria.md").write_text("\n".join(out) + "\n")
+    print("\n".join(out))
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["memory", "compare"])
-    cmd = ap.parse_args().cmd
-    memory_level() if cmd == "memory" else compare()
+    ap.add_argument("cmd", choices=["memory", "compare", "live", "criteria"])
+    ap.add_argument("--max-cost-usd", type=float, default=1.5)
+    ap.add_argument("--max-minutes", type=float, default=25)
+    a = ap.parse_args()
+    if a.cmd == "live":
+        run_live_stage(a.max_cost_usd, a.max_minutes)
+    {"memory": memory_level, "compare": compare, "criteria": criteria}.get(a.cmd, lambda: None)()
