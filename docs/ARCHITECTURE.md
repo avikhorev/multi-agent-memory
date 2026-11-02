@@ -2,7 +2,7 @@
 
 Четыре схемы показывают реализацию: живой слой (`src/mam/live.py`, `src/mam/agents.py`) и память `ours` (`src/mam/systems/ours.py`). Причины решений и числа записаны в [`DECISIONS.md`](DECISIONS.md), модель угроз в [`THREAT_MODEL.md`](THREAT_MODEL.md).
 
-Узлы со значком ↗ открывают соответствующее место в коде на GitHub. Ссылки закреплены на коммите `1811222`: номера строк относятся к нему. На стрелки ссылку поставить нельзя, поэтому в схеме 2 ссылки вынесены в таблицу.
+Узлы схем 1, 3 и 4 это ссылки: клик открывает соответствующее место в коде на GitHub в той же вкладке. Ссылки закреплены на коммите `1811222`: номера строк относятся к нему. На стрелки ссылку поставить нельзя, поэтому в схеме 2 ссылки вынесены в таблицу.
 
 ## 1. Система целиком
 
@@ -10,26 +10,26 @@
 
 ```mermaid
 flowchart TB
-    scenario["Сценарий ↗<br/>сессии и проверки"] --> loop
+    scenario["Сценарий<br/>сессии и проверки"] --> loop
 
     subgraph harness["Живой прогон: run_live"]
-        loop["Цикл сессий ↗"]
-        sim["Simulator ↗<br/>инструменты Worker"]
-        scorer["Оценщик ↗<br/>проверки и метки провалов"]
+        loop["Цикл сессий"]
+        sim["Simulator<br/>инструменты Worker"]
+        scorer["Оценщик<br/>проверки и метки провалов"]
     end
 
     subgraph memory["Память"]
-        api["MemorySystem ↗<br/>write, context, end_session"]
+        api["MemorySystem<br/>write, context, end_session"]
     end
 
     subgraph agents["Агенты без состояния"]
-        planner["Planner ↗"]
-        worker["Worker ↗"]
-        reviewer["Reviewer ↗"]
+        planner["Planner"]
+        worker["Worker"]
+        reviewer["Reviewer"]
     end
 
-    llm["LLMClient ↗<br/>ClaudeCliClient<br/>claude-haiku-5-5"]
-    results["Единицы results/live/ ↗<br/>таблицы и REPORT.md"]
+    llm["LLMClient<br/>ClaudeCliClient<br/>claude-haiku-5-5"]
+    results["Единицы results/live/<br/>таблицы и REPORT.md"]
 
     loop <-->|"записи и контекст до 2000 токенов"| api
     loop <-->|"контекст и задача, ответ и действие"| agents
@@ -66,7 +66,7 @@ sequenceDiagram
     participant R as Reviewer
     participant E as Оценщик
 
-    H->>M: write, сообщения пользователя, конфликтные заметки и черновики сценария
+    H->>M: write, сообщения пользователя,<br/>заметки и черновики сценария
 
     H->>M: context для Planner
     M-->>H: контекст
@@ -137,11 +137,11 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph writing["Запись"]
-        entry["write: запись сохраняется ↗"]
-        close["end_session: записи сессии по порядку clock ↗"]
-        extractor["Экстрактор ↗<br/>факты с датой и источником"]
-        rule["rule_constraints ↗<br/>только доверенные записи"]
-        guard["split_untrusted ↗<br/>разбор по строкам"]
+        entry["write: запись сохраняется"]
+        close["end_session: записи сессии по порядку clock"]
+        extractor["Экстрактор<br/>факты с датой и источником"]
+        rule["rule_constraints<br/>только доверенные записи"]
+        guard["split_untrusted<br/>разбор по строкам"]
         entry --> close
         close --> extractor
         close --> rule
@@ -149,10 +149,10 @@ flowchart TB
     end
 
     subgraph stores["Хранилища"]
-        versions["Версии фактов ↗<br/>по ключу entity и attribute"]
-        constraints["Закреплённые ограничения ↗"]
-        fragments["Фрагменты quoted_data ↗"]
-        quarantine["Карантин ↗<br/>в контекст не попадает"]
+        versions["Версии фактов<br/>по ключу entity и attribute"]
+        constraints["Закреплённые ограничения"]
+        fragments["Фрагменты quoted_data"]
+        quarantine["Карантин<br/>в контекст не попадает"]
     end
 
     extractor --> versions
@@ -161,12 +161,12 @@ flowchart TB
     guard -->|"похоже на инструкцию"| quarantine
 
     subgraph reading["Чтение: context"]
-        scope["Фильтр видимости ↗<br/>private, task, shared"]
-        first["Ограничения идут первыми ↗<br/>ошибка, если не помещаются в лимит"]
-        resolve["Факты ↗<br/>разрешение версий, метки DISPUTED и data"]
-        rest["Фрагменты ↗"]
-        rank["Отбор по BM25 и времени ↗<br/>сначала факты, затем фрагменты"]
-        limit["Заполнение до 2000 токенов ↗"]
+        scope["Фильтр видимости<br/>private, task, shared"]
+        first["Ограничения идут первыми<br/>ошибка, если не помещаются в лимит"]
+        resolve["Факты<br/>разрешение версий, метки DISPUTED и data"]
+        rest["Фрагменты"]
+        rank["Отбор по BM25 и времени<br/>сначала факты, затем фрагменты"]
+        limit["Заполнение до 2000 токенов"]
         scope --> first
         scope --> resolve
         scope --> rest
@@ -213,22 +213,22 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    next["Следующая видимая версия ключа ↗"] --> dated{"Время события ↗<br/>указано в тексте?"}
-    dated -->|"нет"| assume["Считать её последней: ↗<br/>время = максимум + 1"]
+    next["Следующая видимая версия ключа"] --> dated{"Время события<br/>указано в тексте?"}
+    dated -->|"нет"| assume["Считать её последней:<br/>время = максимум + 1"]
     dated -->|"да"| same
-    assume --> same{"Такое значение ↗<br/>уже действует?"}
-    same -->|"да"| confirm["Значение остаётся, ↗<br/>сохраняется более доверенный источник"]
-    same -->|"нет"| empty{"Есть действующее ↗<br/>значение?"}
-    empty -->|"нет"| accept["Принять ↗"]
-    empty -->|"да"| trust{"Версия untrusted, ↗<br/>а действующая нет?"}
-    trust -->|"да"| rejectTrust["Отклонить: недоверенный источник ↗<br/>не меняет доверенный факт"]
-    trust -->|"нет"| time{"Сравнить время события ↗"}
-    time -->|"новее"| later["Заменить: later_event ↗"]
-    time -->|"старше"| rejectOld["Отклонить: older event ↗"]
-    time -->|"равно"| authority{"Сравнить авторитет ↗"}
-    authority -->|"выше"| replace["Заменить: authority ↗"]
-    authority -->|"ниже"| rejectLow["Отклонить: lower authority ↗"]
-    authority -->|"равен"| disputed["Оставить оба значения: ↗<br/>DISPUTED"]
+    assume --> same{"Такое значение<br/>уже действует?"}
+    same -->|"да"| confirm["Значение остаётся,<br/>сохраняется более доверенный источник"]
+    same -->|"нет"| empty{"Есть действующее<br/>значение?"}
+    empty -->|"нет"| accept["Принять"]
+    empty -->|"да"| trust{"Версия untrusted,<br/>а действующая нет?"}
+    trust -->|"да"| rejectTrust["Отклонить: недоверенный источник<br/>не меняет доверенный факт"]
+    trust -->|"нет"| time{"Сравнить время события"}
+    time -->|"новее"| later["Заменить: later_event"]
+    time -->|"старше"| rejectOld["Отклонить: older event"]
+    time -->|"равно"| authority{"Сравнить авторитет"}
+    authority -->|"выше"| replace["Заменить: authority"]
+    authority -->|"ниже"| rejectLow["Отклонить: lower authority"]
+    authority -->|"равен"| disputed["Оставить оба значения:<br/>DISPUTED"]
 
     click next href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L104"
     click dated href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L106"
