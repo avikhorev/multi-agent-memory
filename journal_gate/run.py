@@ -9,6 +9,7 @@ import json
 import os
 import sys
 from collections import Counter, defaultdict
+from dataclasses import replace
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -40,10 +41,20 @@ def run(a):
     out.mkdir(parents=True, exist_ok=True)
 
     class LocalClient(ClaudeCliClient):
-        """The local CLI finds its login through USER, which the pinned client does not pass."""
+        """Local CLI: it finds its login through USER, and it does not know the model, so its cost is 40 times too high.
+
+        The cost is recomputed from the tokens at the rates of the committed run (USD per million tokens).
+        """
 
         def _env(self):
             return {**super()._env(), "USER": os.environ["USER"]}
+
+        def complete(self, system, messages, options):
+            out = super().complete(system, messages, options)
+            u = out.usage
+            cost = (u.input_tokens * 0.1 + u.cache_creation_tokens * 0.2 + u.cache_read_tokens * 0.01
+                    + u.output_tokens * 0.5) / 1e6
+            return replace(out, usage=replace(u, cost_usd=cost))
 
     llm = LocalClient(check_version=False)
     print(f"model {MODEL}; the local claude CLI may differ from the pinned {PINNED_CLI_VERSION} (version check off)")
