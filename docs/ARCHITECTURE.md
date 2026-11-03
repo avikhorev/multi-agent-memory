@@ -1,6 +1,6 @@
 # Архитектура
 
-Здесь показан путь данных: сценарий → вызовы агентов → записи в память → контекст → оценка. Основной код — [`live.py`](../src/mam/live.py), [`agents.py`](../src/mam/agents.py) и [`systems/ours.py`](../src/mam/systems/ours.py). Правила интерфейса — в [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md), риски — в [`THREAT_MODEL.md`](THREAT_MODEL.md).
+Здесь показан путь данных: сценарий → вызовы агентов → записи в память → контекст → оценка. Основной код — [`live.py`](../src/mam/live.py), [`agents.py`](../src/mam/agents.py) и [`systems/ours.py`](../src/mam/systems/ours.py). Правила интерфейса — в [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md), риски — в [`THREAT_MODEL.md`](THREAT_MODEL.md). **Практический пример** с сохранёнными событиями и ответами агентов — в [`WALKTHROUGH.md`](WALKTHROUGH.md).
 
 **Навигация:** раздел 1 — вся система; 2 — одна сессия; 3 — запись и чтение `ours`; 4 — разрешение версий; 5–6 — рост контекста и диагностика провалов. Узлы диаграмм содержат ссылки на код в коммите `1811222`; номера строк относятся к нему, а не к текущей версии.
 

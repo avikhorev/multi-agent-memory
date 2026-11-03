@@ -10,7 +10,7 @@ DIR ?= $(OUT)
 IMAGE ?= mam
 
 .PHONY: venv test test-generator dataset memory-level reproduce doctor live live-tables smoke \
-        extraction-trial extraction mutation docker-build docker-test docker-reproduce docker-live
+        extraction-trial extraction mutation docs-check docker-build docker-test docker-reproduce docker-live
 
 venv:
 	python3 -m venv .venv
@@ -18,6 +18,12 @@ venv:
 
 test:
 	$(PY) -m pytest
+
+# stdlib only, no LLM or dependency installation: validate docs, tests and frozen evidence
+docs-check:
+	python3 scripts/check_docs.py
+	python3 -m unittest scripts.test_check_docs
+	python3 scripts/evidence_summary.py --verify
 
 test-generator:
 	$(PY) -m pytest tests/acceptance -m "not memory"
