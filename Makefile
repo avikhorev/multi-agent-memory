@@ -10,7 +10,7 @@ DIR ?= $(OUT)
 IMAGE ?= mam
 
 .PHONY: venv test test-generator dataset memory-level reproduce doctor live live-tables smoke \
-        extraction-trial extraction mutation docs-check docker-build docker-test docker-reproduce docker-live
+        extraction-trial extraction mutation docs-check visual-demo docker-build docker-test docker-reproduce docker-live
 
 venv:
 	python3 -m venv .venv
@@ -25,9 +25,15 @@ docs-check:
 	python3 -m unittest scripts.test_check_docs scripts.test_check_frozen_artifacts
 	python3 scripts/check_frozen_artifacts.py
 	python3 scripts/evidence_summary.py --verify
+	python3 scripts/build_visual_demo.py --check
+	python3 -m unittest scripts.test_visual_demo
 
 test-generator:
 	$(PY) -m pytest tests/acceptance -m "not memory"
+
+# refresh only the read-only browser snapshot from committed raw traces; does not change results/
+visual-demo:
+	python3 scripts/build_visual_demo.py
 
 # regenerate the scenarios (identical to the committed files on Python 3.11 to 3.13)
 dataset:

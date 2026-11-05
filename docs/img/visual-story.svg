@@ -1,0 +1,88 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1250" height="635" viewBox="0 0 1250 635" role="img" aria-labelledby="title desc">
+  <title id="title">От источника до оценки: четыре этапа работы multi-agent-memory</title>
+  <desc id="desc">Четыре шага: событие из инструмента или от пользователя, запись и выборка из памяти, ответ Planner, Worker или Reviewer, проверка результата. Пример C1 показывает обновление значения и успешный ответ ours; пример C6 показывает пропущенное чтение источника и неуспешную проверку ours. Демо основано на сохранённых трассах repeat r0.</desc>
+  <defs>
+    <pattern id="grid" width="18" height="18" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r=".65" fill="#dce4da"/></pattern>
+    <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" markerUnits="strokeWidth"><path d="M0 0L7 3.5L0 7" fill="none" stroke="#95b6a8" stroke-width="1.6"/></marker>
+    <style>
+      text { font-family: -apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; }
+      .mono { font-family: ui-monospace,Consolas,monospace; }
+      .number { font: 700 12px ui-monospace,Consolas,monospace; fill: #1b8474; letter-spacing: 1px; }
+      .name { font-size: 24px; font-weight: 740; letter-spacing:-.7px; fill: #192f2e; }
+      .explain { font-size: 15px; fill: #577168; }
+      .small { font-size: 13px; fill: #6a7e74; }
+      .lane { font-size: 15px; font-weight: 760; fill: #1e3933; }
+      .lane-sub { font-size: 13px; fill: #5a7065; }
+      .chip { font: 700 13px ui-monospace,Consolas,monospace; }
+    </style>
+  </defs>
+  <rect x="0.5" y="0.5" width="1249" height="634" rx="16" fill="#f6f8f3" stroke="#d6e4d8"/>
+  <rect x="18" y="18" width="1214" height="599" rx="10" fill="url(#grid)"/>
+  <text x="46" y="62" fill="#18786d" font-size="13" font-weight="780" letter-spacing="2.2">VISUAL TRACE / 01</text>
+  <text x="46" y="106" fill="#193631" font-size="32" font-weight="760" letter-spacing="-1.1">Как данные превращаются в ответ</text>
+  <text x="46" y="136" fill="#617a70" font-size="15">Четыре этапа одного сохранённого прогона · источник / запись / контекст / верный ответ</text>
+
+  <g>
+    <rect x="44" y="171" width="263" height="223" rx="12" fill="#fff" stroke="#d9e5d9" stroke-width="1.5"/>
+    <rect x="44" y="171" width="263" height="7" rx="3" fill="#195f59"/>
+    <text class="number" x="64" y="214">01 / DATA</text>
+    <text class="name" x="64" y="253">Источник</text>
+    <text class="explain" x="64" y="284">Сообщение пользователя</text>
+    <text class="explain" x="64" y="305">или ответ инструмента</text>
+    <rect x="64" y="334" width="170" height="33" rx="5" fill="#e6f4ed"/>
+    <text x="79" y="356" font-size="13" font-weight="690" fill="#146758" class="mono">read_document</text>
+  </g>
+  <g>
+    <rect x="343" y="171" width="263" height="223" rx="12" fill="#fff" stroke="#d9e5d9" stroke-width="1.5"/>
+    <rect x="343" y="171" width="263" height="7" rx="3" fill="#195f59"/>
+    <text class="number" x="363" y="214">02 / STORE</text>
+    <text class="name" x="363" y="253">Память</text>
+    <text class="explain" x="363" y="284">write / end_session</text>
+    <text class="explain" x="363" y="305">context(reader)</text>
+    <rect x="363" y="334" width="213" height="33" rx="5" fill="#e6f4ed"/>
+    <text x="375" y="356" font-size="13" font-weight="690" fill="#146758" class="mono">факты / версии / ID</text>
+  </g>
+  <g>
+    <rect x="642" y="171" width="263" height="223" rx="12" fill="#fff" stroke="#d9e5d9" stroke-width="1.5"/>
+    <rect x="642" y="171" width="263" height="7" rx="3" fill="#195f59"/>
+    <text class="number" x="662" y="214">03 / AGENT</text>
+    <text class="name" x="662" y="253">Агент</text>
+    <text class="explain" x="662" y="284">Planner / Worker /</text>
+    <text class="explain" x="662" y="305">Reviewer</text>
+    <rect x="662" y="334" width="192" height="33" rx="5" fill="#e6f4ed"/>
+    <text x="676" y="356" font-size="13" font-weight="690" fill="#146758" class="mono">ответ или действие</text>
+  </g>
+  <g>
+    <rect x="941" y="171" width="263" height="223" rx="12" fill="#fff" stroke="#d9e5d9" stroke-width="1.5"/>
+    <rect x="941" y="171" width="263" height="7" rx="3" fill="#195f59"/>
+    <text class="number" x="961" y="214">04 / SCORE</text>
+    <text class="name" x="961" y="253">Оценка</text>
+    <text class="explain" x="961" y="284">Проверка контекста,</text>
+    <text class="explain" x="961" y="305">ответа и метки</text>
+    <rect x="961" y="334" width="192" height="33" rx="5" fill="#e6f4ed"/>
+    <text x="975" y="356" font-size="13" font-weight="690" fill="#146758" class="mono">ok / memory / agent</text>
+  </g>
+  <g stroke="#95b6a8" stroke-width="2.4" fill="none" marker-end="url(#arrow)">
+    <path d="M308 283H332"/><path d="M607 283H631"/><path d="M906 283H930"/>
+  </g>
+
+  <rect x="44" y="421" width="1160" height="69" rx="10" fill="#e5f5ed" stroke="#c7e5d7"/>
+  <rect x="44" y="421" width="7" height="69" rx="3" fill="#147c6b"/>
+  <text class="lane" x="64" y="448">C1 · ours</text>
+  <text class="lane-sub" x="64" y="474">обновление</text>
+  <text x="352" y="454" class="chip" fill="#275e50">727000 было / 153000 стало</text>
+  <text x="666" y="454" class="chip" fill="#275e50">153 000 USD</text>
+  <rect x="1071" y="440" width="94" height="30" rx="5" fill="#177b68"/>
+  <text x="1118" y="460" text-anchor="middle" font-size="14" font-weight="770" fill="#fff">PASS</text>
+
+  <rect x="44" y="500" width="1160" height="69" rx="10" fill="#fff0e8" stroke="#f0d9c6"/>
+  <rect x="44" y="500" width="7" height="69" rx="3" fill="#bd6853"/>
+  <text class="lane" x="64" y="527">C6 · ours</text>
+  <text class="lane-sub" x="64" y="553">пропуск чтения</text>
+  <text x="352" y="533" class="chip" fill="#8c5140">нет write(e-0002)</text>
+  <text x="666" y="533" class="chip" fill="#8c5140">нет точной даты</text>
+  <rect x="1071" y="518" width="94" height="30" rx="5" fill="#b75d4e"/>
+  <text x="1118" y="538" text-anchor="middle" font-size="14" font-weight="770" fill="#fff">FAIL</text>
+
+  <text x="46" y="602" class="small">Реальные C1-eval-0000 / C6-eval-0002, repeat r0. В интерактивной версии можно переключиться на full_history.</text>
+</svg>
