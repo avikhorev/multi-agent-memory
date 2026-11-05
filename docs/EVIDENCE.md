@@ -22,7 +22,7 @@ python3 scripts/evidence_summary.py --verify
 - **Данные:** [`ours@cache.jsonl`](../results/memory_level/eval/ours@cache.jsonl), [`full_history.jsonl`](../results/memory_level/eval/full_history.jsonl), [`shared_rag_bm25.jsonl`](../results/memory_level/eval/shared_rag_bm25.jsonl); [таблицы](../results/memory_level/eval/tables.md).
 - **Как проверить:** `python3 scripts/evidence_summary.py --verify`; для нового расчёта — `make memory-level SPLIT=eval` (перезаписывает файлы).
 - **Объём:** 210 сценариев `eval`, 780 контрольных точек на систему. **Статус:** основной, уровень памяти.
-- **Граница вывода:** `score_context` ищет строки и атрибуты контекста, а не рассуждения агента; сравнение подвержено строгим правилам `absent` и `disputed` (раздел 5 [`REPORT.md`](../REPORT.md#5-результаты-на-уровне-памяти)).
+- **Граница вывода:** [`score_context`](../src/mam/scoring.py#L45) ищет строки и атрибуты контекста, а не рассуждения агента; сравнение подвержено строгим правилам `absent` и `disputed` (раздел 5 [`REPORT.md`](../REPORT.md#5-результаты-на-уровне-памяти)).
 
 <a id="e2"></a>
 ### E2. Живые ответы: 124/156 у `ours`
@@ -62,7 +62,7 @@ python3 scripts/evidence_summary.py --verify
 ### E6. Подача автора и времени меняет сравнение
 
 - **Данные:** [слепая классификация](../results/post_hoc/presentation/blind.md), [сопоставление](../results/post_hoc/presentation/classified.md), [контрольный повтор](../results/post_hoc/control_repeat.md).
-- **Как проверить:** команды `scripts/post_hoc_presentation.py` и `scripts/post_hoc_control_repeat.py` перечислены в [RUNBOOK](RUNBOOK.md#5-дополнительные-проверки-post-hoc), либо изучите уже сохранённые таблицы.
+- **Как проверить:** команды [`scripts/post_hoc_presentation.py`](../scripts/post_hoc_presentation.py) и [`scripts/post_hoc_control_repeat.py`](../scripts/post_hoc_control_repeat.py) перечислены в [RUNBOOK](RUNBOOK.md#5-дополнительные-проверки-post-hoc), либо изучите уже сохранённые таблицы.
 - **Объём:** 48 дополнительных проверок подачи в C1/C3. **Статус:** post hoc.
 - **Граница вывода:** сравнение подачи не перезапускало `ours` в тех же условиях; это проверка объяснения разрыва, а не новый независимый основной эксперимент.
 

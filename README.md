@@ -62,14 +62,20 @@ make live  # по умолчанию пишет в results/live/rerun
 
 | Путь | Содержимое |
 |---|---|
-| `src/mam/` | системы памяти, генератор, оценщик, агенты и раннер |
-| `tests/` | приёмочные и модульные тесты |
-| `data/dev/`, `data/eval/`, `holdout/` | сценарии и эталонные ответы |
-| `results/memory_level/` | оценки контекста и таблицы |
-| `results/live/` | прогоны с агентами, трассы и таблицы |
-| `results/extraction/`, `results/pilot/` | кеш извлечения и измерения вызовов модели |
-| `results/post_hoc/` | дополнительные проверки и итерации после заморозки |
-| `docs/` | спецификация, архитектура, допущения и журнал решений |
+| [`src/mam/`](src/mam/) | код проекта: память, генератор, оценщик, агенты и раннер |
+| [`src/mam/systems/`](src/mam/systems/) | реализации памяти: [`ours`](src/mam/systems/ours.py), [базовые системы](src/mam/systems/baselines.py), [резюме](src/mam/systems/summary.py), [интерфейс](src/mam/systems/base.py) |
+| [`src/mam/generate.py`](src/mam/generate.py), [`validate.py`](src/mam/validate.py) | генератор сценариев и их проверка |
+| [`src/mam/simulate.py`](src/mam/simulate.py), [`scoring.py`](src/mam/scoring.py) | симулятор инструментов и оценка контекста и действий |
+| [`src/mam/live.py`](src/mam/live.py), [`agents.py`](src/mam/agents.py) | живой протокол сессии и промпты агентов |
+| [`src/mam/llm.py`](src/mam/llm.py) | обёртка над Claude CLI и тестовый клиент |
+| [`tests/`](tests/) | приёмочные и модульные тесты |
+| [`scripts/`](scripts/) | проверки документации, таблицы и дополнительные анализы |
+| [`data/dev/`](data/dev/), [`data/eval/`](data/eval/), [`holdout/`](holdout/) | сценарии и эталонные ответы |
+| [`results/memory_level/`](results/memory_level/) | оценки контекста и таблицы |
+| [`results/live/`](results/live/) | прогоны с агентами, трассы и таблицы |
+| [`results/extraction/`](results/extraction/), [`results/pilot/`](results/pilot/) | кеш извлечения и измерения вызовов модели |
+| [`results/post_hoc/`](results/post_hoc/) | дополнительные проверки и итерации после заморозки |
+| [`docs/`](docs/) | спецификация, архитектура, допущения и журнал решений |
 
 ## Лицензия
 
