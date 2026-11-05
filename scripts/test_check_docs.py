@@ -75,5 +75,53 @@ class MarkdownChecks(unittest.TestCase):
         self.assertIn("live ours", evidence_summary.verify(mem, live)[0])
 
 
+class PublishedExamples(unittest.TestCase):
+    """Keep the denominators and C6 walkthrough aligned with frozen unit files."""
+
+    def test_live_all_vs_selected_denominators(self):
+        import json
+
+        root = Path(__file__).resolve().parents[1]
+        files = sorted((root / "results/live/main/units").glob("ours__*.json"))
+        self.assertEqual(len(files), 42)
+        total, passed, selected, selected_passed = 0, 0, 0, 0
+        for file in files:
+            unit = json.loads(file.read_text(encoding="utf-8"))
+            category = unit["scenario"].split("-")[0]
+            for cp in unit["checkpoints"]:
+                total += 1
+                passed += bool(cp["passed"])
+                if category in ("C0", "C6") or cp["factor"]:
+                    selected += 1
+                    selected_passed += bool(cp["passed"])
+        self.assertEqual((passed, total), (124, 156))
+        self.assertEqual((selected_passed, selected), (55, 66))
+
+    def test_c6_source_writes_and_failure_labels(self):
+        import json
+
+        root = Path(__file__).resolve().parents[1] / "results/live/main"
+        for system in ("ours", "full_history"):
+            for repeat in (0, 1):
+                name = f"{system}__C6-eval-0002__r{repeat}"
+                unit = json.loads((root / "units" / f"{name}.json").read_text(encoding="utf-8"))
+                trace = [json.loads(line) for line in
+                         (root / "traces" / f"{name}.jsonl").read_text(encoding="utf-8").splitlines()]
+                written = {row.get("entry_id") for row in trace if row.get("op") == "write"}
+                checkpoints = {row["checkpoint"]: row for row in unit["checkpoints"]}
+                if system == "ours":
+                    self.assertNotIn("e-0002", written)
+                    self.assertNotIn("e-0086", written)
+                    for key in ("cp-1", "cp-3"):
+                        self.assertEqual(checkpoints[key]["label"], "agent")
+                        self.assertFalse(checkpoints[key]["context_passed"])
+                        self.assertTrue(checkpoints[key]["reachable"])
+                else:
+                    self.assertIn("e-0002", written)
+                    self.assertIn("e-0086", written)
+                    for key in ("cp-1", "cp-3"):
+                        self.assertEqual(checkpoints[key]["label"], "ok")
+
+
 if __name__ == "__main__":
     unittest.main()

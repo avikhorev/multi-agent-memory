@@ -19,10 +19,11 @@ venv:
 test:
 	$(PY) -m pytest
 
-# stdlib only, no LLM or dependency installation: validate docs, tests and frozen evidence
+# stdlib only, no LLM or dependency installation: docs, frozen inputs/results and evidence
 docs-check:
 	python3 scripts/check_docs.py
-	python3 -m unittest scripts.test_check_docs
+	python3 -m unittest scripts.test_check_docs scripts.test_check_frozen_artifacts
+	python3 scripts/check_frozen_artifacts.py
 	python3 scripts/evidence_summary.py --verify
 
 test-generator:

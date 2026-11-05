@@ -196,6 +196,8 @@ Checkpoint {
 
 ### Метки провала
 
+Пошаговый пример с **реальным** пропуском источника и меткой `agent` — в [`FAILURE_WALKTHROUGH.md`](FAILURE_WALKTHROUGH.md). Различие 780, 156 и 66 проверок объясняется в [постановке](PROBLEM.md#как-читать-знаменатели).
+
 Для каждой непройденной контрольной точки живого слоя программа ставит ровно одну метку; порядок проверки такой:
 
 | Порядок | Метка | Условие |
@@ -248,19 +250,21 @@ Context {
   render() -> str             # единый текст контекста
 }
 
-mam.systems.create(name, *, limit=2000, ablate=frozenset(), extractor="oracle", cache_path=None) -> MemorySystem
+mam.systems.create(name, *, limit=2000, ablate=frozenset(), extractor="oracle", cache_path=None, llm=None) -> MemorySystem
   name:      "ours" | "full_history" | "sliding_window" | "rolling_summary" | "shared_rag_bm25"
   ablate:    подмножество {"validity", "scopes", "trust", "pinned_constraints"}, только для "ours"
-  extractor: "oracle" | "rules" | "cache" (для "ours" и "rolling_summary"; "oracle" недоступен для rolling_summary)
+  extractor: "oracle" | "rules" | "cache" | "llm" (для "ours" и "rolling_summary"; "oracle" недоступен для rolling_summary; для "llm" нужен клиент)
 
 MemorySystem {
   write(entry: Entry) -> None
   end_session(session: int) -> None     # здесь происходят извлечение фактов и построение резюме
   context(reader: Reader) -> Context
+  drain_llm_calls() -> list      # необязательный хук, по умолчанию []
+  drain_extractions() -> list    # необязательный хук, по умолчанию []
 }
 ```
 
-Свойства, которые обязаны выполняться (из них пишутся приёмочные тесты):
+Свойства, которые обязаны выполняться (из них пишутся приёмочные тесты). Пример подключения своей реализации — в [`EXTENDING.md`](EXTENDING.md):
 
 1. `limit` — потолок `Context.token_count` для всех систем, кроме `full_history`; `full_history` не обрезает историю никогда.
 2. `write` вызывается по возрастанию `clock`; повторная запись записи с тем же `id` не меняет результат (идемпотентность).

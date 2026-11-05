@@ -18,5 +18,5 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Check links, Makefile commands, tests and frozen results
+      - name: Check docs, source links, artifact checksums and frozen results
         run: make docs-check

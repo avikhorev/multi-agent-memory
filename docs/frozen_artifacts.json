@@ -1,0 +1,36 @@
+{
+  "schema": 1,
+  "description": "Primary research inputs, extraction cache and unmodified raw results; exclude timing and derived tables.",
+  "groups": [
+    {
+      "glob": "data/eval/*.json",
+      "files": 211,
+      "sha256": "7d70a83d5d248b971107b7e09be52dd12287852124bef6d1090e9a24e199ad0d"
+    },
+    {
+      "glob": "holdout/*.json",
+      "files": 11,
+      "sha256": "f68ae3df796a1a1c92f15778a655a57025b66af5dc9be6712cfe22043e5655ae"
+    },
+    {
+      "glob": "results/extraction/eval/cache.jsonl",
+      "files": 1,
+      "sha256": "b21d257827e93ce8ba3af028f43806b71cd8c76f57ce28bfbee3205213d1818e"
+    },
+    {
+      "glob": "results/live/main/units/*.json",
+      "files": 210,
+      "sha256": "7ff4e00e1aeb44b003b622aedfabf088be26484f3dfcbf59439af86d5a419af9"
+    },
+    {
+      "glob": "results/live/main/traces/*.jsonl",
+      "files": 210,
+      "sha256": "01439e340a5820216aa90d5bd4c5deccad461890f6cf2e0718f56c6278f9d60d"
+    },
+    {
+      "glob": "results/memory_level/eval/*.jsonl",
+      "files": 16,
+      "sha256": "849f6071390d908ca28dd9ec3b3b4fcd3e23ccb0c6b3f3b74299488145281472"
+    }
+  ]
+}
