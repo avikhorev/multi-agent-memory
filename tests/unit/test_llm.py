@@ -59,6 +59,17 @@ def test_the_command_has_the_pilot_flags_and_nothing_extra():
     assert cmd[cmd.index("--tools") + 1] == "" and cmd[cmd.index("--effort") + 1] == "low"
     assert cmd[cmd.index("--model") + 1] == "claude-haiku-5-5" and cmd[cmd.index("--setting-sources") + 1] == ""
     assert "--bare" not in cmd and "--thinking" not in cmd
+    assert "--json-schema" not in cmd
+
+
+def test_a_schema_option_adds_the_json_schema_flag_and_the_structured_object_is_kept():
+    schema = '{"type": "object"}'
+    c, runner, _ = client([{"is_error": False, "result": "{}", "structured_output": {"tool": "none"},
+                            "total_cost_usd": 0.0, "duration_api_ms": 1, "usage": {}}])
+    res = c.complete("sys prompt", MSG, {"schema": schema})
+    cmd = [x for x in runner.calls if x["cmd"][1] == "-p"][0]["cmd"]
+    assert cmd[cmd.index("--json-schema") + 1] == schema and cmd[-1] == "hello"
+    assert res.parsed == {"tool": "none"}
 
 
 def test_the_child_environment_is_a_whitelist_and_passes_credentials_unchanged():
