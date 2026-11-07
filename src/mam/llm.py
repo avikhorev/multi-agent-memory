@@ -54,6 +54,7 @@ class LLMResult:
     usage: Usage
     latency_s: float
     refusal: bool = False
+    parsed: dict | None = None  # the object the CLI returns for --json-schema
 
 
 class LLMClient(Protocol):
@@ -97,7 +98,7 @@ class ClaudeCliClient:
         return ["claude", "-p", "--model", MODEL, "--output-format", "json", "--system-prompt", system,
                 "--tools", "", "--strict-mcp-config", "--mcp-config", '{"mcpServers":{}}',
                 "--setting-sources", "", "--disable-slash-commands", "--no-session-persistence",
-                "--effort", options.get("effort", "low"), prompt]
+                "--effort", options.get("effort", "low"), *_schema_flag(options), prompt]
 
     def complete(self, system: str, messages: list[dict], options: dict) -> LLMResult:
         if len(messages) != 1 or messages[0].get("role") != "user":
@@ -134,7 +135,12 @@ class ClaudeCliClient:
                 if _REFUSAL_MARKER in text:
                     return LLMResult("", usage, latency, refusal=True)
                 raise LLMError(f"model error: {text[:200]}")
-            return LLMResult(text, usage, latency)
+            parsed = data.get("structured_output")
+            return LLMResult(text, usage, latency, parsed=parsed if isinstance(parsed, dict) else None)
+
+
+def _schema_flag(options: dict) -> list[str]:
+    return ["--json-schema", options["schema"]] if "schema" in options else []
 
 
 class FakeClient:
@@ -155,4 +161,9 @@ class FakeClient:
         used = count(system) + sum(count(m["content"]) for m in messages)
         if text is None:
             return LLMResult("", Usage(input_tokens=used), 0.0, refusal=True)
-        return LLMResult(text, Usage(input_tokens=used, output_tokens=count(text)), 0.0)
+        try:
+            parsed = json.loads(text)
+        except ValueError:
+            parsed = None
+        return LLMResult(text, Usage(input_tokens=used, output_tokens=count(text)), 0.0,
+                         parsed=parsed if isinstance(parsed, dict) else None)

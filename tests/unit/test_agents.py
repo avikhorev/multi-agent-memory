@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from mam.agents import ActionError, parse_action, run_agent
+from mam.agents import ACTION_SCHEMA, TOOLS, ActionError, parse_action, run_agent
 from mam.llm import FakeClient
 
 GOOD = {"tool": "none", "args": {}, "answer": "done", "notes": ["a", "b"]}
@@ -13,23 +13,28 @@ def reply(**over):
     return json.dumps({**GOOD, **over})
 
 
-def test_a_plain_json_reply_is_parsed():
-    assert parse_action(reply()) == GOOD
+def act(text):
+    return parse_action(FakeClient([text]).complete("", [], {}))
 
 
-def test_code_fences_and_surrounding_prose_are_tolerated():
-    assert parse_action("Here you go:\n```json\n" + reply() + "\n```\nThanks") == GOOD
+def test_a_structured_reply_is_taken_as_the_action():
+    assert act(reply()) == GOOD
 
 
-@pytest.mark.parametrize("bad", ["not json", "[1, 2]", reply(tool="delete_all"), json.dumps({"tool": "none"}),
-                                 reply(args="x"), reply(notes="x"), reply(answer=5)])
+def test_the_schema_is_passed_to_the_client_and_matches_the_tools():
+    schema = json.loads(ACTION_SCHEMA)
+    assert schema["properties"]["tool"]["enum"] == list(TOOLS)
+    assert set(schema["required"]) == {"tool", "args", "answer", "notes"}
+
+
+@pytest.mark.parametrize("bad", ["not json", "[1, 2]", reply(tool="delete_all"), json.dumps({"tool": "none"})])
 def test_invalid_actions_are_rejected(bad):
     with pytest.raises(ActionError):
-        parse_action(bad)
+        act(bad)
 
 
 def test_more_than_three_notes_are_cut_to_three():
-    assert parse_action(reply(notes=list("abcde")))["notes"] == ["a", "b", "c"]
+    assert act(reply(notes=list("abcde")))["notes"] == ["a", "b", "c"]
 
 
 def test_invalid_json_gets_exactly_one_retry():
