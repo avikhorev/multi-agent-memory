@@ -77,6 +77,35 @@ make live  # по умолчанию пишет в results/live/rerun
 | [`results/post_hoc/`](results/post_hoc/) | дополнительные проверки и итерации после заморозки |
 | [`docs/`](docs/) | спецификация, архитектура, допущения и журнал решений |
 
+## Подкаталоги и границы системы
+
+- `src`: [`src/README.md`](src/README.md) — корень исходного кода; содержит только пакет `mam` ([`src/mam/README.md`](src/mam/README.md)) и реализации памяти ([`src/mam/systems/README.md`](src/mam/systems/README.md)).
+- `scripts`: [`scripts/README.md`](scripts/README.md) — отдельные утилиты: проверки документации и замороженных артефактов, сборка демо, анализы `post_hoc_*`.
+- `external`: [`external/README.md`](external/README.md) — адаптеры внешних систем памяти (Mem0, Graphiti) и их запуск; проект не импортирует этот каталог.
+- `docs`: [`docs/README.md`](docs/README.md) — документация и [интерактивное демо](docs/demo/README.md).
+- `tests`: тесты `tests/acceptance` и `tests/unit` (без собственного контракта); запускаются через `pytest`.
+- `data`, `holdout`, `results`: только данные (сценарии, эталоны, результаты прогонов); кода нет. `make dataset` перегенерирует `data/dev`, `data/eval` и `holdout/`.
+- `.github`: [`.github/workflows/docs.yml`](.github/workflows/docs.yml) запускает `make docs-check` при каждом push и pull request (`fetch-depth: 0`).
+- `Dockerfile`, `.dockerignore`: образ копирует `pyproject.toml`, `Makefile`, `LICENSE`, `src`, `tests`, `docs`, `data`, `holdout`, `results` (без `scripts/` и `external/`), поэтому `make docs-check` внутри образа не работает.
+
+## Глобальные инварианты
+
+- Скрипты `scripts/post_hoc_*.py` не меняют `src/mam`: варианты систем подставляются в процессе заменой `mam.live.create` / `memory_eval.make_system` ([`scripts/README.md`](scripts/README.md)).
+- `make docs-check` проверяет: ссылки, якоря и цели `make` (`scripts/check_docs.py`), контрольные суммы артефактов (`scripts/check_frozen_artifacts.py`), замороженные итоги (`scripts/evidence_summary.py --verify`) и актуальность демо (`scripts/build_visual_demo.py --check`).
+- `docs/demo/data.js` генерируется `scripts/build_visual_demo.py` и не редактируется вручную.
+- Проект не импортирует `external/`.
+
+## Глобальные побочные эффекты
+
+- Вызовы модели (через `ClaudeCliClient`): `make live`, `make docker-live`, `make smoke` (лимит `--max-cost-usd 3`), `make extraction-trial` (лимит 3 USD), `make extraction` (`MAX_COST`, по умолчанию 10), `make doctor` (один пробный вызов), а также подкоманды `scripts/post_hoc_*.py` и `external/run.py`.
+- Запись файлов: `make reproduce` и `make docker-reproduce` перезаписывают `results/`; `make memory-level` пишет в `results/memory_level/<split>`; `make live-tables`; `make live` — по умолчанию в `results/live/rerun`; `make smoke` — в `results/live/smoke_check`; `make extraction*` — в `results/extraction/...`; `make mutation` — в `mutants/`; `make venv` — в `.venv`; `scripts/post_hoc_*.py` — в `results/post_hoc/`; `external/run.py` — в `results/post_hoc/external/`.
+- `scripts/build_visual_demo.py` пишет `docs/demo/data.js`, если не задан `--check`.
+
+## Проверка системы
+
+- Запуск: `make test` (`$(PY) -m pytest`, `PY ?= .venv/bin/python`, поэтому нужен `make venv`); также `make test-generator` и `make docker-test`. Проверка документации и чисел без LLM — `make docs-check`.
+- Тесты в `scripts/` (`test_post_hoc_*.py`) и `external/` (smoke-тесты) не входят в `make test` (`testpaths = ["tests"]`).
+
 ## Лицензия
 
 [MIT](LICENSE).

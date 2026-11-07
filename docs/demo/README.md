@@ -45,3 +45,36 @@ make docs-check                              # ссылки, тесты, арт�
 Генератор использует только стандартную библиотеку Python 3.11+, **не изменяет** файлы в `data/` и `results/` и не обращается к модели. После изменения исходных данных сначала определите, остаются ли результаты сравнимыми с замороженным экспериментом; не выдавайте новый прогон за исторический. Смена сюжетов делается в `CASES` файла [`scripts/build_visual_demo.py`](../../scripts/build_visual_demo.py); интерфейс — [`demo.js`](demo.js), [`style.css`](style.css).
 
 Дополнительные разборы: [обновление C1](../WALKTHROUGH.md), [пропуск источников C6](../FAILURE_WALKTHROUGH.md), [ограничения оценщика](../KNOWN_ISSUES.md).
+
+## Interface
+
+Контракт статической страницы (код не экспортирует API, это самодостаточный набор файлов):
+
+- [`index.html`](index.html) — разметка; подключает `style.css`, затем `data.js` и `demo.js` (оба с `defer`).
+- [`data.js`](data.js) — **генерируемый** файл; задаёт `window.MAM_DEMO_DATA` со схемой `schema: 1` и массивом `cases` (`c1-update`, `c6-document`, `c6-status`). В каждом случае есть `systems.ours` и `systems.full_history`.
+- [`demo.js`](demo.js) — самовызывающаяся функция без экспортов; читает `window.MAM_DEMO_DATA`. Состояние: `{ caseId, system, step }`; функции `render`, `change`, `play`, `stop`, `readHash`, а также `renderSources`, `renderMemory`, `renderAgent`, `renderResults` для четырёх этапов.
+- [`style.css`](style.css) — оформление.
+- Адрес состояния: `#<caseId>/<ours|full_history>/<1-4>`; разбирается в `readHash`, записывается через `history.replaceState`.
+- Поведение `demo.js`: таймер пропускает такты при `document.hidden`; запуск воспроизведения на четвёртом этапе начинает с первого; смена сюжета сбрасывает этап на первый, смена системы этап сохраняет; любое переключение сюжета, системы, этапа и событие `hashchange` останавливают воспроизведение; `readHash` молча игнорирует неизвестный сюжет, систему или этап; числа форматируются через `toLocaleString('ru-RU')`.
+- `index.html` содержит запасной блок `<noscript>` (ссылки на `../img/visual-story.svg` и `../WALKTHROUGH.md`), ссылку в шапке на `../../README.md` и заключение со ссылками на `../WALKTHROUGH.md`, `../FAILURE_WALKTHROUGH.md`, `../ARCHITECTURE.md`.
+- Родственный каталог без исходного кода: [`../img/`](../img) (SVG-схемы, в том числе [`visual-story.svg`](../img/visual-story.svg)).
+
+## Invariants
+
+- Если `window.MAM_DEMO_DATA` отсутствует или `schema !== 1`, `demo.js` показывает сообщение о необходимости запустить `scripts/build_visual_demo.py` и ничего не отрисовывает.
+- `data.js` не редактируется вручную; его актуальность проверяет `build_visual_demo.py --check`.
+- Номер этапа ограничен диапазоном 0–3; `play` останавливается на четвёртом этапе.
+- Ссылки на файлы результатов строятся функцией `rel` как `../../<путь>` относительно `docs/demo/`.
+- Числа, заголовки и пояснения сюжетов в `data.js` частично написаны вручную: тексты `title`, `short`, `description`, `source_note`, `memory_note`, `agent_note`, `result_note` берутся дословно из `CASES` в `scripts/build_visual_demo.py` и содержат фиксированные значения и номера сессий (например «727 000 USD», «сессии 28»). `--check` не сверяет их с трассами; ответы, действия, метки и счётчики берутся из `results/live/main/`, повтор r0.
+- `build_visual_demo.py` при расхождении трассы и записи проверки завершается `AssertionError`.
+- `demo.js` не использует `fetch`, внешние URL и хранилища браузера; в `index.html`, `demo.js` и `style.css` нет ссылок `http`.
+
+## Side Effects
+
+- Страница только читает: DOM-операции, таймер `setInterval` (шаг 4300 мс, пока включено воспроизведение) и обновление `location.hash` через `history.replaceState` (ошибки в `file://` подавляются).
+- Сеть, диск, модель и каталоги `data/` и `results/` не затрагиваются; переходы по ссылкам на трассы открывают файлы в браузере.
+
+## Verification
+
+- Run: `make docs-check` (включает `python3 scripts/build_visual_demo.py --check` и `python3 -m unittest scripts.test_visual_demo`)
+- Обновить снимок: `make visual-demo`

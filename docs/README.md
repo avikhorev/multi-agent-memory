@@ -55,3 +55,24 @@
 | Уровень памяти | Проверка собранного контекста без вызовов агентов |
 | Живой слой | Проверка поведения агентов с вызовами модели |
 | `refusal` | Отказ провайдера; учитывается отдельно от ошибок памяти и агента |
+
+## Subdirectories & Boundaries
+
+- [`demo/`](demo/README.md) — статический проигрыватель сохранённых трасс (`index.html`, `demo.js`, `data.js`, `style.css`); `data.js` генерируется скриптом `scripts/build_visual_demo.py`.
+- [`frozen_artifacts.json`](frozen_artifacts.json) — манифест (схема 1), который читает `scripts/check_frozen_artifacts.py` (`MANIFEST`); хранит только число файлов и SHA-256 по шести glob-шаблонам.
+- `img/` — SVG-схемы для документов (`visual-story.svg`, `memory-flow.svg`, `conflict-resolution.svg` и др.); исходного кода нет, собственного контракта нет.
+
+## Global Invariants
+
+- Документы описывают замороженный эксперимент. Хеши исходных артефактов хранятся в [`frozen_artifacts.json`](frozen_artifacts.json) (`data/eval/*.json`, `holdout/*.json`, `results/extraction/eval/cache.jsonl`, `results/live/main/units/*.json`, `results/live/main/traces/*.jsonl`, `results/memory_level/eval/*.jsonl`); численные итоги (`EXPECTED_MEMORY`, `EXPECTED_LIVE`, 780 / 156 / 42) заданы в `scripts/evidence_summary.py`. Оба проверяются `make docs-check`.
+- Локальные ссылки и якоря, ссылки на строки кода, привязанные к коммитам, и упоминаемые цели `make` проверяются скриптом `scripts/check_docs.py` только для корневых `*.md` и `docs/**/*.md` (README в `src/`, `scripts/`, `external/` им не проверяются). Привязанные ссылки требуют коммитов в локальной истории git (CI использует `fetch-depth: 0`, `.github/workflows/docs.yml`).
+- `docs/demo/data.js` генерируется, а не правится вручную.
+
+## Global Side Effects
+
+- Каталог документации не изменяет `data/` и `results/`; `make docs-check` работает без LLM. `make visual-demo` (`scripts/build_visual_demo.py` без `--check`) перезаписывает `docs/demo/data.js`.
+- Пересчёт, перезаписывающий `results/`, выполняется только по [отдельной инструкции](RUNBOOK.md#безопасный-пересчёт-в-отдельной-рабочей-копии).
+
+## System Verification
+
+- Run: `make docs-check` (`scripts/check_docs.py`, `scripts/check_frozen_artifacts.py`, `scripts/evidence_summary.py --verify`, `scripts/build_visual_demo.py --check` и три модуля unittest)
