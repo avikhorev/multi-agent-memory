@@ -1,4 +1,4 @@
-"""Shared types (spec sections 5 and 8)."""
+"""Общие типы (разделы 5 и 8 спецификации)."""
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -6,13 +6,13 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Fact:
-    id: str  # scenario facts: "fa-NNNN" for base facts, "fx-NNNN" for factor facts
-    entity: str  # what the fact is about, e.g. "Atlas/admin"
-    attribute: str  # the field, e.g. "handover_date"
+    id: str  # факты сценария: "fa-NNNN" для базовых фактов, "fx-NNNN" для фактов фактора
+    entity: str  # о чём факт, например "Atlas/admin"
+    attribute: str  # поле, например "handover_date"
     value: str
-    valid_from: int  # day number when the fact starts to hold; extractors may use UNKNOWN_TIME (-1)
-    valid_to: int | None  # day number when it stops; None means it still holds
-    supersedes: str | None  # id of the fact this one replaces
+    valid_from: int  # номер дня, с которого факт начинает действовать; экстракторы могут использовать UNKNOWN_TIME (-1)
+    valid_to: int | None  # номер дня, когда факт перестаёт действовать; None — действует до сих пор
+    supersedes: str | None  # id факта, который этот факт заменяет
     source: str  # user | tool | document | agent
 
 

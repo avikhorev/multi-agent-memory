@@ -1,4 +1,4 @@
-"""Scenario types and JSON (de)serialization (spec section 3 and 7)."""
+"""Типы сценария и (де)сериализация в JSON (разделы 3 и 7 спецификации)."""
 from __future__ import annotations
 
 import dataclasses
@@ -12,86 +12,86 @@ from .types import Fact
 @dataclass
 class ActionPattern:
     tool: str  # read_document | read_status | update_record
-    args: dict  # values that must appear in the call's args, e.g. {"field": "atlas.budget_usd"}
+    args: dict  # значения, которые должны быть в аргументах вызова, например {"field": "atlas.budget_usd"}
 
 
 @dataclass
 class Event:
-    id: str  # unique: "e-NNNN" for base events, "x-NNNN" for factor events
+    id: str  # уникален: "e-NNNN" для базовых событий, "x-NNNN" для событий фактора
     type: str  # user_message | tool_data | note
-    text: str  # what the event says; for tool_data, the text the tool returns
+    text: str  # что говорит событие; для tool_data — текст, который вернул инструмент
     author: str  # user | planner | worker | reviewer | tool
-    scope: str  # task | shared | private; private is a draft seen only by its author
-    tool: str | None  # tool_data only: read_document | read_status; otherwise None
-    args: dict | None  # tool_data only: arguments of that call, e.g. {"doc_id": "D-12"}
-    facts: list[str]  # ids of ORACLE facts this event reports (answer key)
-    factor: bool  # True if the category factor added this event
+    scope: str  # task | shared | private; private — черновик, который видит только его автор
+    tool: str | None  # только для tool_data: read_document | read_status; иначе None
+    args: dict | None  # только для tool_data: аргументы этого вызова, например {"doc_id": "D-12"}
+    facts: list[str]  # id фактов ORACLE, о которых сообщает событие (ключ ответов)
+    factor: bool  # True, если событие добавил фактор категории
 
 
 @dataclass
 class Session:
-    index: int  # session number, 1-based
-    events: list[Event]  # in the order the memory receives them
+    index: int  # номер сессии, с 1
+    events: list[Event]  # в том порядке, в котором память их получает
 
 
 @dataclass
 class Constraint:
-    id: str  # e.g. "k-0001"
-    text: str  # the user's wording of the constraint
-    introduced_in: int  # session number where the user states it
-    event_id: str  # id of the user_message event that states it
-    forbidden: list[ActionPattern]  # actions that would break the constraint
+    id: str  # например "k-0001"
+    text: str  # формулировка ограничения пользователя
+    introduced_in: int  # номер сессии, в которой пользователь его называет
+    event_id: str  # id события user_message, в котором оно названо
+    forbidden: list[ActionPattern]  # действия, которые нарушили бы ограничение
 
 
 @dataclass
 class CheckpointContext:
-    present: list[str] = field(default_factory=list)  # must appear in the assembled context
-    absent: list[str] = field(default_factory=list)  # must appear nowhere in the context
-    absent_outside_quoted: list[str] = field(default_factory=list)  # allowed only inside quoted_data items
-    disputed_both: list[list[str]] = field(default_factory=list)  # value pairs that must both appear, marked disputed
+    present: list[str] = field(default_factory=list)  # должны быть в собранном контексте
+    absent: list[str] = field(default_factory=list)  # не должны появиться в контексте нигде
+    absent_outside_quoted: list[str] = field(default_factory=list)  # допустимы только внутри элементов quoted_data
+    disputed_both: list[list[str]] = field(default_factory=list)  # пары значений: обе должны быть в контексте и помечены спорными
 
 
 @dataclass
 class CheckpointAnswer:
-    expect: str | None = None  # expected answer (scoring only); None when no value is expected
-    stale: list[str] = field(default_factory=list)  # superseded values that must not appear in the answer
-    disputed: bool = False  # True if the answer must say DISPUTED
+    expect: str | None = None  # ожидаемый ответ (только для оценки); None, если значение не ожидается
+    stale: list[str] = field(default_factory=list)  # замещённые значения, которых не должно быть в ответе
+    disputed: bool = False  # True, если ответ должен содержать DISPUTED
 
 
 @dataclass
 class CheckpointAction:
-    forbidden: list[ActionPattern] = field(default_factory=list)  # actions that must not occur (scoring only)
-    required: list[ActionPattern] = field(default_factory=list)  # actions that must occur (scoring only)
+    forbidden: list[ActionPattern] = field(default_factory=list)  # действия, которых не должно быть (только для оценки)
+    required: list[ActionPattern] = field(default_factory=list)  # действия, которые должны быть (только для оценки)
 
 
 @dataclass
 class Checkpoint:
-    id: str  # "cp-N" for base checkpoints, "cpx-N" for factor checkpoints
-    session: int  # session number at which the question is asked
-    role: str  # planner | worker | reviewer: whose memory context is checked
-    task_text: str  # the question given to the agent; the fields below are not shown to it
-    kind: str  # what is checked: value | constraint | conflict | isolation | injection
-    context: CheckpointContext  # what the memory context must or must not contain
-    answer: CheckpointAnswer  # expected answer (scoring only)
-    action: CheckpointAction  # expected and forbidden actions (scoring only)
-    required_events: list[str]  # ids of events that hold the answer; any one of them is enough
-    factor: bool  # True if the category factor added this checkpoint
+    id: str  # "cp-N" для базовых контрольных точек, "cpx-N" для контрольных точек фактора
+    session: int  # номер сессии, в которой задан вопрос
+    role: str  # planner | worker | reviewer: чей контекст памяти проверяется
+    task_text: str  # вопрос, который получает агент; поля ниже ему не показываются
+    kind: str  # что проверяется: value | constraint | conflict | isolation | injection
+    context: CheckpointContext  # что контекст памяти должен или не должен содержать
+    answer: CheckpointAnswer  # ожидаемый ответ (только для оценки)
+    action: CheckpointAction  # ожидаемые и запрещённые действия (только для оценки)
+    required_events: list[str]  # id событий, в которых есть ответ; достаточно любого одного
+    factor: bool  # True, если контрольную точку добавил фактор категории
 
 
 @dataclass
 class Scenario:
-    """One benchmark scenario. Full format: docs/SCENARIO_FORMAT.md, section 3."""
-    id: str  # unique: "<category>-<split>-<number>", e.g. "C3-eval-0000"
-    category: str  # C0 control, C1 update, C2 constraint, C3 conflict, C4 isolation, C5 injection, C6 long history
-    split: str  # dev (tuning), eval (main results), holdout (hard cases)
-    seed: int  # generator seed; with category, variant and n_sessions it fixes the file byte for byte
-    variant: str  # C1 and C3: explicit | implicit; none otherwise
-    resolution: str  # C3 only: later_event | authority | disputed; none otherwise
-    n_sessions: int  # 10 in C0 to C5; 10, 20 or 30 in C6
-    sessions: list[Session]  # history, given to the memory in this order
-    facts: list[Fact]  # answer key: all true facts of the world, including replaced ones
-    constraints: list[Constraint]  # user constraints (C2)
-    checkpoints: list[Checkpoint]  # questions with their answer keys
+    """Один сценарий бенчмарка. Полный формат: docs/SCENARIO_FORMAT.md, раздел 3."""
+    id: str  # уникален: "<category>-<split>-<number>", например "C3-eval-0000"
+    category: str  # C0 контроль, C1 обновление, C2 ограничение, C3 конфликт, C4 изоляция, C5 инъекция, C6 длинная история
+    split: str  # dev (настройка), eval (основные результаты), holdout (трудные случаи)
+    seed: int  # seed генератора; вместе с category, variant и n_sessions однозначно задаёт файл побайтно
+    variant: str  # C1 и C3: explicit | implicit; иначе none
+    resolution: str  # только C3: later_event | authority | disputed; иначе none
+    n_sessions: int  # 10 в C0–C5; 10, 20 или 30 в C6
+    sessions: list[Session]  # история, которая передаётся памяти в этом порядке
+    facts: list[Fact]  # ключ ответов: все истинные факты мира, включая замещённые
+    constraints: list[Constraint]  # ограничения пользователя (C2)
+    checkpoints: list[Checkpoint]  # вопросы с их ключами ответов
 
 
 def to_dict(scenario: Scenario) -> dict:
