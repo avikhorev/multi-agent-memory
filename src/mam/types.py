@@ -6,13 +6,13 @@ from dataclasses import dataclass, field
 
 @dataclass(frozen=True)
 class Fact:
-    id: str
-    entity: str
-    attribute: str
+    id: str  # scenario facts: "fa-NNNN" for base facts, "fx-NNNN" for factor facts
+    entity: str  # what the fact is about, e.g. "Atlas/admin"
+    attribute: str  # the field, e.g. "handover_date"
     value: str
-    valid_from: int
-    valid_to: int | None
-    supersedes: str | None
+    valid_from: int  # day number when the fact starts to hold; extractors may use UNKNOWN_TIME (-1)
+    valid_to: int | None  # day number when it stops; None means it still holds
+    supersedes: str | None  # id of the fact this one replaces
     source: str  # user | tool | document | agent
 
 
