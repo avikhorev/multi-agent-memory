@@ -208,7 +208,7 @@ def run_live_stage(max_cost, max_minutes, workers=8, variant="ours2"):
 
 
 def criteria(variant="ours2"):
-    sys.path.insert(0, str(ROOT / "scripts"))
+    sys.path.insert(0, str(ROOT / "experiments"))
     import post_hoc_control_repeat as cr
     from mam.live_tables import category
     rows = {}

@@ -1,6 +1,6 @@
 """Does the outcome of `ours` depend on the order of writes? Recomputed from the traces of the live run (post hoc).
 
-  python scripts/post_hoc_write_order.py [--traces results/live/main/traces] [--out results/post_hoc/write_order.md]
+  python experiments/post_hoc_write_order.py [--traces results/live/main/traces] [--out results/post_hoc/write_order.md]
 
 The facts and the trust of each entry come from the traces of `ours`. A key with more than one value is resolved
 twice by the code of `ours`: in the order of the run and in the reverse order. No model is called.

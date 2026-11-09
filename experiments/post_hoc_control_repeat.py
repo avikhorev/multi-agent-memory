@@ -1,6 +1,6 @@
 """Compare a control repeat of the live run with the committed run, side by side (post hoc).
 
-  python scripts/post_hoc_control_repeat.py [--main results/live/main] [--control results/live/control]
+  python experiments/post_hoc_control_repeat.py [--main results/live/main] [--control results/live/control]
                                              [--out results/post_hoc/control_repeat.md]
 
 Both sides use repeat 0 only (the control has one repeat), so the units are like for like.

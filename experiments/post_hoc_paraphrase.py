@@ -5,9 +5,9 @@ words. Values, dates, module names and the strings that the checks look for are 
 phrases of the generator must disappear. Tool data and documents are left as they are. The paraphrased
 scenarios are saved under results/post_hoc/paraphrase/scenarios and frozen by a commit before any system runs.
 
-  python scripts/post_hoc_paraphrase.py paraphrase [--max-cost-usd 0.6]     # paid: the rewriting
-  python scripts/post_hoc_paraphrase.py run [--max-cost-usd 1.4]            # paid: ours, ours3, BM25
-  python scripts/post_hoc_paraphrase.py compare                             # no model
+  python experiments/post_hoc_paraphrase.py paraphrase [--max-cost-usd 0.6]     # paid: the rewriting
+  python experiments/post_hoc_paraphrase.py run [--max-cost-usd 1.4]            # paid: ours, ours3, BM25
+  python experiments/post_hoc_paraphrase.py compare                             # no model
 """
 import argparse
 import json
@@ -18,7 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "experiments"))
 
 DATA = ROOT / "data/eval"
 OUT = ROOT / "results/post_hoc/paraphrase"

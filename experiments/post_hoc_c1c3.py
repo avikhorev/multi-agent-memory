@@ -3,9 +3,9 @@
 The primary result stays the strict rule of `mam.scoring.score_action`. This script only
 reads the saved live units and the eval scenarios; it changes nothing and calls no model.
 
-  python scripts/post_hoc_c1c3.py lenient          # counts under a lenient rule
-  python scripts/post_hoc_c1c3.py blind            # write the shuffled, system-free answer sheet
-  python scripts/post_hoc_c1c3.py join             # join the hand labels with the systems
+  python experiments/post_hoc_c1c3.py lenient          # counts under a lenient rule
+  python experiments/post_hoc_c1c3.py blind            # write the shuffled, system-free answer sheet
+  python experiments/post_hoc_c1c3.py join             # join the hand labels with the systems
 
 Hand labels live in results/post_hoc/c1c3_labels.json as {"b01": "current", ...} with the
 classes: current (asserts the current value), stale (asserts the stale value),

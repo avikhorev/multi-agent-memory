@@ -1,4 +1,4 @@
-"""Tests of the paraphrase step with a stub client (no model). Run: pytest scripts/test_post_hoc_paraphrase.py"""
+"""Tests of the paraphrase step with a stub client (no model). Run: pytest experiments/test_post_hoc_paraphrase.py"""
 import json
 import sys
 from pathlib import Path

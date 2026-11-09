@@ -1,4 +1,4 @@
-"""Tests of ours4 through the memory boundary with a stub model client. Run: pytest scripts/test_post_hoc_ours4.py"""
+"""Tests of ours4 through the memory boundary with a stub model client. Run: pytest experiments/test_post_hoc_ours4.py"""
 import json
 import sys
 from pathlib import Path
