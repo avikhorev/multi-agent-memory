@@ -5,8 +5,8 @@ The baselines of the report hand the model the bare text of the entries. Here ev
 token limit, the ranking and the summary see. A calendar date does not exist on an entry, so the session number
 is the time. Nothing in src/mam is changed: `mam.live.create` is replaced for the names ending in `_meta`.
 
-  python scripts/post_hoc_presentation.py plan                 # list the 48 units, no model
-  python scripts/post_hoc_presentation.py run [--max-cost-usd 1.5] [--max-minutes 25] [--workers 8]
+  python experiments/post_hoc_presentation.py plan                 # list the 48 units, no model
+  python experiments/post_hoc_presentation.py run [--max-cost-usd 1.5] [--max-minutes 25] [--workers 8]
 """
 import argparse
 import dataclasses

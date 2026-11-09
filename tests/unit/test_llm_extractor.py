@@ -1,7 +1,7 @@
 """Extraction by the model, and the model-written summary, with scripted replies."""
 import json
 
-from mam.extract import LLMExtractor, UNKNOWN_TIME
+from mam.extractors import LLMExtractor, UNKNOWN_TIME
 from mam.llm import FakeClient
 from mam.systems import create
 from mam.types import Entry, Reader

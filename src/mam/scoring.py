@@ -7,6 +7,15 @@ from dataclasses import dataclass, field
 from .scenario import ActionPattern, Checkpoint, Scenario
 from .types import Context
 
+# Категории, где считаются все контрольные точки (в остальных — только точки фактора).
+COUNT_ALL_CHECKPOINTS = ("C0", "C6")
+
+
+def is_controlled(category: str, factor) -> bool:
+    """Входит ли контрольная точка в основной подсчёт: в категориях C0 и C6 — все, в остальных — точки фактора."""
+    return category in COUNT_ALL_CHECKPOINTS or bool(factor)
+
+
 # Нормализация дат: «5 March 2025», «March 5th, 2025» и «2025-03-05» должны считаться одним и тем же,
 # иначе верный ответ будет засчитан как неверный из-за формата записи.
 MONTHS = {

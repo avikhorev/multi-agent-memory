@@ -1,4 +1,4 @@
-"""Tests of ours2 through the memory boundary (write, end_session, context). Run: pytest scripts/test_post_hoc_ours2.py"""
+"""Tests of ours2 through the memory boundary (write, end_session, context). Run: pytest experiments/test_post_hoc_ours2.py"""
 import sys
 from pathlib import Path
 

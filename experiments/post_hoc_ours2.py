@@ -13,7 +13,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from mam.extract import UNKNOWN_TIME
+from mam.extractors import UNKNOWN_TIME
 from mam.guard import split_untrusted
 from mam.systems.ours import Ours
 from mam.systems.ranking import bm25_scores
@@ -208,7 +208,7 @@ def run_live_stage(max_cost, max_minutes, workers=8, variant="ours2"):
 
 
 def criteria(variant="ours2"):
-    sys.path.insert(0, str(ROOT / "scripts"))
+    sys.path.insert(0, str(ROOT / "experiments"))
     import post_hoc_control_repeat as cr
     from mam.live_tables import category
     rows = {}

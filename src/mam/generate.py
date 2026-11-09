@@ -197,87 +197,114 @@ def value_checkpoint(cp_id: str, session: int, role: str, fact: Fact, scenario: 
         required_events=[e.id for e in reporters(scenario, fact.id)], factor=factor)
 
 
-def build_base(seed: int, n_sessions: int, long_mode: bool = False) -> Scenario:
-    """Контрольный (базовый) мир C0: без элементов фактора. long_mode — для длинной истории C6."""
-    rng = random.Random(seed * 7919 + n_sessions)
-    registry: list[str] = []  # все выданные значения (для уникальности)
-    used: set[tuple[str, str]] = set()  # уже занятые ключи (сущность, атрибут)
-    all_keys = [(e, a) for e in ENTITIES for a in BASE_ATTRS]
-    sessions: list[Session] = []
-    facts: list[Fact] = []
-    counters = {"e": 0, "f": 0}  # счётчики id событий и фактов
+class _BaseBuilder:
+    """Строит базовый мир C0 сессию за сессией. Весь случайный выбор идёт через один поток rng в фиксированном
+    порядке: от порядка вызовов зависит содержимое сценариев, поэтому методы вызываются строго по `session`."""
 
-    def new_event_id() -> str:
-        counters["e"] += 1
-        return f"e-{counters['e']:04d}"
+    def __init__(self, seed: int, n_sessions: int):
+        self.rng = random.Random(seed * 7919 + n_sessions)
+        self.registry: list[str] = []  # все выданные значения (для уникальности)
+        self.used: set[tuple[str, str]] = set()  # уже занятые ключи (сущность, атрибут)
+        self.all_keys = [(e, a) for e in ENTITIES for a in BASE_ATTRS]
+        self.n_events = self.n_facts = 0  # счётчики id событий и фактов
 
-    for s in range(1, n_sessions + 1):
-        # Выбираем ключи (сущность, атрибут) этой сессии: связка атрибутов для одной сущности,
-        # а если свободных сущностей не осталось — два случайных свободных ключа.
+    def new_event_id(self) -> str:
+        self.n_events += 1
+        return f"e-{self.n_events:04d}"
+
+    def pick_keys(self, s: int) -> list[tuple[str, str]]:
+        """Ключи (сущность, атрибут) сессии s: связка атрибутов для одной сущности, а если свободных сущностей
+        не осталось — два случайных свободных ключа."""
+        rng = self.rng
         if s == 1:
             wanted = BUNDLE_FIRST
         elif s == 2:
             wanted = BUNDLE_SECOND
         else:
             wanted = rng.choice(BUNDLES)
-        free = [e for e in ENTITIES if all((e, a) not in used for a in wanted)]
+        free = [e for e in ENTITIES if all((e, a) not in self.used for a in wanted)]
         if free:
             entity = rng.choice(free)
             keys = [(entity, a) for a in wanted]
         else:
-            remaining = [k for k in all_keys if k not in used]
+            remaining = [k for k in self.all_keys if k not in self.used]
             keys = rng.sample(remaining, 2)
-        used.update(keys)
-        # Факты сессии; время события лежит внутри недели сессии.
-        session_facts: list[Fact] = []
+        self.used.update(keys)
+        return keys
+
+    def make_facts(self, s: int, keys: list[tuple[str, str]]) -> list[Fact]:
+        """Факты сессии; время события лежит внутри недели сессии."""
+        out = []
         for entity, attr in keys:
-            counters["f"] += 1
-            value = fresh_value(rng, ATTRS[attr][0], registry)
-            session_facts.append(Fact(
-                id=f"fa-{counters['f']:04d}", entity=entity, attribute=attr, value=value,
-                valid_from=7 * (s - 1) + rng.randint(0, 6), valid_to=None, supersedes=None, source="user"))
-        # Часть фактов сообщает пользователь, остальное приходит из инструмента (документ или статус).
-        if len(session_facts) == 3:
-            n_user = 2
+            self.n_facts += 1
+            value = fresh_value(self.rng, ATTRS[attr][0], self.registry)
+            out.append(Fact(id=f"fa-{self.n_facts:04d}", entity=entity, attribute=attr, value=value,
+                            valid_from=7 * (s - 1) + self.rng.randint(0, 6), valid_to=None, supersedes=None,
+                            source="user"))
+        return out
+
+    def user_event(self, user_facts: list[Fact]) -> Event:
+        rng = self.rng
+        text = ("Status update. " + " ".join(statement(rng, f) for f in user_facts) + " "
+                + " ".join(rng.sample(CHATTER, 4)))
+        return Event(id=self.new_event_id(), type="user_message", text=text, author="user", scope="task",
+                     tool=None, args=None, facts=[f.id for f in user_facts], factor=False)
+
+    def tool_event(self, s: int, fact: Fact) -> tuple[Event, str]:
+        """Событие с данными инструмента (документ или статус) для факта; возвращает событие и источник факта."""
+        rng = self.rng
+        kind, label, _ = ATTRS[fact.attribute]
+        if rng.random() < 0.5:
+            doc_id = f"D-{s:02d}1"
+            body = "\n".join([f"Document {doc_id} - {rng.choice(DOC_TITLES)}", f"- {statement(rng, fact)}",
+                              *[f"- {x}" for x in rng.sample(DOC_FILLER, 4)]])
+            tool, args, source = "read_document", {"doc_id": doc_id}, "document"
         else:
-            n_user = 1 if rng.random() < 0.6 else 2
-        user_facts, tool_facts = session_facts[:n_user], session_facts[n_user:]
-        events: list[Event] = []
-        text = "Status update. " + " ".join(statement(rng, f) for f in user_facts) + " " + " ".join(rng.sample(CHATTER, 4))
-        events.append(Event(id=new_event_id(), type="user_message", text=text, author="user", scope="task",
-                            tool=None, args=None, facts=[f.id for f in user_facts], factor=False))
-        if tool_facts:
-            fact = tool_facts[0]
-            kind, label, _ = ATTRS[fact.attribute]
-            if rng.random() < 0.5:
-                doc_id = f"D-{s:02d}1"
-                body = "\n".join([f"Document {doc_id} - {rng.choice(DOC_TITLES)}", f"- {statement(rng, fact)}",
-                                  *[f"- {x}" for x in rng.sample(DOC_FILLER, 4)]])
-                tool, args, source = "read_document", {"doc_id": doc_id}, "document"
-            else:
-                body = (f"STATUS {fact.entity}\n{label}: {display(kind, fact.value)}\nbuild: green\n"
-                        f"open items: {rng.randint(1, 9)}")
-                tool, args, source = "read_status", {"entity": fact.entity, "session": s}, "tool"
-            events.append(Event(id=new_event_id(), type="tool_data", text=body, author="tool", scope="task",
-                                tool=tool, args=args, facts=[fact.id for fact in tool_facts[:1]], factor=False))
-            # Источник факта — тот, кто его сообщил (документ или инструмент), а не пользователь по умолчанию.
-            session_facts[session_facts.index(fact)] = Fact(**{**fact.__dict__, "source": source})
-        # Заметки агентов, повторяющие факты сессии (шум и дублирующие источники).
+            body = (f"STATUS {fact.entity}\n{label}: {display(kind, fact.value)}\nbuild: green\n"
+                    f"open items: {rng.randint(1, 9)}")
+            tool, args, source = "read_status", {"entity": fact.entity, "session": s}, "tool"
+        event = Event(id=self.new_event_id(), type="tool_data", text=body, author="tool", scope="task",
+                      tool=tool, args=args, facts=[fact.id], factor=False)
+        return event, source
+
+    def note_events(self, session_facts: list[Fact]) -> list[Event]:
+        """Заметки агентов, повторяющие факты сессии (шум и дублирующие источники)."""
+        rng = self.rng
+        events = []
         for _ in range(rng.choice([0, 1, 1, 2, 2, 3])):
             fact = rng.choice(session_facts)
             role = rng.choice(ROLES)
             events.append(Event(
-                id=new_event_id(), type="note", text=f"{role.capitalize()} note: {note_statement(rng, fact)} {rng.choice(NOTE_TAILS)}",
+                id=self.new_event_id(), type="note",
+                text=f"{role.capitalize()} note: {note_statement(rng, fact)} {rng.choice(NOTE_TAILS)}",
                 author=role, scope=rng.choice(["task", "shared"]), tool=None, args=None, facts=[fact.id],
                 factor=False))
-        facts.extend(session_facts)
-        sessions.append(Session(index=s, events=events))
+        return events
 
-    scenario = Scenario(id="", category="C0", split="dev", seed=seed, variant="none", resolution="none",
-                        n_sessions=n_sessions, sessions=sessions, facts=facts, constraints=[], checkpoints=[])
-    # Контрольные точки базы: три вопроса в последних сессиях о фактах из ранних; в C6 — из очень старых.
+    def session(self, s: int) -> tuple[Session, list[Fact]]:
+        """Сессия s и её факты. Часть фактов сообщает пользователь, остальное приходит из инструмента."""
+        session_facts = self.make_facts(s, self.pick_keys(s))
+        if len(session_facts) == 3:
+            n_user = 2
+        else:
+            n_user = 1 if self.rng.random() < 0.6 else 2
+        user_facts, tool_facts = session_facts[:n_user], session_facts[n_user:]
+        events = [self.user_event(user_facts)]
+        if tool_facts:
+            fact = tool_facts[0]
+            event, source = self.tool_event(s, fact)
+            events.append(event)
+            # Источник факта — тот, кто его сообщил (документ или инструмент), а не пользователь по умолчанию.
+            session_facts[session_facts.index(fact)] = Fact(**{**fact.__dict__, "source": source})
+        events += self.note_events(session_facts)
+        return Session(index=s, events=events), session_facts
+
+
+def add_base_checkpoints(rng: random.Random, scenario: Scenario, long_mode: bool) -> None:
+    """Контрольные точки базы: три вопроса в последних сессиях о фактах из ранних; в C6 — из очень старых."""
+    n_sessions = scenario.n_sessions
     by_session: dict[int, list[Fact]] = {}
-    for f in facts:
+    for f in scenario.facts:
         by_session.setdefault(first_session(scenario, f.id), []).append(f)
     if long_mode:
         picks = [1, 2, rng.randint(max(3, n_sessions - 6), n_sessions - 3)]
@@ -287,6 +314,20 @@ def build_base(seed: int, n_sessions: int, long_mode: bool = False) -> Scenario:
         fact = rng.choice(by_session[sess])
         scenario.checkpoints.append(
             value_checkpoint(f"cp-{i}", n_sessions - 3 + i, role, fact, scenario, factor=False))
+
+
+def build_base(seed: int, n_sessions: int, long_mode: bool = False) -> Scenario:
+    """Контрольный (базовый) мир C0: без элементов фактора. long_mode — для длинной истории C6."""
+    builder = _BaseBuilder(seed, n_sessions)
+    sessions: list[Session] = []
+    facts: list[Fact] = []
+    for s in range(1, n_sessions + 1):
+        session, session_facts = builder.session(s)
+        facts.extend(session_facts)
+        sessions.append(session)
+    scenario = Scenario(id="", category="C0", split="dev", seed=seed, variant="none", resolution="none",
+                        n_sessions=n_sessions, sessions=sessions, facts=facts, constraints=[], checkpoints=[])
+    add_base_checkpoints(builder.rng, scenario, long_mode)
     return scenario
 
 
@@ -432,21 +473,17 @@ def explicit_update(ctx: FactorContext, fact: Fact, new: str) -> str:
             f"{display(kind, fact.value)}.")
 
 
-def factor_c1(ctx: FactorContext, variant: str, hard: tuple[str, ...]) -> None:
-    """C1 — обновление факта: значение меняется (явно или неявно), и в конце спрашивают текущее.
-    Устаревшие значения в контексте быть не должны. hard: chain3 — цепочка из трёх обновлений; decoy — похожее
-    значение у другой сущности; kind=… — зафиксировать вид значения."""
-    s, rng = ctx.s, ctx.rng
-    n = s.n_sessions
-    chain = 3 if "chain3" in hard else 1  # сколько обновлений подряд
+def _c1_candidates(ctx: FactorContext, variant: str, hard: tuple[str, ...], chain: int) -> list[Fact]:
+    """Факты, которые можно обновлять: о них не спрашивают базовые точки, они введены достаточно рано, а вид значения
+    подходит варианту и усложнениям."""
+    s = ctx.s
     forced = next((h.split("=")[1] for h in hard if h.startswith("kind=")), None)
     first = {f.id: first_session(s, f.id) for f in s.facts}
-    # Кандидаты: факт, о котором базовые точки не спрашивают и который введён достаточно рано.
     asked = ctx.asked_values()
     candidates = []
     for f in s.facts:
         kind = ATTRS[f.attribute][0]
-        if f.value in asked or first[f.id] > n - 4 - chain or (forced and kind != forced):
+        if f.value in asked or first[f.id] > s.n_sessions - 4 - chain or (forced and kind != forced):
             continue
         if "decoy" in hard and kind not in ("date", "money"):
             continue
@@ -457,10 +494,14 @@ def factor_c1(ctx: FactorContext, variant: str, hard: tuple[str, ...]) -> None:
                     g.entity == f.entity and g.attribute == "tech_lead" for g in s.facts):
                 continue
         candidates.append(f)
-    current = rng.choice(candidates)
-    original = current
-    sessions = sorted(rng.sample(range(first[current.id] + 1, n - 3), chain))
-    stale: list[str] = []  # прежние значения, которых не должно быть в контексте
+    return candidates
+
+
+def _c1_apply_updates(ctx: FactorContext, variant: str, current: Fact,
+                      sessions: list[int]) -> tuple[Fact, list[Event], list[str]]:
+    """Цепочка обновлений по сессиям: каждое закрывает прежнюю версию. Возвращает последнюю версию, события
+    обновлений и прежние значения (их в контексте быть не должно)."""
+    stale: list[str] = []
     events: list[Event] = []
     for u in sessions:
         kind = ATTRS[current.attribute][0]
@@ -478,21 +519,39 @@ def factor_c1(ctx: FactorContext, variant: str, hard: tuple[str, ...]) -> None:
         events.append(ctx.add_event(u, "user_message", text, author="user", scope="task", facts=[new.id]))
         stale.append(current.value)
         current = new
-    # Отвлекающий факт: почти такое же значение у другой сущности. Проверяет, не путает ли память похожее.
+    return current, events, stale
+
+
+def _c1_add_decoy(ctx: FactorContext, original: Fact) -> None:
+    """Отвлекающий факт: почти такое же значение у другой сущности. Проверяет, не путает ли память похожее."""
+    rng, n = ctx.rng, ctx.s.n_sessions
+    kind = ATTRS[original.attribute][0]
+    for _ in range(100):
+        if kind == "date":
+            v = iso(day_of(original.value) + rng.choice([-3, -2, -1, 1, 2, 3]))
+        else:
+            v = str(int(original.value) + rng.choice([-2, -1, 1, 2]) * (1000 if kind == "money" else 500))
+        if _compatible(v, ctx.registry):
+            ctx.registry.append(v.lower())
+            break
+    entity = ctx.free_entity(original.attribute)
+    u = rng.randint(2, n - 4)
+    d = ctx.add_fact(entity, original.attribute, v, ctx.event_time(u), "user")
+    ctx.add_event(u, "user_message", statement(rng, d), author="user", scope="task", facts=[d.id])
+
+
+def factor_c1(ctx: FactorContext, variant: str, hard: tuple[str, ...]) -> None:
+    """C1 — обновление факта: значение меняется (явно или неявно), и в конце спрашивают текущее.
+    Устаревшие значения в контексте быть не должно. hard: chain3 — цепочка из трёх обновлений; decoy — похожее
+    значение у другой сущности; kind=… — зафиксировать вид значения."""
+    s, rng = ctx.s, ctx.rng
+    n = s.n_sessions
+    chain = 3 if "chain3" in hard else 1  # сколько обновлений подряд
+    original = rng.choice(_c1_candidates(ctx, variant, hard, chain))
+    sessions = sorted(rng.sample(range(first_session(s, original.id) + 1, n - 3), chain))
+    current, events, stale = _c1_apply_updates(ctx, variant, original, sessions)
     if "decoy" in hard:
-        kind = ATTRS[original.attribute][0]
-        for _ in range(100):
-            if kind == "date":
-                v = iso(day_of(original.value) + rng.choice([-3, -2, -1, 1, 2, 3]))
-            else:
-                v = str(int(original.value) + rng.choice([-2, -1, 1, 2]) * (1000 if kind == "money" else 500))
-            if _compatible(v, ctx.registry):
-                ctx.registry.append(v.lower())
-                break
-        entity = ctx.free_entity(original.attribute)
-        u = rng.randint(2, n - 4)
-        d = ctx.add_fact(entity, original.attribute, v, ctx.event_time(u), "user")
-        ctx.add_event(u, "user_message", statement(rng, d), author="user", scope="task", facts=[d.id])
+        _c1_add_decoy(ctx, original)
     cp = ctx.add_checkpoint(
         n - 3, "planner", f"What is the current {ATTRS[current.attribute][1]} for {module_phrase(current.entity)}?",
         "value", present=[current.value], absent=stale, expect=current.value, stale=stale,
@@ -529,24 +588,15 @@ SOURCE_PHRASE = {"user": "per the user's message", "tool": "per the status feed"
 WEEK_WORDS = {2: "two", 3: "three", 4: "four", 5: "five", 6: "six"}
 
 
-def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str, ...]) -> None:
-    """C3 — конфликт: две заметки (planner и worker) называют разные даты sign-off. Исход задаёт resolution:
-    later_event — побеждает более позднее событие; authority — побеждает источник с большим авторитетом;
-    disputed — равны, ответ «спорно». hard: winner_first — победитель введён первым; post_update — позже
-    пользователь отменяет обе даты."""
-    s, rng = ctx.s, ctx.rng
-    n = s.n_sessions
-    uat = next(f for f in s.facts if f.attribute == "uat_start_date")
-    entity = uat.entity
-    m = module_phrase(entity)
-    # Две стороны: заметка planner и заметка worker; winner_role — чья сторона выигрывает, если победитель есть.
+def _c3_sides(rng: random.Random, n: int, resolution: str, hard: tuple[str, ...]) -> tuple[dict, str, dict]:
+    """Две стороны конфликта: сессии заметок planner и worker, роль победителя и источники сторон
+    (от них зависит авторитет). winner_role — чья сторона выигрывает, если победитель есть."""
     first, second = sorted(rng.sample(range(3, n - 3), 2))
     planner_first = rng.random() < 0.5
     sess = {"planner": first if planner_first else second, "worker": second if planner_first else first}
     winner_role = rng.choice(["planner", "worker"])
     if "winner_first" in hard:
         winner_role = "planner" if planner_first else "worker"
-    # Источники сторон (от них зависит авторитет).
     if resolution == "authority":
         hi, lo = rng.choice([("user", "tool"), ("user", "document"), ("tool", "document")])
         source = {winner_role: hi, "worker" if winner_role == "planner" else "planner": lo}
@@ -556,7 +606,12 @@ def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str
     else:
         source = {"planner": rng.choice(["user", "tool", "document"]),
                   "worker": rng.choice(["user", "tool", "document"])}
-    # Времена событий (дни); каждую дату «as of» сдвигаем так, чтобы она не совпала с другими значениями.
+    return sess, winner_role, source
+
+
+def _c3_times(ctx: FactorContext, sess: dict, winner_role: str, resolution: str) -> dict:
+    """Времена событий (дни); каждую дату «as of» сдвигаем так, чтобы она не совпала с другими значениями."""
+    rng = ctx.rng
     base = {r: 7 * (sess[r] - 1) + rng.randint(0, 6) for r in sess}
     if resolution == "later_event":
         loser_role = "worker" if winner_role == "planner" else "planner"
@@ -569,7 +624,13 @@ def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str
         shift += 1
     time = {r: t + shift for r, t in base.items()}
     ctx.registry.extend(iso(t).lower() for t in sorted(set(time.values())))
-    # Значения сторон; у неявного варианта значение worker выводится из «через N недель после UAT».
+    return time
+
+
+def _c3_values(ctx: FactorContext, uat: Fact, variant: str) -> tuple[dict, int]:
+    """Значения сторон; у неявного варианта значение worker выводится из «через N недель после UAT».
+    Возвращает значения по ролям и число недель."""
+    rng = ctx.rng
     weeks = rng.choice(list(WEEK_WORDS))
     implicit_value = (datetime.date.fromisoformat(uat.value) + datetime.timedelta(days=7 * weeks)).isoformat()
     if variant == "implicit":
@@ -580,6 +641,40 @@ def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str
         ctx.registry.append(implicit_value.lower())
     value = {"planner": ctx.value("date")}
     value["worker"] = implicit_value if variant == "implicit" else ctx.value("date")
+    return value, weeks
+
+
+def _c3_post_update(ctx: FactorContext, entity: str, m: str, task: str, facts: dict, winner_role: str,
+                    time: dict, pv: str, wv: str) -> None:
+    """hard=post_update: позже пользователь отменяет обе даты новым значением; в конце спрашивают его."""
+    n = ctx.s.n_sessions
+    t = max(time.values()) + ctx.rng.randint(5, 20)
+    new_value = ctx.value("date")
+    u = n - 1
+    t = max(t, 7 * (u - 1))
+    new = ctx.add_fact(entity, "sign_off_date", new_value, t, "user", supersedes=facts[winner_role].id)
+    for f in facts.values():
+        ctx.close(f, t)
+    ev = ctx.add_event(u, "user_message",
+                       f"Update: the sign-off date for {m} is now {new_value}; both earlier figures are void.",
+                       author="user", scope="task", facts=[new.id])
+    ctx.add_checkpoint(n, "planner", task, "value", present=[new_value], absent=[pv, wv],
+                       expect=new_value, stale=[pv, wv], required_events=[ev.id])
+
+
+def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str, ...]) -> None:
+    """C3 — конфликт: две заметки (planner и worker) называют разные даты sign-off. Исход задаёт resolution:
+    later_event — побеждает более позднее событие; authority — побеждает источник с большим авторитетом;
+    disputed — равны, ответ «спорно». hard: winner_first — победитель введён первым; post_update — позже
+    пользователь отменяет обе даты."""
+    s = ctx.s
+    n = s.n_sessions
+    uat = next(f for f in s.facts if f.attribute == "uat_start_date")
+    entity = uat.entity
+    m = module_phrase(entity)
+    sess, winner_role, source = _c3_sides(ctx.rng, n, resolution, hard)
+    time = _c3_times(ctx, sess, winner_role, resolution)
+    value, weeks = _c3_values(ctx, uat, variant)
     facts, events = {}, {}
     for role in sorted(sess):
         facts[role] = ctx.add_fact(entity, "sign_off_date", value[role], time[role], source[role])
@@ -602,19 +697,7 @@ def factor_c3(ctx: FactorContext, variant: str, resolution: str, hard: tuple[str
         ctx.add_checkpoint(n - 3, "planner", task, "conflict", present=[win], absent=[lose], expect=win,
                            stale=[lose], required_events=both)
     if "post_update" in hard:
-        t = max(time.values()) + rng.randint(5, 20)
-        new_value = ctx.value("date")
-        u = n - 1
-        t = max(t, 7 * (u - 1))
-        winner_fact = facts[winner_role]
-        new = ctx.add_fact(entity, "sign_off_date", new_value, t, "user", supersedes=winner_fact.id)
-        for f in facts.values():
-            ctx.close(f, t)
-        ev = ctx.add_event(u, "user_message",
-                           f"Update: the sign-off date for {m} is now {new_value}; both earlier figures are void.",
-                           author="user", scope="task", facts=[new.id])
-        ctx.add_checkpoint(n, "planner", task, "value", present=[new_value], absent=[pv, wv],
-                           expect=new_value, stale=[pv, wv], required_events=[ev.id])
+        _c3_post_update(ctx, entity, m, task, facts, winner_role, time, pv, wv)
 
 
 def hex_token(ctx: FactorContext, prefix: str) -> str:

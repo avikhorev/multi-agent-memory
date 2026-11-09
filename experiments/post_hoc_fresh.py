@@ -4,9 +4,9 @@ Selection rule, applied to the eval manifest only (ids, categories, variants and
 the scenarios that follow the variant-A choice in manifest order, with the same split: 3 per category C0-C5
 (C1 and C3: two implicit and one explicit, like variant A), and for C6 one per length 10, 20 and 30.
 
-  python scripts/post_hoc_fresh.py plan            # list the 21 scenarios and the 105 units, no model
-  python scripts/post_hoc_fresh.py run [--max-cost-usd 4 --max-minutes 25]     # paid
-  python scripts/post_hoc_fresh.py criteria        # the preset criteria on the saved units, no model
+  python experiments/post_hoc_fresh.py plan            # list the 21 scenarios and the 105 units, no model
+  python experiments/post_hoc_fresh.py run [--max-cost-usd 4 --max-minutes 25]     # paid
+  python experiments/post_hoc_fresh.py criteria        # the preset criteria on the saved units, no model
 """
 import argparse
 import json
@@ -15,7 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-sys.path.insert(0, str(ROOT / "scripts"))
+sys.path.insert(0, str(ROOT / "experiments"))
 
 from mam.selection import select_live  # noqa: E402
 

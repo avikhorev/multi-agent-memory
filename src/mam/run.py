@@ -86,6 +86,14 @@ def _spent(units_dir: Path) -> float:
     return total
 
 
+def _manifest(u: Unit, commit: str, started: datetime) -> dict:
+    """Манифест единицы: чем получен результат (модель, версия CLI, коммит, время) — для воспроизводимости."""
+    return {"system": u.system, "scenario": u.scenario, "repeat": u.repeat, "model": MODEL,
+            "cli_version": PINNED_CLI_VERSION, "commit": commit,
+            "api_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
+            "started": started.isoformat(), "finished": datetime.now(timezone.utc).isoformat()}
+
+
 def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, max_minutes: float | None = None,
               max_cost_usd: float = 10.0, now=time.monotonic, limit: int = 2000, attempts: int = 2) -> Report:
     """Параллельно выполняет единицы; attempts — попыток на единицу до признания сбоя; now подменяется в тестах."""
@@ -120,11 +128,7 @@ def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, ma
         # Трасса идёт в отдельный файл, чтобы файл единицы оставался компактным.
         trace = res.pop("trace")
         res["cost_usd"] = res["totals"]["cost_usd"]
-        # Манифест: чем получен результат (модель, версия CLI, коммит, время) — для воспроизводимости.
-        res["manifest"] = {"system": u.system, "scenario": u.scenario, "repeat": u.repeat, "model": MODEL,
-                           "cli_version": PINNED_CLI_VERSION, "commit": commit,
-                           "api_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
-                           "started": t0.isoformat(), "finished": datetime.now(timezone.utc).isoformat()}
+        res["manifest"] = _manifest(u, commit, t0)
         # Единица пишется последней: её наличие значит «готово», и трасса к этому моменту уже есть.
         _write_atomic(out / "traces" / f"{_name(u)}.jsonl", "".join(json.dumps(t, sort_keys=True) + "\n" for t in trace))
         _write_atomic(out / "units" / f"{_name(u)}.json", json.dumps(res, sort_keys=True, indent=1))

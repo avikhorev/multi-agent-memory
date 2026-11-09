@@ -3,7 +3,7 @@
 Reads saved results only; no model is called, nothing in src/mam, data or raw results is changed.
 Writes results/post_hoc/controls.md.
 
-  python scripts/post_hoc_controls.py
+  python experiments/post_hoc_controls.py
 
 Sections: (1) agent behaviour per system, (2) decomposition of the memory-level failures,
 (3) write-side cost and time, (4) live outcome totals, (5) context growth on C6 without the

@@ -1,6 +1,6 @@
 """Does the outcome of `ours` depend on the order of writes? Recomputed from the traces of the live run (post hoc).
 
-  python scripts/post_hoc_write_order.py [--traces results/live/main/traces] [--out results/post_hoc/write_order.md]
+  python experiments/post_hoc_write_order.py [--traces results/live/main/traces] [--out results/post_hoc/write_order.md]
 
 The facts and the trust of each entry come from the traces of `ours`. A key with more than one value is resolved
 twice by the code of `ours`: in the order of the run and in the reverse order. No model is called.
@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from mam.extract import UNKNOWN_TIME  # noqa: E402
+from mam.extractors import UNKNOWN_TIME  # noqa: E402
 from mam.systems.ours import AUTHORITY, TRUST, Ours, Version  # noqa: E402
 
 CATS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6"]
