@@ -1,7 +1,7 @@
 """Extractors through their public interface, with literal expectations."""
 import json
 
-from mam.extract import UNKNOWN_TIME, CacheExtractor, OracleExtractor, RulesExtractor, make_extractor
+from mam.extractors import UNKNOWN_TIME, CacheExtractor, OracleExtractor, RulesExtractor, make_extractor
 from mam.types import Entry, Fact
 
 

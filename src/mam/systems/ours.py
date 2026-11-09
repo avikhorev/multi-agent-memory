@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from mam.extract import UNKNOWN_TIME, make_extractor, rule_constraints
+from mam.extractors import UNKNOWN_TIME, make_extractor, rule_constraints
 from mam.guard import split_untrusted
 from mam.systems.base import MemorySystem, make_context, visible_to
 from mam.systems.ranking import bm25_scores

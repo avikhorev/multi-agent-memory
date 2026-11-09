@@ -13,7 +13,7 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-from mam.extract import UNKNOWN_TIME
+from mam.extractors import UNKNOWN_TIME
 from mam.guard import split_untrusted
 from mam.systems.ours import Ours
 from mam.systems.ranking import bm25_scores

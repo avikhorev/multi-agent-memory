@@ -183,7 +183,7 @@ def corrected_ok(unit: dict) -> int:
 
 def rule_firing():
     """Whether the rule that pins constraints (rule_constraints) fires on the constraint messages, original and paraphrased."""
-    from mam.extract import rule_constraints
+    from mam.extractors import rule_constraints
     from mam.scenario import load
     from mam.simulate import entries
     rows = []

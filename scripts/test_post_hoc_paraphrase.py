@@ -50,7 +50,7 @@ def test_an_answer_that_drops_a_literal_is_rejected():
 
 
 def test_the_pinning_rule_fires_on_the_template_and_not_on_a_paraphrase():
-    from mam.extract import rule_constraints
+    from mam.extractors import rule_constraints
     from mam.types import Entry
 
     def e(text):

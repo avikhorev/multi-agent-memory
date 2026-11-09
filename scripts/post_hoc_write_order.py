@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
-from mam.extract import UNKNOWN_TIME  # noqa: E402
+from mam.extractors import UNKNOWN_TIME  # noqa: E402
 from mam.systems.ours import AUTHORITY, TRUST, Ours, Version  # noqa: E402
 
 CATS = ["C0", "C1", "C2", "C3", "C4", "C5", "C6"]
