@@ -1,9 +1,10 @@
-"""One live unit: a scenario played by model agents against one memory system.
+"""Одна живая единица: сценарий, который разыгрывают агенты-модели против одной системы памяти.
 
-Per session: the user's messages are written, then Planner, Worker (two calls: choose the action, then report)
-and Reviewer run in turn, each on a context built from memory only. Notes the agents return are written back.
-Scripted conflict notes and private drafts (factor notes of the scenario) are written by the harness, because
-agents would not produce them by themselves; ordinary scripted notes are not written in a live run.
+В каждой сессии: записываются сообщения пользователя, затем по очереди работают Planner, Worker (два вызова:
+выбрать действие, затем отчитаться) и Reviewer, каждый на контексте, собранном только из памяти. Заметки,
+которые возвращают агенты, записываются обратно в память. Заготовленные заметки-конфликты и личные черновики
+(заметки фактора сценария) пишет сам стенд, потому что агенты сами их не создали бы; обычные заготовленные
+заметки в живом прогоне не записываются.
 """
 from __future__ import annotations
 
@@ -18,11 +19,13 @@ from mam.simulate import Simulator, entries
 from mam.systems import create
 from mam.types import Entry, Reader
 
+# Задачи по умолчанию, когда в сессии нет контрольной точки с вопросом для этой роли.
 GENERIC_PLANNER_TASK = "Decide what the Worker should do next, based on the user's message and the memory."
 FALLBACK_WORKER_TASK = "Continue the project work."
 
 
 def _call_record(role: str, session: int, out) -> dict:
+    """Плоская запись об одном вызове модели для отчёта: расход токенов, стоимость, время, отказ."""
     u = out.usage
     return {"role": role, "session": session, "input_tokens": u.input_tokens,
             "cache_creation_tokens": u.cache_creation_tokens, "cache_read_tokens": u.cache_read_tokens,
@@ -31,16 +34,18 @@ def _call_record(role: str, session: int, out) -> dict:
 
 
 def session_source(scenario, session: int):
-    """The one data source offered to the Worker in a session: the factor source if any, else the first."""
+    """Единственный источник данных, предложенный Worker в сессии: источник фактора, если есть, иначе первый.
+    Предлагаем один, чтобы поведение не зависело от выбора между источниками."""
     evs = [e for e in scenario.sessions[session - 1].events if e.type == "tool_data"]
     return next((e for e in evs if e.factor), evs[0] if evs else None)
 
 
 def reachable(scenario, cp, offered: set[str]) -> bool:
-    """Could the information of the checkpoint reach memory under the protocol?
+    """Могла ли информация контрольной точки попасть в память по правилам протокола?
 
-    User messages and the scenario's conflict notes and drafts are always written; a tool source only if it is offered
-    to the Worker in its session; ordinary scripted notes are not written in a live run.
+    Сообщения пользователя и заметки-конфликты и черновики сценария пишутся всегда; источник инструмента — только
+    если он предложен Worker в своей сессии; обычные заготовленные заметки в живом прогоне не пишутся.
+    Нужно, чтобы не винить память за информацию, которая до неё физически не дошла.
     """
     events = {e.id: (e, sess.index) for sess in scenario.sessions for e in sess.events}
     for rid in cp.required_events:
@@ -51,29 +56,36 @@ def reachable(scenario, cp, offered: set[str]) -> bool:
 
 
 def _source_line(ev) -> str:
+    """Строка источника для промпта Worker: инструмент, аргументы и краткое «о чём» (первая строка текста)."""
     return f"tool: {ev.tool}, args: {json.dumps(ev.args, sort_keys=True)} (about: {ev.text.split(chr(10))[0][:60]})"
 
 
 def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int = 2000) -> dict:
+    """Разыгрывает сценарий с системой памяти cfg; возвращает словарь результата единицы
+    (контрольные точки, вызовы, итоги, трасса, действия)."""
+    # Модельный извлекатель нужен только тем системам, что что-то извлекают.
     system = (create(cfg, limit=limit, extractor="llm", llm=llm) if cfg in ("ours", "rolling_summary")
               else create(cfg, limit=limit))
-    sim = Simulator(scenario)
+    sim = Simulator(scenario)  # ответы инструментов из сценария
     events = {e.id: e for sess in scenario.sessions for e in sess.events}
+    # Событие tool_data по (инструмент, аргументы): по нему находим, какой записью стал вызов агента.
     tool_events = {(e.tool, json.dumps(e.args, sort_keys=True)): e for e in events.values() if e.type == "tool_data"}
     by_session: dict[int, list[Entry]] = {}
     for e in entries(scenario):
         by_session.setdefault(e.session, []).append(e)
     task_id = f"task-{scenario.id}"
     offered = {src.id for k in range(1, scenario.n_sessions + 1) if (src := session_source(scenario, k))}
-    trace: list[dict] = []
-    seen_memory_ops: set[str] = set()
-    calls: list[dict] = []
-    checkpoints: list[dict] = []
-    written_events: set[str] = set()
+    trace: list[dict] = []  # журнал операций для разбора: запись, чтение, вызовы, действия, проверки
+    seen_memory_ops: set[str] = set()  # уже выписанные решения памяти (они пересчитываются при каждом чтении)
+    calls: list[dict] = []  # записи о вызовах модели
+    checkpoints: list[dict] = []  # результаты контрольных точек
+    written_events: set[str] = set()  # события сценария, ставшие записями памяти (для метки «agent»)
+    # clock — общие логические часы; memory_s — время работы самой памяти; n_notes — счётчик id заметок агентов.
     state = {"clock": 0, "memory_s": 0.0, "n_notes": 0}
 
     def drain(session: int) -> float:
-        """Record the model calls a memory system made on its own; return their latency."""
+        """Записать вызовы модели, которые память сделала сама (извлечение, сводки); вернуть их время,
+        чтобы вычесть из времени самой памяти."""
         total = 0.0
         for role, out in system.drain_llm_calls():
             calls.append(_call_record(role, session, out))
@@ -83,6 +95,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         return total
 
     def write(entry: Entry, session: int, event_id: str | None = None) -> None:
+        """Записать в память с новыми часами (порядок записи определяет стенд, а не сценарий) и отметить в трассе."""
         state["clock"] += 1
         entry = dataclasses.replace(entry, clock=state["clock"])
         t0 = time.perf_counter()
@@ -94,13 +107,14 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
             written_events.add(event_id)
 
     def read(role: str, session: int, query: str):
+        """Запросить контекст у памяти от имени роли и записать чтение в трассу."""
         reader = Reader(role=role, task_id=task_id, session=session, query=query)
         t0 = time.perf_counter()
         ctx = system.context(reader)
         state["memory_s"] += time.perf_counter() - t0
         trace.append({"op": "read", "clock": state["clock"], "reader": role, "item_ids": [i.id for i in ctx.items],
                       "token_count": ctx.token_count})
-        for t in getattr(system, "last_trace", []):  # resolutions are recomputed at every read: list each once
+        for t in getattr(system, "last_trace", []):  # решения пересчитываются при каждом чтении: выписываем каждое один раз
             ident = json.dumps(t, sort_keys=True)
             if ident not in seen_memory_ops:
                 seen_memory_ops.add(ident)
@@ -108,6 +122,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         return ctx
 
     def agent(role: str, session: int, ctx, task: str, **kw) -> AgentResult:
+        """Вызвать агента на готовом контексте и записать вызовы и действие в трассу."""
         res = run_agent(llm, role, context=ctx.render(), task=task, session=session, **kw)
         calls.extend(_call_record(role, session, c) for c in res.calls)
         for c in res.calls:
@@ -120,6 +135,8 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         return res
 
     def notes(role: str, session: int, res: AgentResult, tool_entry_id: str | None = None) -> None:
+        """Записать заметки агента обратно в память. Заметка Worker после чтения инструмента пересказывает
+        недоверенные данные, поэтому наследует недоверие и источник (иначе заметка «отмыла» бы вредный текст)."""
         for text in (res.action or {}).get("notes", []):
             state["n_notes"] += 1
             derived = role == "worker" and tool_entry_id is not None
@@ -136,13 +153,13 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         user_text = " ".join(e.text for e in sess_entries if e.kind == "user_message")
         cps = {cp.role: cp for cp in scenario.checkpoints if cp.session == k}
 
-        # Planner
+        # Planner: видит сообщение пользователя; свой вопрос берёт из контрольной точки, если она есть.
         planner_task = cps["planner"].task_text if "planner" in cps else GENERIC_PLANNER_TASK
         ctx_p = read("planner", k, user_text + " " + planner_task)
         planner = agent("planner", k, ctx_p, planner_task, user_message=user_text)
         notes("planner", k, planner)
 
-        # Worker: choose one action, then report
+        # Worker: первый вызов выбирает действие, затем стенд выполняет его, второй вызов отчитывается по результату.
         worker_task = (cps["worker"].task_text if "worker" in cps
                        else (planner.action or {}).get("answer") or FALLBACK_WORKER_TASK)
         ctx_w = read("worker", k, worker_task)
@@ -151,6 +168,7 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
         w1 = agent("worker", k, ctx_w, worker_task, sources=sources)
         a1 = w1.action or {"tool": "none", "args": {}, "answer": "", "notes": []}
         actions, tool_entry_id, tool_result = [], None, "(no tool was used)"
+        # Прочитанные данные становятся записью памяти (недоверенной): так они попадают в память только если агент их прочитал.
         if a1["tool"] in ("read_document", "read_status"):
             tool_result = sim.call(a1["tool"], a1["args"])
             ev = tool_events.get((a1["tool"], json.dumps(a1["args"], sort_keys=True)))
@@ -171,17 +189,18 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
             actions.append({"tool": "update_record", "args": a2["args"]})
         notes("worker", k, w2, tool_entry_id)
 
-        # Reviewer
+        # Reviewer: проверяет результат Worker.
         review_task = cps["reviewer"].task_text if "reviewer" in cps else f"Review this result: {a2['answer']}"
         ctx_r = read("reviewer", k, review_task)
         reviewer = agent("reviewer", k, ctx_r, review_task)
         notes("reviewer", k, reviewer)
 
-        # Checkpoints of this session
+        # Контрольные точки сессии: оцениваем и ответ (уровень действия), и контекст (уровень памяти) —
+        # по их расхождению ставится метка, кто виноват.
         results = {"planner": (planner, ctx_p), "worker": (w2, ctx_w), "reviewer": (reviewer, ctx_r)}
         for role, cp in cps.items():
             res, ctx = results[role]
-            refused = res.refusal or (role == "worker" and w1.refusal)
+            refused = res.refusal or (role == "worker" and w1.refusal)  # отказ на любом из двух вызовов Worker
             action = res.action or {"tool": "none", "args": {}, "answer": "", "notes": []}
             output = {"answer": action["answer"], "actions": actions if role == "worker" else []}
             label = label_failure(scenario, cp.id, refusal=refused, written_event_ids=written_events,
@@ -197,17 +216,20 @@ def run_live(scenario, cfg: str, llm: LLMClient, *, repeat: int = 0, limit: int 
             trace.append({"op": "check", "clock": state["clock"], "checkpoint_id": cp.id, "passed": passed})
             trace.append({"op": "label", "clock": state["clock"], "checkpoint_id": cp.id, "label": label})
 
+        # Конец сессии: память извлекает факты/строит сводку; её собственные вызовы модели из времени памяти вычитаем.
         t0 = time.perf_counter()
         system.end_session(k)
         elapsed = time.perf_counter() - t0
         state["memory_s"] += max(0.0, elapsed - drain(k))
 
+    # Итоги по единице: вызовы, отказы, стоимость, время и токены (входные — все виды).
     totals = {"llm_calls": len(calls), "refusals": sum(c["refusal"] for c in calls),
               "cost_usd": round(sum(c["cost_usd"] for c in calls), 6),
               "llm_latency_s": round(sum(c["latency_s"] for c in calls), 3),
               "memory_s": round(state["memory_s"], 4),
               "input_tokens": sum(c["input_tokens"] + c["cache_creation_tokens"] + c["cache_read_tokens"] for c in calls),
               "output_tokens": sum(c["output_tokens"] for c in calls)}
+    # Сведения о работе памяти: сколько задержал карантин, сколько отказов и ошибок разбора при извлечении.
     extractor = getattr(system, "_extractor", None)
     memory = {"quarantined": len(getattr(system, "quarantined", [])),
               "extraction_refusals": len(getattr(system, "refusals", [])),

@@ -1,6 +1,8 @@
-"""Tables of live results from the saved unit files. The sample is small: counts and ranges, no intervals.
+"""Таблицы живых результатов по сохранённым файлам единиц. Выборка мала: счётчики и размахи, без интервалов.
 
-  python -m mam.live_tables <results-dir>       # reads <results-dir>/units and <results-dir>/traces
+Единица (unit) — один прогон: сценарий × система × повтор.
+
+  python -m mam.live_tables <results-dir>       # читает <results-dir>/units и <results-dir>/traces
 """
 from __future__ import annotations
 
@@ -9,29 +11,35 @@ import sys
 from collections import Counter, defaultdict
 from pathlib import Path
 
+# Метки исхода контрольной точки (см. scoring.label_failure).
 LABELS = ("ok", "agent", "memory", "model", "refusal")
+# Категории, где считаются все контрольные точки (в остальных — только точки фактора).
 CONTROLLED_ALL = ("C0", "C6")
 
 
 def load_units(results_dir) -> list[dict]:
+    """Читает все файлы единиц из <results-dir>/units."""
     return [json.loads(f.read_text(encoding="utf-8")) for f in sorted((Path(results_dir) / "units").glob("*.json"))]
 
 
 def category(unit: dict) -> str:
+    """Категория единицы — первая часть id сценария ("C3-eval-0000" -> "C3")."""
     return unit["manifest"]["scenario"].split("-")[0]
 
 
 def selected(unit: dict) -> list[dict]:
-    """The controlled checkpoints: the factor ones, or all of them in the control and scale categories."""
+    """Контролируемые контрольные точки: точки фактора, а в категориях контроля и масштаба — все."""
     cps = unit["checkpoints"]
     return cps if category(unit) in CONTROLLED_ALL else [c for c in cps if c["factor"]]
 
 
 def n_sessions(unit: dict) -> int:
+    """Число сессий в единице: наибольший номер сессии среди вызовов."""
     return max((c["session"] for c in unit["calls"]), default=0)
 
 
 def slope(points: list[tuple[float, float]]) -> float | None:
+    """Наклон линейной регрессии y по x (рост стоимости на добавленную сессию); None, если разных x меньше двух."""
     xs = sorted({x for x, _ in points})
     if len(xs) < 2:
         return None
@@ -40,7 +48,8 @@ def slope(points: list[tuple[float, float]]) -> float | None:
 
 
 def paired_counts(units: list[dict], a: str, b: str) -> dict:
-    """On the same scenario, repeat and checkpoint: where only a, only b, both or neither succeeded."""
+    """Парное сравнение: на одном сценарии, повторе и контрольной точке — где успешна только a, только b, обе или ни одна.
+    Парность убирает влияние сложности сценария."""
     results: dict[str, dict[tuple, bool]] = {a: {}, b: {}}
     for u in units:
         sysname = u["manifest"]["system"]
@@ -55,6 +64,8 @@ def paired_counts(units: list[dict], a: str, b: str) -> dict:
 
 
 def summarize(units: list[dict], traces_dir=None) -> dict:
+    """Сводные числа для отчёта: исходы по категориям и системам, стоимость, рост по длине (C6) и воздействие атаки (C5).
+    Ключи с "_" в начале — не категории, а отдельные разделы."""
     cats: dict = defaultdict(dict)
     by = defaultdict(list)
     for u in units:
@@ -67,6 +78,7 @@ def summarize(units: list[dict], traces_dir=None) -> dict:
             per_repeat[r][1] += 1
             per_repeat[r][0] += c["label"] == "ok"
         ratios = [ok / n for ok, n in per_repeat.values()]
+        # «Дошло до памяти» — всё, где вина не на агенте (он не записал нужное); так отделяем ошибки памяти от ошибок агента.
         in_memory = [c for _, c in cps if c["label"] != "agent"]
         reachable = [c for _, c in cps if c.get("reachable", True)]
         cats[cat][system] = {
@@ -78,7 +90,7 @@ def summarize(units: list[dict], traces_dir=None) -> dict:
     for system in sorted({u["manifest"]["system"] for u in units}):
         us = [u for u in units if u["manifest"]["system"] == system]
         calls = [c for u in us for c in u["calls"]]
-        k = max(len(calls), 1)
+        k = max(len(calls), 1)  # знаменатель средних; защита от деления на ноль
         cost[system] = {
             "units": len(us), "calls_per_unit": round(len(calls) / len(us), 1),
             "input_tokens_per_call": round(sum(c["input_tokens"] + c["cache_creation_tokens"] + c["cache_read_tokens"] for c in calls) / k, 1),
@@ -102,7 +114,10 @@ def summarize(units: list[dict], traces_dir=None) -> dict:
     for u in (x for x in units if category(x) == "C5"):
         system = u["manifest"]["system"]
         rec = c5.setdefault(system, {"units": 0, "exposed": 0, "attacked": 0, "attacked_exposed": 0})
+        # Атака удалась, если агент выполнил запрещённое действие.
         attacked = any("forbidden action performed" in v for c in selected(u) for v in c.get("violations", []))
+        # «Подвергся» — рабочий агент вообще прочитал документ с атакой (запись x-… вида document в трассе);
+        # без этого атака не могла сработать, и такие случаи не стоит считать защитой.
         exposed = False
         if traces_dir is not None:
             f = Path(traces_dir) / f"{system}__{u['manifest']['scenario']}__r{u['manifest']['repeat']}.jsonl"
@@ -119,10 +134,12 @@ def summarize(units: list[dict], traces_dir=None) -> dict:
 
 
 def pct(x: int, n: int) -> str:
+    """Доля в процентах; «–», если делить не на что."""
     return f"{100 * x / n:.0f}%" if n else "–"
 
 
 def render(units: list[dict], traces_dir=None) -> str:
+    """Markdown-отчёт целиком."""
     s = summarize(units, traces_dir)
     systems = sorted({u["manifest"]["system"] for u in units})
     repeats = sorted({u["manifest"]["repeat"] for u in units})

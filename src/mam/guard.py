@@ -1,16 +1,21 @@
-"""Quarantine for instruction-like fragments of untrusted content.
+"""Карантин для фрагментов недоверенного содержимого, похожих на инструкции.
 
-Untrusted text (tool output, documents) is data. A line is held back when it carries a
-marker of prompt injection: it addresses an agent or an AI, tells the reader to ignore or
-override rules, claims system authority, or sets behaviour for future sessions. Ordinary
-imperatives ("forward the log", "email the minutes", "always copy the office") are data.
-Known limits: a plain imperative attack with none of these markers passes; a benign line
-that uses a marker ("from now on the sync is on Thursday") is blocked. Both costs are measured.
+Недоверенный текст (вывод инструментов, документы) — это данные, а не команды. Строка
+задерживается, если в ней есть признак prompt injection: она обращается к агенту или ИИ,
+велит игнорировать или переопределить правила, ссылается на системную власть или задаёт
+поведение для будущих сессий. Обычные повелительные фразы («перешли лог», «отправь
+протокол», «всегда ставь офис в копию») — это данные, их не трогаем.
+Известные ограничения: простая атака без этих маркеров проходит; безобидная строка с
+маркером («from now on the sync is on Thursday») блокируется. Обе цены измеряются.
 """
 from __future__ import annotations
 
 import re
 
+# Признаки инструкции, адресованной модели. Регистр не важен (re.I).
+# Группы по порядку: обращение к ассистенту/ИИ; «игнорируй правила/инструкции»;
+# «игнорируй всё предыдущее»; «с этого момента» и «в будущих сессиях»;
+# «новые инструкции» и «системный промпт»; прямой приказ «you must/should/will».
 _INSTRUCTION = re.compile(
     r"\b(automated assistants?|ai (?:agents?|assistants?|systems?)|language models?|assistants? reading"
     r"|(?:ignore|disregard|forget|override)\b[^.\n]{0,40}\b(?:rules?|instructions?|polic(?:y|ies)|guidelines|configuration)"
@@ -20,14 +25,13 @@ _INSTRUCTION = re.compile(
     r"|you (?:must|should|will|are to))\b",
     re.I)
 
-
 def fragments(text: str) -> list[str]:
-    """Lines (a bullet is one unit): a line with an injected instruction is held back whole."""
+    """Разбивает текст на строки (маркер списка не считается). Это единица карантина:
+    строка с внедрённой инструкцией задерживается целиком, а не по предложениям."""
     return [ln for ln in (raw.strip().lstrip("-*").strip() for raw in text.split("\n")) if ln]
 
-
 def split_untrusted(text: str) -> tuple[list[str], list[str]]:
-    """Return (kept fragments, quarantined fragments)."""
+    """Возвращает (оставленные фрагменты, задержанные в карантине фрагменты)."""
     kept, held = [], []
     for frag in fragments(text):
         (held if _INSTRUCTION.search(frag) else kept).append(frag)

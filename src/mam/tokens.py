@@ -1,22 +1,29 @@
-"""Offline token counter, calibrated against provider usage (docs/DECISIONS.md, D4).
+"""Офлайн-счётчик токенов, откалиброванный по данным провайдера (docs/DECISIONS.md, D4).
 
-A linear model over features of a few regular expressions. Deterministic, no
-network, no dependencies. Weights come from results/pilot/token_counter_fit.json.
+Зачем он нужен: бюджет контекста измеряется в токенах, а настоящий токенизатор
+провайдера требует сети и зависимостей. Здесь линейная модель по признакам, которые
+считаются несколькими регулярными выражениями. Она детерминирована (одинаковый текст
+всегда даёт одинаковое число), не ходит в сеть и не имеет зависимостей. Веса подобраны
+по результатам results/pilot/token_counter_fit.json.
 """
 import re
 
+# Слово из латинских букв; допускаем суффикс с апострофом ("don't", "agent's").
 _WORD = re.compile(r"[A-Za-z]+(?:'[a-z]+)?")
+# Подряд идущие цифры считаются одним числом.
 _DIGITS = re.compile(r"\d+")
+# Любой символ, который не пробел, не латинская буква и не цифра (знаки, кириллица и т. д.).
 _PUNCT = re.compile(r"[^\sA-Za-z0-9]")
 
-_W_WORD = 1.187
-_W_LONG = 0.658  # per letter beyond the sixth in a word
-_W_CAPS = 0.845  # per letter of a word written in capitals (length > 1)
-_W_DIGIT = 0.500
-_W_PUNCT = 1.300
-
+# Веса модели: сколько токенов «стоит» каждый признак.
+_W_WORD = 1.187   # за каждое слово
+_W_LONG = 0.658   # за каждую букву сверх шестой в слове (длинные слова режутся на части)
+_W_CAPS = 0.845   # за каждую букву слова, написанного заглавными (длина > 1)
+_W_DIGIT = 0.500  # за каждую цифру
+_W_PUNCT = 1.300  # за каждый «прочий» символ
 
 def count(text: str) -> int:
+    """Оценка числа токенов в тексте (целое, округлённое)."""
     words = _WORD.findall(text)
     total = (
         _W_WORD * len(words)

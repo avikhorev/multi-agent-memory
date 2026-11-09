@@ -1,4 +1,15 @@
-"""Validator of the reference ground truth (spec section 5). Error strings start with the rule id."""
+"""Валидатор эталонной истины сценария (раздел 5 спецификации). Строки ошибок начинаются с id правила.
+
+Правила:
+  R1 — интервалы действия фактов согласованы (нет пустых, перекрытий, висячих замен);
+  R2 — события и факты связаны (событие называет значение факта, ссылки существуют);
+  R3 — ожидаемые ответы контрольных точек верны относительно фактов (текущее значение, устаревшее, спор);
+  R4 — строки контекста находимы в событиях; явные и неявные обновления написаны в своём стиле;
+  R5 — токены-метки (canary, inj) стоят только там, где должны, и покрыты контрольными точками;
+  R6 — структура и идентификаторы сценария корректны;
+  R7 — сценарий побайтно воспроизводится из своих параметров.
+Валидатор нужен, чтобы ошибка генератора не превратилась в «ошибку системы памяти» в результатах.
+"""
 from __future__ import annotations
 
 import re
@@ -8,17 +19,22 @@ from .scenario import Event, Scenario, dumps
 from .scoring import normalize
 from .types import Fact
 
+# Любое слово-метка (canary-… для проверки утечки приватного, inj-… для инъекции).
 TOKEN_RE = re.compile(r"(?:canary|inj)-\w*", re.IGNORECASE)
+# Корректная метка: префикс и ровно 8 шестнадцатеричных цифр.
 TOKEN_OK = re.compile(r"(?:canary|inj)-[0-9a-f]{8}", re.IGNORECASE)
+# Корректный id события: e-NNNN (базовое) или x-NNNN (событие фактора).
 EVENT_ID = re.compile(r"[ex]-\d{4}")
-VARIANT_CATEGORIES = ("C1", "C3")
+VARIANT_CATEGORIES = ("C1", "C3")  # категории, где есть вариант explicit/implicit
 
 
 def _key(f: Fact) -> tuple[str, str]:
+    """Ключ факта: пара (сущность, атрибут); версии одного ключа заменяют друг друга."""
     return (f.entity, f.attribute)
 
 
 def _first_sessions(s: Scenario) -> dict[str, int]:
+    """Номер сессии, в которой факт впервые упомянут событием (id факта -> сессия)."""
     first: dict[str, int] = {}
     for sess in s.sessions:
         for e in sess.events:
@@ -28,7 +44,7 @@ def _first_sessions(s: Scenario) -> dict[str, int]:
 
 
 def private_only_ids(s: Scenario) -> set[str]:
-    """Facts stated only by private events: a view visible to its author, outside the shared truth."""
+    """Факты, о которых говорят только личные события: взгляд, видимый лишь автору, вне общей истины."""
     reporters: dict[str, list[Event]] = {}
     for sess in s.sessions:
         for e in sess.events:
@@ -38,13 +54,14 @@ def private_only_ids(s: Scenario) -> set[str]:
 
 
 def known_facts(s: Scenario, session: int) -> list[Fact]:
+    """Общие факты, уже упомянутые к данной сессии (личные не считаются: их читатель не знает)."""
     first = _first_sessions(s)
     private = private_only_ids(s)
     return [f for f in s.facts if first.get(f.id, 10**9) <= session and f.id not in private]
 
 
 def current_facts(s: Scenario, session: int) -> list[Fact]:
-    """Known facts not closed by a known successor of the same key."""
+    """Известные факты, не закрытые известным преемником того же ключа (действующие на момент сессии)."""
     known = known_facts(s, session)
     out = []
     for f in known:
@@ -55,23 +72,27 @@ def current_facts(s: Scenario, session: int) -> list[Fact]:
     return out
 
 
+# Та же таблица, что в системе ours: авторитет источника при равном времени. Продублирована,
+# чтобы валидатор оставался независимой проверкой, а не зависел от проверяемой системы.
 AUTHORITY = {"user": 3, "tool": 2, "document": 1, "agent": 0}
 
 
 def _updates(s: Scenario) -> list[tuple[Event, Fact]]:
-    """(event, fact) pairs where a factor event states a replacing value."""
+    """Пары (событие, факт), где событие фактора сообщает заменяющее значение."""
     by_id = {f.id: f for f in s.facts}
     return [(e, by_id[fid]) for sess in s.sessions for e in sess.events if e.factor
             for fid in e.facts if fid in by_id and by_id[fid].supersedes is not None]
 
 
 def _overlapping(a: Fact, b: Fact) -> bool:
+    """Пересекаются ли интервалы действия [valid_from, valid_to); пустой valid_to — бесконечность."""
     a_end = a.valid_to if a.valid_to is not None else 10**9
     b_end = b.valid_to if b.valid_to is not None else 10**9
     return a.valid_from < b_end and b.valid_from < a_end
 
 
 def _conflict_ids(s: Scenario) -> set[str]:
+    """Факты, у которых есть перекрывающаяся пара с тем же ключом (участники конфликта)."""
     out = set()
     for i, a in enumerate(s.facts):
         for b in s.facts[i + 1:]:
@@ -81,7 +102,8 @@ def _conflict_ids(s: Scenario) -> set[str]:
 
 
 def _styled(s: Scenario) -> list[tuple[Event, Fact, bool]]:
-    """(event, fact, implicit) for the events that state an update or one side of a conflict."""
+    """Тройки (событие, факт, неявное) для событий, сообщающих обновление или одну из сторон конфликта.
+    Неявное — значит, текст не называет новое значение и атрибут напрямую (его надо вывести)."""
     out = [(e, f, s.variant == "implicit") for e, f in _updates(s)]
     if s.category == "C3":
         conflict = _conflict_ids(s)
@@ -95,15 +117,18 @@ def _styled(s: Scenario) -> list[tuple[Event, Fact, bool]]:
 
 
 def _is_implicit(s: Scenario, e: Event, f: Fact) -> bool:
+    """Передаёт ли событие e факт f неявно."""
     return any(x is e and y is f and imp for x, y, imp in _styled(s))
 
 
 def _derived_values(s: Scenario) -> set[str]:
+    """Значения, которые в тексте не названы, а только выводятся (для неявных обновлений); их нельзя искать подстрокой."""
     return {normalize(f.value) for e, f, imp in _styled(s) if imp}
 
 
 def resolve(group: list[Fact]) -> Fact | None:
-    """Winner of overlapping facts of one key by spec section 6; None means disputed."""
+    """Победитель среди перекрывающихся фактов одного ключа по разделу 6 спецификации; None — спор.
+    Сначала решает более позднее время, при равенстве — больший авторитет источника."""
     top = max(f.valid_from for f in group)
     cands = [f for f in group if f.valid_from == top]
     if len(cands) > 1:
@@ -113,6 +138,7 @@ def resolve(group: list[Fact]) -> Fact | None:
 
 
 def _check_update_style(s: Scenario, errs: list[str]) -> None:
+    """R4: явное обновление называет и значение, и атрибут; неявное — ни того, ни другого."""
     for e, f, implicit in _styled(s):
         text = normalize(e.text)
         label = normalize(ATTRS[f.attribute][1])
@@ -125,6 +151,7 @@ def _check_update_style(s: Scenario, errs: list[str]) -> None:
 
 
 def _check_ids(s: Scenario, errs: list[str]) -> None:
+    """R6: уникальность идентификаторов и формат id событий."""
     def dup(kind: str, ids: list[str]) -> None:
         seen = set()
         for i in ids:
@@ -146,6 +173,7 @@ def _check_ids(s: Scenario, errs: list[str]) -> None:
 
 
 def _check_structure(s: Scenario, errs: list[str]) -> None:
+    """R6: допустимые значения полей, согласованность категории с вариантом и разрешением, состав сессий и событий."""
     if s.split not in ("dev", "eval", "holdout"):
         errs.append(f"R6: bad split {s.split}")
     if s.variant not in ("none", "explicit", "implicit"):
@@ -162,6 +190,7 @@ def _check_structure(s: Scenario, errs: list[str]) -> None:
         errs.append("R6: sessions do not match n_sessions")
     for sess in s.sessions:
         base = [e for e in sess.events if not e.factor]
+        # В базовой части сессии: ровно одно сообщение пользователя, до двух выводов инструментов и до трёх заметок.
         counts = {t: sum(1 for e in base if e.type == t) for t in ("user_message", "tool_data", "note")}
         if counts["user_message"] != 1 or counts["tool_data"] > 2 or counts["note"] > 3:
             errs.append(f"R6: session {sess.index} has wrong base event counts {counts}")
@@ -186,6 +215,8 @@ def _check_structure(s: Scenario, errs: list[str]) -> None:
 
 
 def _check_intervals(s: Scenario, errs: list[str]) -> None:
+    """R1: интервалы непустые; замена указывает на предыдущую версию того же ключа; у закрытого интервала есть преемник;
+    пересечения допускаются только у объявленного конфликта (C3) и у личных фактов."""
     by_key: dict[tuple[str, str], list[Fact]] = {}
     for f in s.facts:
         by_key.setdefault(_key(f), []).append(f)
@@ -205,6 +236,7 @@ def _check_intervals(s: Scenario, errs: list[str]) -> None:
     for key, group in sorted(by_key.items()):
         for i, a in enumerate(group):
             for b in group[i + 1:]:
+                # Конфликт «объявлен», если это C3 с контрольной точкой-конфликтом и обе стороны введены фактором.
                 declared = (s.category == "C3" and any(c.kind == "conflict" for c in s.checkpoints)
                             and a.id not in base_reported and b.id not in base_reported)
                 if _overlapping(a, b) and not declared and not ({a.id, b.id} & private):
@@ -212,6 +244,8 @@ def _check_intervals(s: Scenario, errs: list[str]) -> None:
 
 
 def _check_events_and_facts(s: Scenario, errs: list[str]) -> None:
+    """R2: ссылки на факты и события существуют; у каждого факта есть событие; событие называет значение факта
+    (кроме неявных обновлений); ограничение привязано к сообщению пользователя своей сессии."""
     fact_ids = {f.id for f in s.facts}
     events = {e.id: e for sess in s.sessions for e in sess.events}
     reported = set()
@@ -239,6 +273,7 @@ def _check_events_and_facts(s: Scenario, errs: list[str]) -> None:
 
 
 def _session_of(s: Scenario, event_id: str) -> int | None:
+    """Номер сессии события или None, если такого события нет."""
     for sess in s.sessions:
         if any(e.id == event_id for e in sess.events):
             return sess.index
@@ -246,10 +281,14 @@ def _session_of(s: Scenario, event_id: str) -> int | None:
 
 
 def _check_checkpoints(s: Scenario, errs: list[str]) -> None:
+    """R3 и R4 для контрольных точек: ожидаемое значение действительно текущее или побеждающее; устаревшее — замещённое
+    значение того же ключа; спорный ответ соответствует нерешённому конфликту; нужные строки находимы в событиях;
+    запрещённые строки не совпадают с текущими значениями (иначе точка противоречила бы сама себе)."""
     text = " ".join(normalize(e.text) for sess in s.sessions for e in sess.events)
     derived = _derived_values(s)
 
     def findable(p: str) -> bool:
+        """Строка есть в тексте событий или среди выводимых значений неявных обновлений."""
         return normalize(p) in text or normalize(p) in derived
 
     for cp in s.checkpoints:
@@ -257,6 +296,7 @@ def _check_checkpoints(s: Scenario, errs: list[str]) -> None:
         groups: dict[tuple[str, str], list[Fact]] = {}
         for f in current_facts(s, cp.session):
             groups.setdefault(_key(f), []).append(f)
+        # По каждому ключу — победитель (None, если спор); effective — только однозначные победители.
         winners = {k: (resolve(g) if len(g) > 1 else g[0]) for k, g in groups.items()}
         effective = [w for w in winners.values() if w is not None]
         if cp.answer.disputed:
@@ -292,6 +332,9 @@ def _check_checkpoints(s: Scenario, errs: list[str]) -> None:
 
 
 def _check_tokens(s: Scenario, errs: list[str]) -> None:
+    """R5: метки canary/inj стоят только в разрешённых событиях (canary — личная заметка фактора в C4, inj — вывод
+    инструмента фактора в C5), каждая покрыта контрольной точкой и наоборот; личные значения не просачиваются в общие события;
+    задача и «present»-строки контрольной точки не выдают метку."""
     in_events: set[str] = set()
     for sess in s.sessions:
         for e in sess.events:
@@ -330,6 +373,8 @@ def _check_tokens(s: Scenario, errs: list[str]) -> None:
 
 
 def validate(s: Scenario, check_determinism: bool = True) -> list[str]:
+    """Все проверки; возвращает список ошибок (пустой — сценарий корректен).
+    check_determinism=False пропускает дорогую проверку R7 (повторную генерацию)."""
     errs: list[str] = []
     _check_ids(s, errs)
     _check_structure(s, errs)
@@ -339,7 +384,7 @@ def validate(s: Scenario, check_determinism: bool = True) -> list[str]:
     _check_checkpoints(s, errs)
     _check_tokens(s, errs)
     if check_determinism:
-        from .generate import regenerate
+        from .generate import regenerate  # импорт здесь, чтобы не было цикла (generate импортирует validate)
         if dumps(regenerate(s)) != dumps(s):
             errs.append("R7: scenario differs from its regeneration")
     return errs

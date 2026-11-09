@@ -1,4 +1,4 @@
-"""Memory systems behind one interface (docs/SCENARIO_FORMAT.md, section 8)."""
+"""Системы памяти за одним интерфейсом (docs/SCENARIO_FORMAT.md, раздел 8)."""
 from __future__ import annotations
 
 from mam.systems.base import MemorySystem
@@ -6,13 +6,20 @@ from mam.systems.baselines import FullHistory, SharedRagBm25, SlidingWindow
 from mam.systems.ours import Ours
 from mam.systems.summary import CachedSummary, LLMSummary, RollingSummary
 
+# Допустимые имена систем: наша и четыре базовых для сравнения.
 NAMES = ("ours", "full_history", "sliding_window", "rolling_summary", "shared_rag_bm25")
+# Что можно отключать в нашей системе, чтобы измерить вклад каждого механизма (абляции).
 ABLATIONS = frozenset({"validity", "scopes", "trust", "pinned_constraints"})
+# Способы извлекать факты из записей: эталон сценария, правила, кеш, живая модель.
 EXTRACTORS = ("oracle", "rules", "cache", "llm")
-
 
 def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str = "oracle",
            cache_path=None, llm=None) -> MemorySystem:
+    """Фабрика систем памяти. limit — бюджет контекста в токенах.
+
+    Все параметры проверяются до создания, чтобы опечатка в конфигурации
+    падала сразу, а не посреди долгого прогона.
+    """
     ablate = frozenset(ablate)
     if name not in NAMES:
         raise ValueError(f"unknown system: {name}")
@@ -21,6 +28,7 @@ def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str =
     if not ablate <= ABLATIONS:
         raise ValueError(f"unknown ablation: {sorted(ablate - ABLATIONS)}")
     if ablate and name != "ours":
+        # Абляции — это отключение частей именно нашей системы; у базовых частей нет.
         raise ValueError("ablations apply to 'ours' only")
     if name == "full_history":
         return FullHistory(limit)

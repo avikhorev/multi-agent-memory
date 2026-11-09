@@ -1,4 +1,4 @@
-"""Tables of memory-level results with bootstrap intervals over scenarios.
+"""Таблицы результатов уровня памяти с бутстреп-интервалами по сценариям.
 
   python -m mam.tables <results-dir> [--title "..."]
 """
@@ -12,10 +12,10 @@ from pathlib import Path
 
 from mam.memory_eval import systems_for
 
-BOOTSTRAP = 2000
-SEED = 12345
+BOOTSTRAP = 2000  # число бутстреп-повторов для доверительного интервала
+SEED = 12345  # фиксированное зерно: интервалы воспроизводимы
 
-# (category, label, value function on a checkpoint record, grouping key or None)
+# Метрики: (категория, подпись, функция значения по записи контрольной точки, ключ группировки или None).
 METRICS = [
     ("C0", "correct", lambda r: r["passed"], None),
     ("C1", "current value present", lambda r: r["missing_present"] == 0, "variant"),
@@ -32,6 +32,7 @@ METRICS = [
 
 
 def load_results(directory: Path) -> dict[str, list[dict]]:
+    """Читает все <система>.jsonl каталога: имя файла без расширения -> список записей."""
     out = {}
     for p in sorted(directory.glob("*.jsonl")):
         out[p.stem] = [json.loads(line) for line in p.read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -39,6 +40,7 @@ def load_results(directory: Path) -> dict[str, list[dict]]:
 
 
 def interval(values: list[float]) -> tuple[float, float, float]:
+    """(среднее, нижняя, верхняя граница 95% интервала) бутстрепом по значениям (по одному на сценарий)."""
     rng = random.Random(SEED)
     mean = sum(values) / len(values)
     means = sorted(sum(rng.choice(values) for _ in values) / len(values) for _ in range(BOOTSTRAP))
@@ -46,17 +48,20 @@ def interval(values: list[float]) -> tuple[float, float, float]:
 
 
 def per_scenario(rows: list[dict], category: str, fn, group: str | None) -> dict[str, list[float]]:
+    """Группа -> список значений метрики, по одному на сценарий (среднее по его контрольным точкам).
+    Усреднение по сценарию нужно, чтобы сценарий с большим числом точек не перевешивал остальные."""
     by = defaultdict(lambda: defaultdict(list))
     for r in rows:
         if r.get("record") != "checkpoint" or r["category"] != category:
             continue
         if category not in ("C0", "C6") and not r["factor"]:
-            continue  # the controlled checkpoint of the category
+            continue  # берём только «контрольную» точку категории; точки фактора (factor) сюда не входят
         by[str(r[group]) if group else "all"][r["scenario"]].append(float(fn(r)))
     return {g: [sum(v) / len(v) for v in sc.values()] for g, sc in by.items()}
 
 
 def render(results: dict[str, list[dict]], title: str = "") -> str:
+    """Markdown со всеми таблицами; системы идут в известном порядке, неизвестные — в конце."""
     known = systems_for(True)
     systems = [s for s in known if s in results] + [s for s in results if s not in known]
     lines = [f"# {title}".rstrip(), ""] if title else []
