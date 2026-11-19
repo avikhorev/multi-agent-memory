@@ -22,7 +22,7 @@ erDiagram
     string split "dev | eval | holdout"
     int seed
     string variant "none | explicit | implicit"
-    string resolution "только C3"
+    string resolution "none | later_event | authority | disputed"
     int n_sessions
   }
   SESSION {
@@ -34,6 +34,7 @@ erDiagram
     string text
     string author "user | planner | worker | reviewer | tool"
     string scope "private | task | shared"
+    string trust "user_message: trusted; tool_data: untrusted"
     string tool "read_document | read_status | null"
     object args
     bool factor
@@ -44,7 +45,8 @@ erDiagram
     string attribute
     string value
     int valid_from
-    int valid_to "null = действует"
+    int valid_to "event_time следующего факта или null"
+    string supersedes "id заменённого факта или null"
     string source "user | tool | document | agent"
   }
   CONSTRAINT {
