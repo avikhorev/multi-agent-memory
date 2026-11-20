@@ -15,7 +15,7 @@ class MarkdownChecks(unittest.TestCase):
         self.root = Path(self.tempdir.name)
         (self.root / "docs").mkdir()
         (self.root / "Makefile").write_text("test:\n\t@echo ok\n", encoding="utf-8")
-        (self.root / "README.md").write_text("# Проект\n", encoding="utf-8")
+        (self.root / "README.md").write_text("# Project\n", encoding="utf-8")
 
     def write(self, relative, text):
         path = self.root / relative
@@ -24,8 +24,8 @@ class MarkdownChecks(unittest.TestCase):
         return path
 
     def test_valid_link_and_cyrillic_slug_and_explicit_anchor(self):
-        self.write("docs/details.md", "# Одна сессия\n\n<a id=\"d7\"></a>\n")
-        self.write("README.md", "[раздел](docs/details.md#одна-сессия) [id](docs/details.md#d7)\n")
+        self.write("docs/details.md", "# One session\n\n<a id=\"d7\"></a>\n")
+        self.write("README.md", "[section](docs/details.md#one-session) [id](docs/details.md#d7)\n")
         self.assertEqual(check_docs.validate(self.root), [])
 
     def test_missing_file_and_heading_are_reported(self):
@@ -50,9 +50,9 @@ class MarkdownChecks(unittest.TestCase):
         self.assertIn("outside", check_docs.validate(self.root)[0])
 
     def test_duplicate_heading_slugs(self):
-        anchors = check_docs.anchors_in("# Раздел\n\n# Раздел\n\n```md\n# Fake\n```\n")
-        self.assertIn("раздел", anchors)
-        self.assertIn("раздел-1", anchors)
+        anchors = check_docs.anchors_in("# Section\n\n# Section\n\n```md\n# Fake\n```\n")
+        self.assertIn("section", anchors)
+        self.assertIn("section-1", anchors)
         self.assertNotIn("fake", anchors)
 
     def test_pinned_snapshot_line_range(self):

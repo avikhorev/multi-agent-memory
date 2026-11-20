@@ -1,32 +1,32 @@
-"""Общее поведение всех систем памяти: идемпотентная запись, фильтр по области видимости, подсчёт токенов."""
+"""Common behavior of all memory systems: idempotent write, scope filter, token counting."""
 from __future__ import annotations
 
 from mam.tokens import count
 from mam.types import Context, ContextItem, Entry, Reader
 
 def visible_to(entry: Entry, reader: Reader) -> bool:
-    """Фильтр области видимости. Применяется до любого ранжирования и поиска,
-    чтобы закрытая запись не могла попасть в контекст чужому агенту."""
+    """Scope filter. It is applied before any ranking and search,
+    so that a closed record cannot get into the context of another agent."""
     if entry.scope == "private":
-        # Личное видит только автор (по роли).
+        # A personal record is seen only by its author (by role).
         return entry.author == reader.role
     if entry.scope == "task":
-        # Запись задачи видна только в рамках этой же задачи.
+        # A task record is visible only within the same task.
         return entry.task_id == reader.task_id
-    # Остальные области (общая) видны всем.
+    # The other scopes (shared) are visible to everyone.
     return True
 
 def make_context(items: list[ContextItem]) -> Context:
-    """Собирает контекст и считает его размер в токенах."""
+    """Assembles the context and counts its size in tokens."""
     return Context(items=items, token_count=sum(count(i.text) for i in items))
 
 class MemorySystem:
-    """Базовый класс. Записи приходят в порядке возрастания clock; повторный id записи игнорируется."""
+    """Base class. Records arrive in ascending clock order; a repeated record id is ignored."""
 
     def __init__(self, limit: int = 2000):
-        # Бюджет контекста в токенах: больше этого система не отдаёт.
+        # The context budget in tokens: the system returns no more than this.
         self.limit = limit
-        # Все принятые записи по id; повтор не перезаписывает (запись идемпотентна).
+        # All accepted records by id; a repeat does not overwrite (the record is idempotent).
         self._entries: dict[str, Entry] = {}
 
     def write(self, entry: Entry) -> None:
@@ -34,20 +34,20 @@ class MemorySystem:
             self._entries[entry.id] = entry
 
     def end_session(self, session: int) -> None:
-        """Хук для систем, которые извлекают факты или строят сводки в конце сессии."""
+        """Hook for systems that extract facts or build summaries at the end of a session."""
 
     def drain_llm_calls(self) -> list:
-        """Отдаёт накопленные вызовы модели для учёта стоимости; у систем без модели их нет."""
+        """Returns the accumulated model calls for cost accounting; systems without a model have none."""
         return []
 
     def drain_extractions(self) -> list[dict]:
-        """Отдаёт накопленные результаты извлечения (для кеша); у систем без извлечения пусто."""
+        """Returns the accumulated extraction results (for the cache); systems without extraction return nothing."""
         return []
 
     def context(self, reader: Reader) -> Context:
-        """Главный метод: что показать читателю. Реализуется в каждой системе."""
+        """Main method: what to show the reader. Implemented in each system."""
         raise NotImplementedError
 
     def _visible(self, reader: Reader) -> list[Entry]:
-        """Записи, видимые читателю, в хронологическом порядке."""
+        """Records visible to the reader, in chronological order."""
         return sorted((e for e in self._entries.values() if visible_to(e, reader)), key=lambda e: e.clock)

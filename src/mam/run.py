@@ -1,9 +1,9 @@
-"""Возобновляемый запуск живых единиц и печать трассы.
+"""Resumable run of live units and printing of traces.
 
-Единица — это тройка (система, сценарий, повтор). Её результат пишется атомарно в один файл; готовая
-единица при следующем запуске пропускается. Новые единицы не стартуют после лимита времени или стоимости;
-ограничения частоты, которые не проходят, останавливают запуск со своим кодом выхода, чтобы его можно
-было продолжить позже. Операций с репозиторием здесь нет.
+A unit is a triple (system, scenario, repeat). Its result is written atomically to one file; a finished
+unit is skipped on the next run. New units do not start after the time or cost limit;
+rate limits that do not clear stop the run with their own exit code, so that it can be
+continued later. There are no repository operations here.
 
   python -m mam.run live --split dev --select smoke --systems ours,full_history --out results/live/smoke
   python -m mam.run trace C1-dev-0100 --dir results/live/smoke
@@ -28,40 +28,40 @@ from mam.llm import MODEL, PINNED_CLI_VERSION, ClaudeCliClient, RateLimitTimeout
 from mam.scenario import load
 from mam.selection import select_live
 
-# Коды выхода: готово; остановлено лимитом или были сбои; ограничение частоты (EX_TEMPFAIL).
+# Exit codes: done; stopped by a limit or there were failures; rate limit (EX_TEMPFAIL).
 EXIT_OK, EXIT_INCOMPLETE, EXIT_RATE_LIMITED = 0, 2, 75
 
 
 class Unit(NamedTuple):
-    """Единица работы."""
-    system: str  # имя системы памяти
-    scenario: str  # id сценария
-    repeat: int  # номер повтора (модель недетерминирована, поэтому прогоны повторяют)
+    """Unit of work."""
+    system: str  # name of the memory system
+    scenario: str  # scenario id
+    repeat: int  # repeat number (the model is nondeterministic, so runs are repeated)
 
 
 @dataclass
 class Report:
-    """Итог запуска."""
-    done: int = 0  # выполнено в этом запуске
-    skipped: int = 0  # пропущено как готовые
-    failed: int = 0  # упало (будут повторены при следующем запуске)
-    cost_usd: float = 0.0  # потрачено, включая прошлые запуски
+    """Result of the run."""
+    done: int = 0  # done in this run
+    skipped: int = 0  # skipped as finished
+    failed: int = 0  # failed (will be retried on the next run)
+    cost_usd: float = 0.0  # spent, including previous runs
     stopped_by: str | None = None  # time | cost | rate_limit | None
-    exit_code: int = EXIT_OK  # код выхода процесса
+    exit_code: int = EXIT_OK  # process exit code
 
 
 def plan_units(systems: list[str], scenarios: list[str], repeats: int) -> list[Unit]:
-    """Все сочетания. Повтор — внешний цикл: при остановке по лимиту все системы успевают пройти хотя бы первый повтор."""
+    """All combinations. The repeat is the outer loop: when stopped by a limit, all systems get through at least the first repeat."""
     return [Unit(sy, sc, r) for r in range(repeats) for sc in scenarios for sy in systems]
 
 
 def _name(u: Unit) -> str:
-    """Имя файла единицы (и трассы)."""
+    """File name of the unit (and of its trace)."""
     return f"{u.system}__{u.scenario}__r{u.repeat}"
 
 
 def _commit() -> str:
-    """Коммит кода для манифеста результата: из MAM_COMMIT (в контейнере нет git) или из git; иначе "unknown"."""
+    """Code commit for the result manifest: from MAM_COMMIT (there is no git in the container) or from git; otherwise "unknown"."""
     if os.environ.get("MAM_COMMIT"):
         return os.environ["MAM_COMMIT"]
     try:
@@ -72,14 +72,14 @@ def _commit() -> str:
 
 
 def _write_atomic(path: Path, text: str) -> None:
-    """Пишем во временный файл и переименовываем: при обрыве не останется наполовину записанного файла."""
+    """We write to a temporary file and rename it: if interrupted, no half-written file remains."""
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
 
 
 def _spent(units_dir: Path) -> float:
-    """Сколько уже потрачено готовыми единицами (входит в лимит стоимости)."""
+    """How much has already been spent by finished units (included in the cost limit)."""
     total = 0.0
     for f in units_dir.glob("*.json"):
         total += float(json.loads(f.read_text(encoding="utf-8")).get("cost_usd") or 0)
@@ -88,14 +88,14 @@ def _spent(units_dir: Path) -> float:
 
 def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, max_minutes: float | None = None,
               max_cost_usd: float = 10.0, now=time.monotonic, limit: int = 2000, attempts: int = 2) -> Report:
-    """Параллельно выполняет единицы; attempts — попыток на единицу до признания сбоя; now подменяется в тестах."""
+    """Runs the units in parallel; attempts — tries per unit before a failure is recognized; now is replaced in tests."""
     out, data = Path(out_dir), Path(data_dir)
     (out / "units").mkdir(parents=True, exist_ok=True)
     (out / "traces").mkdir(exist_ok=True)
     report = Report(cost_usd=_spent(out / "units"))
-    commit, started_at = _commit(), now()  # для манифеста и отсчёта лимита времени
+    commit, started_at = _commit(), now()  # for the manifest and the time-limit clock
     deadline = None if max_minutes is None else started_at + max_minutes * 60
-    lock, state = threading.Lock(), {"stop": None}  # замок для общих счётчиков; причина остановки
+    lock, state = threading.Lock(), {"stop": None}  # lock for shared counters; the reason for stopping
 
     def work(u: Unit) -> None:
         scenario = load(data / f"{u.scenario}.json")
@@ -109,7 +109,7 @@ def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, ma
                 with lock:
                     state["stop"] = "rate_limit"
                 raise
-            except Exception as err:  # единица остаётся недоделанной и повторится при следующем запуске
+            except Exception as err:  # the unit stays unfinished and will be repeated on the next run
                 last = err
         else:
             with lock:
@@ -117,32 +117,32 @@ def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, ma
                 with open(out / "failures.log", "a", encoding="utf-8") as f:
                     f.write(f"{_name(u)}: {type(last).__name__}: {str(last)[:200]}\n")
             return
-        # Трасса идёт в отдельный файл, чтобы файл единицы оставался компактным.
+        # The trace goes to a separate file, so that the unit's file stays compact.
         trace = res.pop("trace")
         res["cost_usd"] = res["totals"]["cost_usd"]
-        # Манифест: чем получен результат (модель, версия CLI, коммит, время) — для воспроизводимости.
+        # Manifest: how the result was obtained (model, CLI version, commit, time) — for reproducibility.
         res["manifest"] = {"system": u.system, "scenario": u.scenario, "repeat": u.repeat, "model": MODEL,
                            "cli_version": PINNED_CLI_VERSION, "commit": commit,
                            "api_key_set": bool(os.environ.get("ANTHROPIC_API_KEY")),
                            "started": t0.isoformat(), "finished": datetime.now(timezone.utc).isoformat()}
-        # Единица пишется последней: её наличие значит «готово», и трасса к этому моменту уже есть.
+        # The unit is written last: its presence means "done", and the trace is already there by then.
         _write_atomic(out / "traces" / f"{_name(u)}.jsonl", "".join(json.dumps(t, sort_keys=True) + "\n" for t in trace))
         _write_atomic(out / "units" / f"{_name(u)}.json", json.dumps(res, sort_keys=True, indent=1))
         with lock:
             report.done += 1
             report.cost_usd += res["cost_usd"]
 
-    pending = set()  # запущенные, но не завершённые задачи
+    pending = set()  # started but not finished tasks
     with ThreadPoolExecutor(workers) as pool:
         for u in units:
             if (out / "units" / f"{_name(u)}.json").exists():
                 report.skipped += 1
                 continue
-            # Не запускаем больше workers задач одновременно, чтобы лимиты проверялись на свежих данных.
+            # We do not start more than workers tasks at once, so that the limits are checked on fresh data.
             while len(pending) >= workers:
                 finished, pending = wait(pending, return_when=FIRST_COMPLETED)
             with lock:
-                # Оцениваем стоимость запущенных по средней готовых: останавливаемся до превышения, а не после.
+                # We estimate the cost of the running ones by the average of the finished ones: we stop before exceeding, not after.
                 avg = report.cost_usd / report.done if report.done else 0.0
                 if state["stop"] is None and deadline is not None and now() >= deadline:
                     state["stop"] = "time"
@@ -161,7 +161,7 @@ def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, ma
         report.exit_code = EXIT_RATE_LIMITED
     elif state["stop"] or report.failed:
         report.exit_code = EXIT_INCOMPLETE
-    # Журнал ожиданий лимитов — отдельным файлом, чтобы не смешивать с результатами.
+    # The log of rate-limit waits goes to a separate file, so as not to mix it with the results.
     if getattr(llm, "infra_log", None):
         with open(out / "infra.log.jsonl", "a", encoding="utf-8") as f:
             f.write("".join(json.dumps(e) + "\n" for e in llm.infra_log))
@@ -169,7 +169,7 @@ def run_units(units: list[Unit], llm, data_dir, out_dir, *, workers: int = 8, ma
 
 
 def trace_lines(out_dir, scenario: str):
-    """Строки трассы всех единиц сценария, каждая с добавленным полем unit."""
+    """Trace lines of all units of the scenario, each with an added unit field."""
     for f in sorted((Path(out_dir) / "traces").glob(f"*__{scenario}__r*.jsonl")):
         for line in f.read_text(encoding="utf-8").splitlines():
             yield json.dumps(dict(json.loads(line), unit=f.stem), sort_keys=True)

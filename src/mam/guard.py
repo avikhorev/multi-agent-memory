@@ -1,21 +1,21 @@
-"""Карантин для фрагментов недоверенного содержимого, похожих на инструкции.
+"""Quarantine for fragments of untrusted content that look like instructions.
 
-Недоверенный текст (вывод инструментов, документы) — это данные, а не команды. Строка
-задерживается, если в ней есть признак prompt injection: она обращается к агенту или ИИ,
-велит игнорировать или переопределить правила, ссылается на системную власть или задаёт
-поведение для будущих сессий. Обычные повелительные фразы («перешли лог», «отправь
-протокол», «всегда ставь офис в копию») — это данные, их не трогаем.
-Известные ограничения: простая атака без этих маркеров проходит; безобидная строка с
-маркером («from now on the sync is on Thursday») блокируется. Обе цены измеряются.
+Untrusted text (tool output, documents) is data, not commands. A line
+is held back if it has a sign of prompt injection: it addresses the agent or an AI,
+tells it to ignore or override the rules, refers to system authority, or sets
+behavior for future sessions. Ordinary imperative phrases ("forward the log", "send
+the protocol", "always put the office in copy") are data; we do not touch them.
+Known limitations: a simple attack without these markers passes; a harmless line with a
+marker ("from now on the sync is on Thursday") is blocked. Both costs are measured.
 """
 from __future__ import annotations
 
 import re
 
-# Признаки инструкции, адресованной модели. Регистр не важен (re.I).
-# Группы по порядку: обращение к ассистенту/ИИ; «игнорируй правила/инструкции»;
-# «игнорируй всё предыдущее»; «с этого момента» и «в будущих сессиях»;
-# «новые инструкции» и «системный промпт»; прямой приказ «you must/should/will».
+# Signs of an instruction addressed to the model. Case does not matter (re.I).
+# Groups, in order: an address to the assistant/AI; "ignore the rules/instructions";
+# "ignore everything above"; "from now on" and "in future sessions";
+# "new instructions" and "system prompt"; a direct order "you must/should/will".
 _INSTRUCTION = re.compile(
     r"\b(automated assistants?|ai (?:agents?|assistants?|systems?)|language models?|assistants? reading"
     r"|(?:ignore|disregard|forget|override)\b[^.\n]{0,40}\b(?:rules?|instructions?|polic(?:y|ies)|guidelines|configuration)"
@@ -26,12 +26,12 @@ _INSTRUCTION = re.compile(
     re.I)
 
 def fragments(text: str) -> list[str]:
-    """Разбивает текст на строки (маркер списка не считается). Это единица карантина:
-    строка с внедрённой инструкцией задерживается целиком, а не по предложениям."""
+    """Splits the text into lines (a list marker is not counted). This is the unit of quarantine:
+    a line with an injected instruction is held back as a whole, not sentence by sentence."""
     return [ln for ln in (raw.strip().lstrip("-*").strip() for raw in text.split("\n")) if ln]
 
 def split_untrusted(text: str) -> tuple[list[str], list[str]]:
-    """Возвращает (оставленные фрагменты, задержанные в карантине фрагменты)."""
+    """Returns (the fragments kept, the fragments held back in quarantine)."""
     kept, held = [], []
     for frag in fragments(text):
         (held if _INSTRUCTION.search(frag) else kept).append(frag)

@@ -1,12 +1,12 @@
-# Как добавить свою систему памяти
+# How to add your own memory system
 
-В проекте нет динамического реестра плагинов. Чтобы включить свою память в существующий раннер, нужно **реализовать [`MemorySystem`](../src/mam/systems/base.py#L21) и явно зарегистрировать имя** в фабрике [`mam.systems.create`](../src/mam/systems/__init__.py). Дальше её можно проверить без модели на `dev`, не меняя сохранённые результаты.
+The project has no dynamic plugin registry. To plug your memory into the existing runner, you need to **implement [`MemorySystem`](../src/mam/systems/base.py#L21) and explicitly register the name** in the factory [`mam.systems.create`](../src/mam/systems/__init__.py). After that it can be checked without the model on `dev`, without changing the saved results.
 
-Ниже — минимальная демонстрационная `recent_visible`: она хранит только две последние видимые записи. Это **пример интерфейса**, а не предложенная улучшенная базовая система.
+Below is a minimal demonstration `recent_visible`: it keeps only the two latest visible records. This is an **example of the interface**, not a proposed improved baseline system.
 
-## 1. Реализация
+## 1. Implementation
 
-Создайте `src/mam/systems/recent_visible.py`:
+Create `src/mam/systems/recent_visible.py`:
 
 ```python
 from mam.systems.base import MemorySystem, make_context
@@ -18,7 +18,7 @@ class RecentVisible(MemorySystem):
     def context(self, reader: Reader) -> Context:
         selected: list[ContextItem] = []
         used = 0
-        # _visible() сначала фильтрует scope/task_id, затем сортирует по clock.
+        # _visible() first filters by scope/task_id, then sorts by clock.
         for entry in reversed(self._visible(reader)):
             if len(selected) == 2:
                 break
@@ -33,23 +33,23 @@ class RecentVisible(MemorySystem):
         return make_context(list(reversed(selected)))
 ```
 
-`write` с защитой от повторных `id` и `end_session` по умолчанию уже реализованы в базовом классе. `Context.token_count` считает [`make_context`](../src/mam/systems/base.py). Здесь **нет извлечения LLM**, разрешения конфликтов или защиты от инструкций из источника: это простая сырая память для проверки подключения.
+`write` with protection against repeated `id` and `end_session` by default are already implemented in the base class. `Context.token_count` is computed by [`make_context`](../src/mam/systems/base.py). There is **no LLM extraction** here, no conflict resolution and no protection against instructions from a source: this is simple raw memory for checking the connection.
 
-## 2. Зарегистрировать имя
+## 2. Register the name
 
-В [`src/mam/systems/__init__.py`](../src/mam/systems/__init__.py):
+In [`src/mam/systems/__init__.py`](../src/mam/systems/__init__.py):
 
-1. Импортируйте `RecentVisible`.
-2. Добавьте `"recent_visible"` в кортеж `NAMES`.
-3. В `create(...)`, **после проверки имени и аргументов**, добавьте ветку `if name == "recent_visible": return RecentVisible(limit)` перед ветками существующих систем.
+1. Import `RecentVisible`.
+2. Add `"recent_visible"` to the tuple `NAMES`.
+3. In `create(...)`, **after the check of the name and the arguments**, add the branch `if name == "recent_visible": return RecentVisible(limit)` before the branches of the existing systems.
 
-Не меняйте `DEFAULT_SYSTEMS` в [`memory_eval.py`](../src/mam/memory_eval.py): новая система должна запускаться явно. Не меняйте исторические таблицы и исходные названия `ours`.
+Do not change `DEFAULT_SYSTEMS` in [`memory_eval.py`](../src/mam/memory_eval.py): the new system must run explicitly. Do not change the historical tables or the original names `ours`.
 
-Для памяти с собственными LLM-вызовами дополнительно потребуется передать `llm` из [`live.run_live`](../src/mam/live.py) и реализовать `drain_llm_calls`; для офлайн-прогона надо заранее выбрать способ детерминированного извлечения. Пример выше этого не требует.
+For memory with its own LLM calls you additionally need to pass `llm` from [`live.run_live`](../src/mam/live.py) and implement `drain_llm_calls`; for an offline run you need to choose in advance a method of deterministic extraction. The example above does not require this.
 
-## 3. Проверить контракт до эксперимента
+## 3. Check the contract before the experiment
 
-Добавьте `tests/unit/test_recent_visible.py`:
+Add `tests/unit/test_recent_visible.py`:
 
 ```python
 from mam.systems import create
@@ -79,17 +79,17 @@ def test_recent_visible_scope_idempotency_and_limit():
     assert context.token_count <= 100
 ```
 
-Запуск из корня проекта после `make venv`:
+Run from the project root after `make venv`:
 
 ```bash
 make test
 ```
 
-Дополнительно проверьте, что контекст с маленьким `limit` не выходит за предел, что чужая `task` не видна и что `write` не зависит от повторного `id`. Для сложной системы нужны проверки `scopes`, `trust`, обновлений, конфликтов и `end_session` — ориентир: [спецификация](SCENARIO_FORMAT.md#8-интерфейс-системы-памяти) и [существующие тесты](../tests/acceptance/).
+Additionally check that a context with a small `limit` does not exceed the limit, that another agent's `task` is not visible, and that `write` does not depend on a repeated `id`. A complex system needs checks of `scopes`, `trust`, updates, conflicts and `end_session` — a reference point: the [specification](SCENARIO_FORMAT.md#8-memory-system-interface) and the [existing tests](../tests/acceptance/).
 
-## 4. Сравнить без модели и без перезаписи архива
+## 4. Compare without the model and without overwriting the archive
 
-Новый каталог — **вне** `results/memory_level/eval/`:
+The new directory must be **outside** `results/memory_level/eval/`:
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m mam.memory_eval \
@@ -101,11 +101,11 @@ PYTHONPATH=src .venv/bin/python -m mam.tables \
   > /tmp/mam-recent-visible/tables.md
 ```
 
-Получатся `recent_visible.jsonl`, `timing/recent_visible.jsonl` и `tables.md`. Числа по `dev` **нельзя** сравнивать с основными итогами по `eval` как с одним экспериментом. Для честного парного офлайн-сравнения явно запустите те же системы на **одном сплите и одних сценариях**, в отдельном каталоге, затем используйте `mam.tables`.
+The result is `recent_visible.jsonl`, `timing/recent_visible.jsonl` and `tables.md`. The numbers on `dev` **must not** be compared with the main totals on `eval` as one experiment. For an honest paired offline comparison, explicitly run the same systems on **one split and the same scenarios**, in a separate directory, then use `mam.tables`.
 
-## 5. Живой эксперимент: отдельно и платно
+## 5. Live experiment: separate and paid
 
-Если требуется проверить действия агентов, раннер принимает явный `--systems`, но `make live` использует фиксированный список и не подхватит новое имя автоматически. Пример после [`make doctor`](RUNBOOK.md#3-живой-слой-платный-запуск):
+If you need to check the actions of the agents, the runner accepts an explicit `--systems`, but `make live` uses a fixed list and will not pick up the new name automatically. An example after [`make doctor`](RUNBOOK.md#3-live-layer-paid-run):
 
 ```bash
 PYTHONPATH=src .venv/bin/python -m mam.run live \
@@ -114,6 +114,6 @@ PYTHONPATH=src .venv/bin/python -m mam.run live \
   --out results/live/recent_visible_smoke
 ```
 
-Это **платный вызов**; `--max-cost-usd` — мягкий предел, который может быть превышен. Результат сохраняется отдельно; не используйте `results/live/main`. Нельзя подменять этим прогоном значения исходных таблиц без нового протокола, манифеста и [записи о версии эксперимента](EXPERIMENT_VERSIONS.md).
+This is a **paid call**; `--max-cost-usd` is a soft limit that may be exceeded. The result is saved separately; do not use `results/live/main`. This run must not replace the values of the original tables without a new protocol, manifest and [record of the experiment version](EXPERIMENT_VERSIONS.md).
 
-**Перед публикацией результата:** укажите коммит, имя системы, источник фактов, лимит токенов, версию модели, сплит/сценарии, число повторов, определение метрики и путь к исходным файлам. Матрица условий — в [постановке](PROBLEM.md#сравнимость-систем), безопасные способы проверки — в [руководстве по запускам](RUNBOOK.md).
+**Before publishing a result:** state the commit, the system name, the source of facts, the token limit, the model version, the split/scenarios, the number of repeats, the definition of the metric and the path to the source files. The conditions matrix is in the [problem statement](PROBLEM.md#comparability-of-systems), the safe verification methods are in the [run guide](RUNBOOK.md).

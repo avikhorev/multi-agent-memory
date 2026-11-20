@@ -1,24 +1,24 @@
-# Боевая работа: что есть и чего не хватает
+# Production work: what exists and what is missing
 
-**Статус: план, не реализовано.** Этот файл описывает, что нужно изменить, чтобы память работала с сущностями и атрибутами, которые заранее не известны. Текущее устройство описано в [`ARCHITECTURE.md`](ARCHITECTURE.md), известные ограничения — в [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md), решение о статусе — в [D45](DECISIONS.md#d45). Текущий код и результаты эксперимента этим файлом не меняются.
+**Status: plan, not implemented.** This file describes what must change for the memory to work with entities and attributes that are not known in advance. The current structure is described in [`ARCHITECTURE.md`](ARCHITECTURE.md), the known limitations in [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md), the decision on the status in [D45](DECISIONS.md#d45). The current code and the results of the experiment are not changed by this file.
 
-## 1. Целевая схема
+## 1. Target design
 
-Пунктирные блоки — новые компоненты. Всё, что не пунктирное, есть в текущем коде.
+Dashed blocks are new components. Everything that is not dashed already exists in the current code.
 
 ```mermaid
 flowchart TB
-    src["Сообщения, инструменты, документы, заметки агентов"]
-    journal["Журнал записей<br/>сырые, только добавление"]
-    extractor["Экстрактор LLM<br/>схема из реестров, JSON"]
-    ent["Реестр сущностей<br/>имена и алиасы"]
-    attr["Реестр атрибутов<br/>типы, алиасы, статус"]
-    norm["Нормализация<br/>ключи слотов"]
-    facts["Версии фактов<br/>тип значения, время, источник"]
-    unk["Непроверенное<br/>новые атрибуты и сущности"]
-    review["Подтверждение<br/>новые имена в реестр"]
-    read["Чтение контекста<br/>фильтр, BM25, лимит"]
-    agents["Агенты"]
+    src["Messages, tools, documents, agent notes"]
+    journal["Journal of records<br/>raw, append-only"]
+    extractor["LLM extractor<br/>schema from registries, JSON"]
+    ent["Entity registry<br/>names and aliases"]
+    attr["Attribute registry<br/>types, aliases, status"]
+    norm["Normalization<br/>slot keys"]
+    facts["Fact versions<br/>value type, time, source"]
+    unk["Unverified<br/>new attributes and entities"]
+    review["Confirmation<br/>new names into the registry"]
+    read["Context reading<br/>filter, BM25, limit"]
+    agents["Agents"]
 
     src --> journal --> extractor --> norm
     ent --> norm
@@ -33,39 +33,39 @@ flowchart TB
     class ent,attr,norm,unk,review new
 ```
 
-На схеме не показаны закреплённые ограничения, переизвлечение фактов при смене схемы и метрики качества.
+The diagram does not show the pinned constraints, the re-extraction of facts when the schema changes, and the quality metrics.
 
-## 2. Разрывы в текущем коде
+## 2. Gaps in the current code
 
-| Что | Где сейчас | Почему мешает в боевой работе |
+| What | Where it is now | Why it gets in the way in production |
 |---|---|---|
-| Закрытый список атрибутов | [`ATTRIBUTES`](../src/mam/extract.py#L191), производный от [`LABELS`](../src/mam/extract.py#L48); 12 имён | Новый параметр не попадёт в память |
-| Отбрасывание неизвестного атрибута | [`LLMExtractor._extract`](../src/mam/extract.py#L288) | Факт пропадает без следа |
-| Свободное имя сущности в правилах | [`extract.py#L122`](../src/mam/extract.py#L122) | Модуль берётся регулярным выражением из текста |
-| Свободное имя сущности у LLM | [`extract.py#L292`](../src/mam/extract.py#L292) | `notifications` и `Notifications` дают два разных слота |
-| Ключ слота из сырых строк | [`ours.py#L75`](../src/mam/systems/ours.py#L75), ключ `(entity, attribute)` | Одно поле под разными именами расщепляет версии (см. [D39](DECISIONS.md#d39)) |
-| Значения строками | [`_norm`](../src/mam/systems/ours.py#L22) убирает регистр, пробелы и запятые | Нет типов: даты в разных форматах не равны, деньги не упорядочиваются |
-| Время события — номер дня или `-1` | [`DAY_ZERO`](../src/mam/extract.py#L17), [`UNKNOWN_TIME`](../src/mam/extract.py#L18) | Нужна метка времени самого сообщения |
-| Поля `valid_to` и `supersedes` | [`Fact`](../src/mam/types.py#L8) | Не используются при чтении |
-| Версия схемы не хранится | нет поля в `Fact` | Факты нельзя переизвлечь после смены схемы |
-| Правила только по ключевым словам | [`rule_constraints`](../src/mam/extract.py#L39), [`sentences`](../src/mam/extract.py#L35) | Формулировка без ключевых слов («keep it internal») молча не станет правилом; «never discussed» станет ложным правилом |
+| A closed list of attributes | [`ATTRIBUTES`](../src/mam/extract.py#L191), derived from [`LABELS`](../src/mam/extract.py#L48); 12 names | A new parameter will not get into the memory |
+| Discarding of an unknown attribute | [`LLMExtractor._extract`](../src/mam/extract.py#L288) | A fact disappears without a trace |
+| A free entity name in the rules | [`extract.py#L122`](../src/mam/extract.py#L122) | The module is taken by a regular expression from the text |
+| A free entity name in the LLM | [`extract.py#L292`](../src/mam/extract.py#L292) | `notifications` and `Notifications` give two different slots |
+| The slot key from raw strings | [`ours.py#L75`](../src/mam/systems/ours.py#L75), key `(entity, attribute)` | One field under different names splits the versions (see [D39](DECISIONS.md#d39)) |
+| Values as strings | [`_norm`](../src/mam/systems/ours.py#L22) removes case, spaces and commas | No types: dates in different formats are not equal, money is not ordered |
+| Event time is a day number or `-1` | [`DAY_ZERO`](../src/mam/extract.py#L17), [`UNKNOWN_TIME`](../src/mam/extract.py#L18) | A timestamp of the message itself is needed |
+| The fields `valid_to` and `supersedes` | [`Fact`](../src/mam/types.py#L8) | Not used when reading |
+| The schema version is not stored | no field in `Fact` | Facts cannot be re-extracted after a schema change |
+| Rules only by keywords | [`rule_constraints`](../src/mam/extract.py#L39), [`sentences`](../src/mam/extract.py#L35) | A wording without the keywords ("keep it internal") silently does not become a rule; "never discussed" becomes a false rule |
 
-Сейчас всё хранится в оперативной памяти одного прогона ([`ARCHITECTURE.md`](ARCHITECTURE.md)). Для боевой работы понадобится постоянное хранилище, но это отдельная задача.
+Right now everything is stored in the RAM of one run ([`ARCHITECTURE.md`](ARCHITECTURE.md)). Production work will need persistent storage, but that is a separate task.
 
-## 3. Что проверить до изменений кода
+## 3. What to check before changing the code
 
-1. **Набор сценариев с неизвестной схемой.** Новые атрибуты, новые сущности и перефразированные имена, которых нет в `LABELS`. Текущие сценарии построены по одному классу шаблонов ([`ASSUMPTIONS.md`](ASSUMPTIONS.md)), поэтому на них этого не видно.
-2. **Метрики:**
-   - точность и полнота по атрибутам и сущностям;
-   - ложные слияния: две разные сущности стали одной;
-   - ложные расщепления: одна сущность или слот разбились на два;
-   - доля фактов, попавших в «Непроверенное»;
-   - пропущенные правила (есть в тексте, нет в контексте) и ложные правила (нет в тексте, есть в контексте).
-   Набор для правил: одна и та же инструкция в разных формулировках, без ключевых слов из списка, и нейтральные предложения с ними («never discussed», «from now on the sync is on Thursday»).
-3. **Стоимость извлечения на реальном объёме.** Не измерена. Цифры в [`RESULTS.md`](RESULTS.md) относятся к экспериментальным прогонам, а не к боевой нагрузке.
+1. **A set of scenarios with an unknown schema.** New attributes, new entities and rephrased names that are not in `LABELS`. The current scenarios are built on one class of templates ([`ASSUMPTIONS.md`](ASSUMPTIONS.md)), so this is not visible on them.
+2. **Metrics:**
+   - precision and recall by attributes and entities;
+   - false merges: two different entities became one;
+   - false splits: one entity or slot was divided into two;
+   - the share of facts that went into "Unverified";
+   - missed rules (present in the text, absent from the context) and false rules (absent from the text, present in the context).
+   A set for the rules: the same instruction in different wordings, without the keywords from the list, and neutral sentences with them ("never discussed", "from now on the sync is on Thursday").
+3. **The cost of extraction at real volume.** Not measured. The figures in [`RESULTS.md`](RESULTS.md) refer to the experimental runs, not to the production load.
 
-## 4. Что этим файлом не решено
+## 4. What this file does not solve
 
-- Конкурентная запись и несколько читателей одновременно ([`KNOWN_ISSUES.md`](KNOWN_ISSUES.md)).
-- Постоянное хранилище вместо памяти процесса.
-- Выбор модели извлечения и провайдера; RAG с эмбеддингами.
+- Concurrent writing and several readers at the same time ([`KNOWN_ISSUES.md`](KNOWN_ISSUES.md)).
+- Persistent storage instead of the memory of the process.
+- The choice of the extraction model and the provider; RAG with embeddings.

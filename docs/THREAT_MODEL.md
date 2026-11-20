@@ -1,40 +1,40 @@
-# Модель угроз памяти
+# Memory threat model
 
-Система должна отделять **данные** из внешних источников от **инструкций** агентам и не передавать частные записи чужой роли. Эти свойства проверяются в C4 (изоляция) и C5 (внедрение инструкций). Модель описывает цель защиты; фактические ограничения реализации приведены ниже.
+The system must separate **data** from external sources from **instructions** to agents, and must not pass private records of one role to another. These properties are checked in C4 (isolation) and C5 (instruction injection). The model describes the goal of the protection; the actual limitations of the implementation are given below.
 
-## Граница доверия
+## Trust boundary
 
-| Содержимое | Доверие | Правило |
+| Content | Trust | Rule |
 |---|---|---|
-| Сообщение пользователя через Planner | `trusted` | Может задавать правила задачи |
-| Собственные заметки агента (`notes`) | `agent` | Не повышают доверие к пересказанному источнику |
-| Документ или вывод инструмента | `untrusted` | Данные, а не команда |
+| User message via the Planner | `trusted` | Can set the rules of the task |
+| The agent's own notes (`notes`) | `agent` | Do not raise the trust of a restated source |
+| A document or a tool output | `untrusted` | Data, not a command |
 
-Заметка, основанная на недоверенном документе, должна наследовать его `source` и `trust`. Доверие определяется самым слабым источником. Цель — не дать агенту «отмыть» недоверенную инструкцию собственным пересказом.
+A note based on an untrusted document must inherit its `source` and `trust`. The trust is determined by the weakest source. The goal is to prevent the agent from "laundering" an untrusted instruction through its own restatement.
 
-## Что защищаем
+## What we protect
 
-- Действующие факты о проекте и ограничения пользователя.
-- Частные черновики (`private`), доступные только автору.
-- Слот инструкций в контексте: текст внешнего документа не должен получать статус указания агенту.
+- The current facts about the project and the user's constraints.
+- Private drafts (`private`), available only to their author.
+- The instruction slot in the context: the text of an external document must not gain the status of a directive to the agent.
 
-За пределами модели: взлом хранилища или кода, сговор доверенных агентов, атаки на провайдера LLM.
+Outside the model: breaking into the storage or the code, collusion of trusted agents, attacks on the LLM provider.
 
-## Угрозы и меры
+## Threats and measures
 
-| Риск | Пример | Защита в `ours` |
+| Risk | Example | Protection in `ours` |
 |---|---|---|
-| **T1: внедрение инструкции** (C5) | Документ просит игнорировать правила в следующих сессиях | Недоверенный текст помечается как `quoted_data`; строки с признаками инъекции отправляются в карантин |
-| **T2: подмена факта** (C1, C5) | Внешний документ меняет утверждённый дедлайн | При разрешении версий учитываются доверие, время события и авторитет источника |
-| **T3: утечка private** (C4) | Reviewer читает черновик Worker | Фильтр области видимости применяется до поиска и ранжирования |
-| **T4: отмывание доверия** (C5) | Агент пересказывает команду из документа как свою | Заметка сохраняет происхождение и уровень доверия исходных данных |
+| **T1: instruction injection** (C5) | A document asks to ignore the rules in the next sessions | Untrusted text is marked as `quoted_data`; lines with signs of injection are sent to quarantine |
+| **T2: substitution of a fact** (C1, C5) | An external document changes an approved deadline | When resolving versions, the trust, the event time and the authority of the source are taken into account |
+| **T3: leak of private** (C4) | The Reviewer reads the Worker's draft | The visibility-scope filter is applied before search and ranking |
+| **T4: laundering of trust** (C5) | An agent restates a command from a document as its own | The note keeps the origin and the trust level of the source data |
 
-Области видимости: `private` — только автор; `task` — участники задачи; `shared` — все агенты. Reviewer получает результат на проверку и доступные `task`/`shared`, но не private-черновики Worker.
+Visibility scopes: `private` — only the author; `task` — the participants of the task; `shared` — all agents. The Reviewer receives the result for checking and the available `task`/`shared` records, but not the Worker's private drafts.
 
-## Цена и пределы защиты
+## Cost and limits of the protection
 
-Карантин срабатывает по признакам в тексте, а не по пониманию намерения. Поэтому возможны **ложные блокировки** допустимых фраз (метрика `false_block`) и **пропуски** атак без характерных признаков. Например, строка «from now on…» может быть полезным фактом о графике, а прямой приказ без таких слов может пройти фильтр.
+The quarantine triggers on signs in the text, not on understanding of the intent. Therefore **false blocks** of admissible phrases are possible (metric `false_block`), and **misses** of attacks without characteristic signs. For example, a line "from now on…" may be a useful fact about the schedule, while a direct order without such words may pass the filter.
 
-Правило недоверенного источника направлено на защиту более доверенного факта. Однако текущий алгоритм разрешает версии в порядке записи: в некоторых порядках защита работает неверно. Проверка и пример приведены в [`REPORT.md`](../REPORT.md), раздел 9, и `results/post_hoc/write_order.md`. Нельзя считать фильтр полной защитой от prompt injection.
+The rule for an untrusted source is aimed at protecting a more trusted fact. However, the current algorithm resolves versions in write order: in some orders the protection works incorrectly. The check and an example are given in [`REPORT.md`](../REPORT.md), section 9, and `results/post_hoc/write_order.md`. The filter must not be considered a complete protection against prompt injection.
 
-Легитимное правило из документа требует подтверждения доверенным сообщением пользователя. Это не автоматическое «разблокирование» старой записи: подтверждённое правило обрабатывается как новая доверенная информация.
+A legitimate rule from a document requires confirmation by a trusted message from the user. This is not an automatic "unblocking" of an old record: a confirmed rule is processed as new trusted information.

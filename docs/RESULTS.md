@@ -1,45 +1,45 @@
-# Результаты: кратко
+# Results: summary
 
-**Вывод:** структурированная память `ours` лучше простых систем проходит программные проверки контекста, особенно на обновлениях фактов и конфликтах. Но **общего превосходства в действиях агентов не показано**: часть разрыва создаёт строгое правило оценки, а `ours` заставляет Worker реже читать источник. Все данные и оговорки — в [`REPORT.md`](../REPORT.md). **Где проверить каждое число:** [карта доказательств](EVIDENCE.md); [ограничения и дефекты](KNOWN_ISSUES.md).
+**Conclusion:** the structured memory `ours` passes the programmatic checks of the context better than the simple systems, especially on fact updates and conflicts. But **a general superiority in the actions of agents is not shown**: part of the gap is created by a strict evaluation rule, and `ours` makes the Worker read the source less often. All data and caveats are in [`REPORT.md`](../REPORT.md). **Where to check each number:** [evidence map](EVIDENCE.md); [limitations and defects](KNOWN_ISSUES.md).
 
-**Как читать числа:** `778/780` — проверки **контекста без агентов**, `124/156` — **все** живые контрольные точки, `55/66` — только точки, выбранные для таблицы `Outcomes`. [Откуда знаменатели](PROBLEM.md#как-читать-знаменатели) · [Чем различаются системы](PROBLEM.md#сравнимость-систем).
+**How to read the numbers:** `778/780` — checks of **context without agents**; `124/156` — **all** live checkpoints; `55/66` — only the checkpoints selected for the `Outcomes` table. [Where the denominators come from](PROBLEM.md#how-to-read-the-denominators) · [How the systems differ](PROBLEM.md#comparability-of-systems).
 
-На одном конкретном прогоне причины двух противоположных исходов показаны в [интерактивной экскурсии по трассам](demo/README.md). Она иллюстрирует механизм, **не заменяет** результаты по всей выборке.
+On one particular run, the causes of two opposite outcomes are shown in the [interactive walkthrough of the traces](demo/README.md). It illustrates the mechanism and **does not replace** the results on the whole sample.
 
-## Основной эксперимент
+## Main experiment
 
-| Что проверено | Результат | Как читать |
+| What was checked | Result | How to read it |
 |---|---|---|
-| **[Контекст, `eval` (E1)](EVIDENCE.md#e1)** (210 сценариев, 780 проверок) | `ours@cache` 778/780; `full_history` и BM25 по 700/780; резюме 697/780; окно 660/780 | Литеральный оценщик проверяет текст контекста; он не измеряет, способен ли агент вычислить значение |
-| **[Живой слой (E2)](EVIDENCE.md#e2)** (21 сценарий × 5 систем × 2 повтора, 0 сбоев) | `ours` 124/156 всех проверок; резюме 119/156; BM25 117/156; полная история 108/156; окно 104/156 | Маленькая выборка, не статистическое доказательство преимущества |
-| **[C1/C3: обновления и конфликты (E3)](EVIDENCE.md#e3)** | Строгий счёт: `ours` по 6/6 на категорию, большинство базовых — 0/6; мягкий счёт на C1+C3: `ours` 12/12, базовые 8–11/12 | Запрет упоминать устаревшее значение делает строгий разрыв намного больше |
-| **[C2/C4/C5: ограничения, изоляция, атаки (E2)](EVIDENCE.md#e2)** | Все системы по 6/6 факторных живых проверок в каждой категории | Улучшение поведения от фильтра и областей видимости не измерено |
-| **[C0/C6: короткая и длинная история (E4)](EVIDENCE.md#e4)** | `ours` не лучше базовых; на C6 у `ours` 12/18, у BM25 14/18 | Потеря источника у Worker важнее качества уже записанных фактов |
+| **[Context, `eval` (E1)](EVIDENCE.md#e1)** (210 scenarios, 780 checks) | `ours@cache` 778/780; `full_history` and BM25 700/780; summary 697/780; window 660/780 | The literal evaluator checks the text of the context; it does not measure whether the agent can compute the value |
+| **[Live layer (E2)](EVIDENCE.md#e2)** (21 scenarios × 5 systems × 2 repeats, 0 failures) | `ours` 124/156 of all checks; summary 119/156; BM25 117/156; full history 108/156; window 104/156 | A small sample, not statistical proof of an advantage |
+| **[C1/C3: updates and conflicts (E3)](EVIDENCE.md#e3)** | Strict count: `ours` 6/6 per category, most baselines 0/6; soft count on C1+C3: `ours` 12/12, baselines 8–11/12 | The ban on mentioning a stale value makes the strict gap much larger |
+| **[C2/C4/C5: limits, isolation, attacks (E2)](EVIDENCE.md#e2)** | All systems 6/6 on the factor live checks in each category | An improvement in behavior from the filter and visibility scopes was not measured |
+| **[C0/C6: short and long history (E4)](EVIDENCE.md#e4)** | `ours` is not better than the baselines; on C6 `ours` 12/18, BM25 14/18 | Losing the source at the Worker matters more than the quality of the facts already written |
 
-Учтённая стоимость основного живого прогона по ответам CLI — **$6,275**; с извлечением — **$9,69**. Запись `ours` требует дополнительных вызовов модели, хотя итоговая стоимость единицы ниже ($0,0237 против $0,0329 у `full_history`): у `ours` меньше чтений источников. Подробнее — разделы 5–8 отчёта и [источники стоимости (E5)](EVIDENCE.md#e5).
+The accounted cost of the main live run from the CLI answers is **$6.275**; with extraction it is **$9.69**. Recording in `ours` requires extra model calls, although the total cost per unit is lower ($0.0237 against $0.0329 for `full_history`): `ours` reads the sources less often. Details — sections 5–8 of the report and [cost sources (E5)](EVIDENCE.md#e5).
 
-## Проверки после заморозки (*post hoc*)
+## Post-freeze checks (*post hoc*)
 
-Их нельзя считать независимым подтверждением результата исходной `ours`: они используют дополнительные настройки, критерии или данные. [Реестр вариантов и выборок](EXPERIMENT_VERSIONS.md) помогает отличить название реализации от названия прогона.
+They should not be considered an independent confirmation of the result of the original `ours`: they use additional settings, criteria or data. The [register of variants and samples](EXPERIMENT_VERSIONS.md) helps to tell the name of an implementation from the name of a run.
 
-| Проверка | Итог |
+| Check | Outcome |
 |---|---|
-| [Контрольный повтор и подача автора/времени (E6)](EVIDENCE.md#e6) | Общий порядок систем близок к основному, но часть преимущества C1/C3 объясняется форматом сырой истории: разрыв `ours` и `full_history` на 48 проверках снизился с 14 до 4 |
-| [`ours3` на исходных сценариях (E7)](EVIDENCE.md#e7) | 141/156 против 124/156 у `ours`, но это третья настройка на том же `eval` |
-| [Новые для живого слоя сценарии (E7)](EVIDENCE.md#e7) | `ours3` 70/78, `ours` 71/78, BM25 62/78: преимущество `ours3` над `ours` не подтвердилось |
-| [Перефразированные запреты (E8)](EVIDENCE.md#e8) | `ours` нарушил 3 из 3, но штатный оценщик не заметил: требуется скорректированный счёт (D39) |
-| [`ours4`: закрепление ограничений через модель (E9)](EVIDENCE.md#e9) | Закрепление 6/6; выигрыш живых проверок относительно `ours3` не показан; есть ложные правила |
-| [Mem0 и Graphiti (E10)](EVIDENCE.md#e10) | На сравнимых поднаборах результат близок к BM25: Mem0 37/48 против 37/48; Graphiti 17/24 против 16/24. A-Mem не запускалась |
+| [Control repeat and author/time presentation (E6)](EVIDENCE.md#e6) | The overall order of the systems is close to the main one, but part of the C1/C3 advantage is explained by the format of the raw history: the gap between `ours` and `full_history` on 48 checks dropped from 14 to 4 |
+| [`ours3` on the original scenarios (E7)](EVIDENCE.md#e7) | 141/156 against 124/156 for `ours`, but this is a third setting on the same `eval` |
+| [New scenarios for the live layer (E7)](EVIDENCE.md#e7) | `ours3` 70/78, `ours` 71/78, BM25 62/78: the advantage of `ours3` over `ours` was not confirmed |
+| [Rephrased prohibitions (E8)](EVIDENCE.md#e8) | `ours` violated 3 of 3, but the standard evaluator did not notice: an adjusted count is required (D39) |
+| [`ours4`: fixing constraints through the model (E9)](EVIDENCE.md#e9) | Fixing 6/6; a gain in live checks relative to `ours3` is not shown; there are false rules |
+| [Mem0 and Graphiti (E10)](EVIDENCE.md#e10) | On comparable subsets the result is close to BM25: Mem0 37/48 against 37/48; Graphiti 17/24 against 16/24. A-Mem was not run |
 
-Детали: разделы 11–15 [`REPORT.md`](../REPORT.md); решения и изменения критериев — [`DECISIONS.md`](DECISIONS.md).
+Details: sections 11–15 of [`REPORT.md`](../REPORT.md); decisions and changes of criteria — [`DECISIONS.md`](DECISIONS.md).
 
-## Главные ограничения
+## Main limitations
 
-Подробности, воспроизводимые случаи и обходные пути — в [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
+Details, reproducible cases and workarounds are in [`KNOWN_ISSUES.md`](KNOWN_ISSUES.md).
 
-- Экстрактор и фильтр `ours` знают часть шаблонов генератора, а `holdout` не полностью независим.
-- Строгое сравнение с эталоном не всегда отражает полезный ответ; оценщик ограничений пропускает переименования поля.
-- Агенты делают только четыре вызова модели за сессию. Worker может не прочитать источник ([разбор реального C6](FAILURE_WALKTHROUGH.md)), а Reviewer часто проверяет контекст до извлечения фактов.
-- Разрешение конфликта может зависеть от порядка записей; защита от prompt injection основана на признаках текста.
+- The `ours` extractor and filter know part of the generator's patterns, and `holdout` is not fully independent.
+- A strict comparison with the reference does not always reflect a useful answer; the constraint evaluator misses field renames.
+- Agents issue only four model calls per session. The Worker may not read the source ([analysis of a real C6](FAILURE_WALKTHROUGH.md)), and the Reviewer often checks the context before facts are extracted.
+- Conflict resolution may depend on the order of writes; protection against prompt injection is based on signs in the text.
 
-Это ограничения результатов, а не утверждение, что все перечисленные ошибки встречаются в обычных рабочих задачах.
+These are limitations of the results, not a claim that all the listed errors occur in ordinary work tasks.

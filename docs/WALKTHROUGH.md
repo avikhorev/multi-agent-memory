@@ -1,73 +1,73 @@
-# От события до ответа: один сценарий C1
+# From event to answer: one C1 scenario
 
-Это разбор **сохранённого** прогона, а не идеализированная демонстрация. На примере `C1-eval-0000` видно, как `ours` заменяет старое значение новым, что читает Planner и почему две системы получают разные оценки. Все ссылки ниже ведут к файлам этого репозитория.
+This is an analysis of a **saved** run, not an idealized demonstration. On the example of `C1-eval-0000` it shows how `ours` replaces an old value with a new one, what the Planner reads, and why the two systems get different scores. All links below point to files in this repository.
 
-**Посмотреть по шагам:** [визуальное демо C1 с переключателем систем](demo/README.md). Оно берёт ответы и операции из тех же файлов.
+**Step by step:** [visual C1 demo with a switch between systems](demo/README.md). It takes the answers and operations from the same files.
 
-**Сначала:** [схема сессии](ARCHITECTURE.md#2-одна-сессия) · [формат сценария](SCENARIO_FORMAT.md#3-сценарий) · [правила оценки](SCENARIO_FORMAT.md#7-оценка).
+**First:** [session diagram](ARCHITECTURE.md#2-one-session) · [scenario format](SCENARIO_FORMAT.md#3-scenario) · [evaluation rules](SCENARIO_FORMAT.md#7-evaluation).
 
-## 1. Источник: резерв 727 000 USD
+## 1. Source: reserve of 727,000 USD
 
-В [сценарии `C1-eval-0000`](../data/eval/C1-eval-0000.json) сессия 5 содержит событие `e-0017`: Worker может прочитать документ `D-051` с резервом `Atlas/search.contingency_usd = 727000`. Это **недоверенный источник данных**, а не инструкция.
+In the [scenario `C1-eval-0000`](../data/eval/C1-eval-0000.json) session 5 contains the event `e-0017`: the Worker can read the document `D-051` with the reserve `Atlas/search.contingency_usd = 727000`. This is an **untrusted data source**, not an instruction.
 
-В [трассе `ours`, повтор 0](../results/live/main/traces/ours__C1-eval-0000__r0.jsonl) видно, что документ действительно прочитан и записан в память (`write`, `entry_id=e-0017`, `trust=untrusted`). После окончания сессии экстрактор зафиксировал факт:
+In the [`ours` trace, repeat 0](../results/live/main/traces/ours__C1-eval-0000__r0.jsonl) you can see that the document was indeed read and written to memory (`write`, `entry_id=e-0017`, `trust=untrusted`). After the session ends, the extractor records the fact:
 
 ```text
 Atlas/search | contingency_usd | 727000 | source=document
 ```
 
-Это краткая запись полей из трассы, **не дословный текст контекста**.
+This is a brief record of the fields from the trace, **not the verbatim text of the context**.
 
-## 2. Обновление от пользователя: 153 000 USD
+## 2. Update from the user: 153,000 USD
 
-В сессии 6 пользователь сообщает (`x-0001`):
+In session 6 the user reports (`x-0001`):
 
 > Update: the contingency reserve for the search module is now USD 153,000, it was USD 727,000.
 
-В [эталонных фактах сценария](../data/eval/C1-eval-0000.json) новое значение `fx-0001` заменяет `fa-0013`. В живой [трассе `ours`](../results/live/main/traces/ours__C1-eval-0000__r0.jsonl) сообщение записано с `trust=trusted`; при `end_session(6)` экстрактор сохранил `153000` с источником `user`.
+In the [reference facts of the scenario](../data/eval/C1-eval-0000.json) the new value `fx-0001` replaces `fa-0013`. In the live [`ours` trace](../results/live/main/traces/ours__C1-eval-0000__r0.jsonl) the message is recorded with `trust=trusted`; at `end_session(6)` the extractor saved `153000` with the source `user`.
 
-**Важная деталь:** эталон задаёт времена `valid_from=30` и `40`, но извлечённые моделью записи в этой трассе имеют `valid_from=-1` (неизвестное время). Поэтому `ours` в этом случае опирается на **порядок записи**, а не на извлечённую календарную дату; см. [`Ours._resolve`](../src/mam/systems/ours.py) и [ограничение порядка](KNOWN_ISSUES.md#order-dependence).
+**An important detail:** the reference sets the times `valid_from=30` and `40`, but the records extracted by the model in this trace have `valid_from=-1` (unknown time). Therefore in this case `ours` relies on the **order of writing**, not on the extracted calendar date; see [`Ours._resolve`](../src/mam/systems/ours.py) and the [order limitation](KNOWN_ISSUES.md#order-dependence).
 
-## 3. Что попадает в память и контекст
+## 3. What gets into memory and the context
 
-После каждой сессии `end_session` вызывает извлечение. При следующем `context(reader)` память:
+After each session, `end_session` calls the extraction. On the next `context(reader)` the memory:
 
-1. оставляет только видимые читателю записи;
-2. группирует факты по `(entity, attribute)`;
-3. разрешает версии с учётом времени, доверия и авторитета;
-4. выбирает текущие факты и фрагменты под лимит 2 000 токенов.
+1. keeps only the records visible to the reader;
+2. groups the facts by `(entity, attribute)`;
+3. resolves the versions taking into account time, trust and authority;
+4. selects the current facts and fragments within the limit of 2,000 tokens.
 
-Для ключа `Atlas/search / contingency_usd` это даёт **примерное представление** текущего факта:
+For the key `Atlas/search / contingency_usd` this gives an **approximate representation** of the current fact:
 
 ```text
 Atlas/search contingency_usd: 153000
 ```
 
-Это формат из [`_fact_items`](../src/mam/systems/ours.py), а не скопированный контекст из живой единицы. В сохранённых живых трассах контекст **не хранится целиком**, записываются только идентификаторы элементов и число токенов. Точную строку на уровне памяти можно получить, повторив вычисление без агента с сохранённым кешем (`make memory-level SPLIT=eval`).
+This is the format from [`_fact_items`](../src/mam/systems/ours.py), not context copied from a live unit. The saved live traces do **not store the context in full**; they record only the identifiers of the items and the number of tokens. The exact string at the memory level can be obtained by repeating the computation without the agent with the saved cache (`make memory-level SPLIT=eval`).
 
-Для `full_history` история хранит и старый документ, и новое сообщение. Система не выполняет разрешение версий: какой факт считать текущим, решает агент.
+For `full_history` the history stores both the old document and the new message. The system does not perform version resolution: the agent decides which fact is current.
 
-## 4. Контрольная точка: Planner, сессия 7
+## 4. Checkpoint: Planner, session 7
 
-[Контрольная точка `cpx-1`](../data/eval/C1-eval-0000.json) задаёт вопрос:
+[Checkpoint `cpx-1`](../data/eval/C1-eval-0000.json) asks the question:
 
 > What is the current contingency reserve for the search module?
 
-Ожидается `153000`, а `727000` считается устаревшим и **не должно встречаться в ответе**. Сценарий также проверяет отсутствие старого значения в контексте. Это намеренно строгий критерий, а не универсальная оценка полезности ответа.
+The expected answer is `153000`, and `727000` is considered stale and **must not appear in the answer**. The scenario also checks that the old value is absent from the context. This is an intentionally strict criterion, not a universal assessment of the usefulness of the answer.
 
-| Система и повтор | Ответ Planner из сохранённой единицы | Оценка |
+| System and repeat | Planner's answer from the saved unit | Evaluation |
 |---|---|---|
 | [`ours`, r0](../results/live/main/units/ours__C1-eval-0000__r0.json) | `The current contingency reserve for the search module is 153000 USD.` | `passed=true`, `label=ok` |
 | [`full_history`, r0](../results/live/main/units/full_history__C1-eval-0000__r0.json) | `USD 727,000 per D-051; the 153,000 change is unverified.` | `passed=false`, `label=memory` |
 | [`full_history`, r1](../results/live/main/units/full_history__C1-eval-0000__r1.json) | `The current search module contingency reserve is USD 153,000, updated from USD 727,000.` | `passed=false`, `label=memory` |
 
-Обратите внимание на **r1**: агент назвал правильное текущее значение, но упомянул старое. Строгая проверка засчитала провал. Поэтому разницу `ours` и `full_history` на C1 нельзя читать как разницу в способности моделей понимать обновления без дополнительных оговорок. Разбор этого эффекта — в [разделе 6 отчёта](../REPORT.md#6-результаты-живого-слоя) и [доказательствах](EVIDENCE.md#e3).
+Note **r1**: the agent named the correct current value but also mentioned the old one. The strict check counted it as a failure. Therefore the difference between `ours` and `full_history` on C1 cannot be read as a difference in the models' ability to understand updates without additional caveats. The analysis of this effect is in [section 6 of the report](../REPORT.md#6-live-layer-results) and in the [evidence](EVIDENCE.md#e3).
 
-## 5. Где именно происходит оценка
+## 5. Where the evaluation happens
 
-[`run_live`](../src/mam/live.py) записывает события, вызывает роли и сохраняет ответы. [`score_context` и `score_action`](../src/mam/scoring.py) проверяют текст контекста и ответ; [`label_failure`](../src/mam/scoring.py) присваивает метку. Сохранённая единица содержит поля `checkpoint`, `answer`, `context_passed`, `passed`, `label`, `violations`. Список `violations` у обоих приведённых провалов `full_history` содержит `answer contains stale value: 727000`.
+[`run_live`](../src/mam/live.py) records the events, calls the roles and saves the answers. [`score_context` and `score_action`](../src/mam/scoring.py) check the text of the context and the answer; [`label_failure`](../src/mam/scoring.py) assigns the label. The saved unit contains the fields `checkpoint`, `answer`, `context_passed`, `passed`, `label`, `violations`. The `violations` list of both failures of `full_history` contains `answer contains stale value: 727000`.
 
-Проверить конкретный ответ можно без модели:
+You can check a specific answer without the model:
 
 ```bash
 python3 - <<'PY'
@@ -80,8 +80,8 @@ for system in ('ours', 'full_history'):
 PY
 ```
 
-## 6. Что показывает и чего не показывает пример
+## 6. What the example shows and what it does not
 
-**Показывает:** путь от источника и обновления до записи факта, подготовки ответа и фиксированного правила оценки. Трасса подтверждает, что оба события дошли до `ours`.
+**It shows:** the path from the source and the update to recording the fact, preparing the answer and the fixed evaluation rule. The trace confirms that both events reached `ours`.
 
-**Не показывает:** что Worker всегда читает документы, что извлечение устойчиво к свободным формулировкам или что строгий счёт означает лучшее практическое решение. По C6 Worker иногда вообще не читает предложенный источник, а на перефразированных правилах обнаружен дефект оценки действий. Эти случаи описаны отдельно в [ограничениях](KNOWN_ISSUES.md).
+**It does not show:** that the Worker always reads the documents, that the extraction is robust to free-form wording, or that the strict count means the best practical solution. On C6 the Worker sometimes does not read the proposed source at all, and a defect in action evaluation was found on rephrased rules. These cases are described separately in the [limitations](KNOWN_ISSUES.md).

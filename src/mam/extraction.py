@@ -1,11 +1,11 @@
-"""Проход извлечения: модель один раз читает каждую исходную запись и пишет каждую сводку сессии;
-ответы сохраняются и позже воспроизводятся без модели (извлекатель 'cache', сводка 'cache').
-Так дорогой вызов модели делается один раз, а все сравнения систем потом идут на сохранённых ответах.
+"""The extraction pass: the model reads each source entry once and writes each session summary once;
+the answers are saved and later replayed without the model (the 'cache' extractor, the 'cache' summary).
+So the expensive model call is made once, and all system comparisons afterwards run on the saved answers.
 
-Единица работы — сценарий. Его строки пишутся в один файл атомарно; готовые сценарии при следующем запуске
-пропускаются (проход можно прервать и продолжить). Новые сценарии не стартуют после лимита времени или
-стоимости; ограничения частоты, которые не проходят, останавливают проход со своим кодом выхода. Строки
-сохраняются, даже если модель отказалась: отказ записывается как пропущенный факт (или сводка) и считается отдельно.
+The unit of work is a scenario. Its lines are written to one file atomically; finished scenarios are skipped
+on the next run (the pass can be interrupted and resumed). New scenarios do not start after the time limit or the
+cost limit; rate limits that do not clear stop the pass with their own exit code. Lines
+are saved even if the model refused: the refusal is written as a missing fact (or summary) and counted separately.
 
   python -m mam.extraction run --split dev --select trial --out results/extraction/dev
   python -m mam.extraction merge --in results/extraction/dev --out results/extraction/dev/cache.jsonl
@@ -29,38 +29,38 @@ from mam.simulate import entries
 from mam.systems.ours import Ours
 from mam.systems.summary import LLMSummary
 
-# Коды выхода: всё готово; остановлено лимитом или были сбои; упёрлись в ограничение частоты (EX_TEMPFAIL).
+# Exit codes: all done; stopped by a limit or there were failures; hit a rate limit (EX_TEMPFAIL).
 EXIT_OK, EXIT_INCOMPLETE, EXIT_RATE_LIMITED = 0, 2, 75
 
 
 @dataclass
 class Pass:
-    """Итог прохода извлечения."""
-    done: int = 0  # сценариев обработано в этом запуске
-    skipped: int = 0  # пропущено как готовые
-    failed: int = 0  # упало с ошибкой (будут повторены при следующем запуске)
-    refusals: int = 0  # всего отказов модели
-    entry_refusals: int = 0  # из них при извлечении фактов из записей
-    summary_refusals: int = 0  # из них при написании сводок
-    cost_usd: float = 0.0  # потрачено, включая прошлые запуски
+    """Result of the extraction pass."""
+    done: int = 0  # scenarios processed in this run
+    skipped: int = 0  # skipped as already finished
+    failed: int = 0  # failed with an error (will be retried on the next run)
+    refusals: int = 0  # total model refusals
+    entry_refusals: int = 0  # of which during fact extraction from entries
+    summary_refusals: int = 0  # of which during summary writing
+    cost_usd: float = 0.0  # spent, including previous runs
     stopped_by: str | None = None  # time | cost | rate_limit | None
-    exit_code: int = EXIT_OK  # код выхода процесса
+    exit_code: int = EXIT_OK  # process exit code
 
 
 def _write_atomic(path: Path, text: str) -> None:
-    """Пишем во временный файл и переименовываем: при обрыве не останется наполовину записанного файла."""
+    """We write to a temporary file and rename it: if interrupted, no half-written file remains."""
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text(text, encoding="utf-8")
     os.replace(tmp, path)
 
 
 def extract_scenario(scenario, llm, limit: int = 2000) -> tuple[list[dict], dict]:
-    """Прогоняет сценарий через структурированную память и сводку, сохраняя ответы модели.
-    Возвращает (строки кеша, статистика)."""
-    memory = Ours(limit, extractor="llm", llm=llm)  # даёт извлечения фактов
-    summary = LLMSummary(limit, llm)  # даёт сводки сессий
+    """Runs the scenario through the structured memory and the summary, saving the model's answers.
+    Returns (cache lines, statistics)."""
+    memory = Ours(limit, extractor="llm", llm=llm)  # provides fact extractions
+    summary = LLMSummary(limit, llm)  # provides session summaries
     all_entries = entries(scenario)
-    by_id = {e.id: e for e in all_entries}  # чтобы по id записи найти её и применить правило ограничений
+    by_id = {e.id: e for e in all_entries}  # to find an entry by its id and apply the constraint rule
     task_id = f"task-{scenario.id}"
     rows: list[dict] = []
     cost = 0.0
@@ -70,16 +70,16 @@ def extract_scenario(scenario, llm, limit: int = 2000) -> tuple[list[dict], dict
             summary.write(e)
         memory.end_session(k)
         summary.end_session(k)
-        # Стоимость считаем по всем вызовам этой сессии.
+        # The cost is counted over all calls of this session.
         cost += sum(out.usage.cost_usd for _, out in memory.drain_llm_calls() + summary.drain_llm_calls())
         for rec in memory.drain_extractions():
             rows.append({"kind": "entry", "scenario": scenario.id, "task_id": task_id, "entry_id": rec["entry_id"],
                          "session": rec["session"], "refusal": rec["refused"],
-                         # Ограничения не от модели, а по правилу — как и в живой системе.
+                         # Constraints are not from the model but come from the rule — as in the live system.
                          "constraints": list(rule_constraints(by_id[rec["entry_id"]])),
                          "facts": [{"entity": f["entity"], "attribute": f["attribute"], "value": f["value"],
                                     "event_time": f["valid_from"], "source": f["source"]} for f in rec["facts"]]})
-        refused = k in summary.refusals  # отказ при сводке: храним пустой текст с флагом
+        refused = k in summary.refusals  # refusal on the summary: store an empty text with a flag
         rows.append({"kind": "summary", "scenario": scenario.id, "task_id": task_id, "session": k,
                      "text": "" if refused else summary.summary_text, "refusal": refused})
     stats = {"cost_usd": round(cost, 6), "entry_refusals": sum(r["refusal"] for r in rows if r["kind"] == "entry"),
@@ -89,15 +89,15 @@ def extract_scenario(scenario, llm, limit: int = 2000) -> tuple[list[dict], dict
 
 def run_pass(ids: list[str], llm, data_dir, out_dir, *, workers: int = 8, max_minutes: float | None = None,
              max_cost_usd: float = 10.0, now=time.monotonic, limit: int = 2000) -> Pass:
-    """Параллельно обрабатывает сценарии ids. now подменяется в тестах, чтобы проверять лимит времени."""
+    """Processes the scenarios ids in parallel. now is replaced in tests to check the time limit."""
     out, data = Path(out_dir), Path(data_dir)
     (out / "scenarios").mkdir(parents=True, exist_ok=True)
     report = Pass()
-    # Уже потраченное в прошлых запусках входит в лимит стоимости.
+    # What has already been spent in previous runs is included in the cost limit.
     for meta in (out / "scenarios").glob("*.meta.json"):
         report.cost_usd += json.loads(meta.read_text())["cost_usd"]
     deadline = None if max_minutes is None else now() + max_minutes * 60
-    lock, state = threading.Lock(), {"stop": None}  # замок для общих счётчиков; причина остановки
+    lock, state = threading.Lock(), {"stop": None}  # lock for shared counters; the reason for stopping
 
     def work(sid: str) -> None:
         try:
@@ -106,13 +106,13 @@ def run_pass(ids: list[str], llm, data_dir, out_dir, *, workers: int = 8, max_mi
             with lock:
                 state["stop"] = "rate_limit"
             raise
-        except Exception as err:  # сценарий остаётся недоделанным и будет повторён при следующем запуске
+        except Exception as err:  # the scenario stays unfinished and will be repeated on the next run
             with lock:
                 report.failed += 1
                 with open(out / "failures.log", "a", encoding="utf-8") as f:
                     f.write(f"{sid}: {type(err).__name__}: {str(err)[:200]}\n")
             return
-        # Сначала мета, потом строки: наличие .jsonl означает «сценарий готов», и мета к этому моменту уже есть.
+        # First the meta, then the lines: the presence of the .jsonl means "scenario ready", and the meta is already there by then.
         _write_atomic(out / "scenarios" / f"{sid}.meta.json", json.dumps(stats, sort_keys=True))
         _write_atomic(out / "scenarios" / f"{sid}.jsonl", "".join(json.dumps(r, sort_keys=True) + "\n" for r in rows))
         with lock:
@@ -122,17 +122,17 @@ def run_pass(ids: list[str], llm, data_dir, out_dir, *, workers: int = 8, max_mi
             report.summary_refusals += stats["summary_refusals"]
             report.refusals += stats["entry_refusals"] + stats["summary_refusals"]
 
-    pending = set()  # запущенные, но не завершённые задачи
+    pending = set()  # started but not finished tasks
     with ThreadPoolExecutor(workers) as pool:
         for sid in ids:
             if (out / "scenarios" / f"{sid}.jsonl").exists():
                 report.skipped += 1
                 continue
-            # Не запускаем больше workers задач одновременно, чтобы лимиты проверялись на свежих данных.
+            # We do not start more than workers tasks at once, so that the limits are checked on fresh data.
             while len(pending) >= workers:
                 _, pending = wait(pending, return_when=FIRST_COMPLETED)
             with lock:
-                # Оцениваем стоимость уже запущенных по средней стоимости готовых: останавливаемся до превышения, а не после.
+                # We estimate the cost of the running ones by the average of the finished ones: we stop before exceeding, not after.
                 avg = report.cost_usd / report.done if report.done else 0.0
                 if state["stop"] is None and deadline is not None and now() >= deadline:
                     state["stop"] = "time"
@@ -153,7 +153,7 @@ def run_pass(ids: list[str], llm, data_dir, out_dir, *, workers: int = 8, max_mi
 
 
 def merge_rows(out_dir, target) -> int:
-    """Собирает файлы сценариев в один файл кеша, по порядку id сценариев (внутри сценария порядок строк сохраняется)."""
+    """Collects the scenario files into one cache file, in the order of scenario ids (inside a scenario the order of lines is kept)."""
     files = sorted((Path(out_dir) / "scenarios").glob("*.jsonl"))
     lines = [ln for f in files for ln in f.read_text(encoding="utf-8").splitlines() if ln.strip()]
     _write_atomic(Path(target), "".join(ln + "\n" for ln in lines))
@@ -161,13 +161,13 @@ def merge_rows(out_dir, target) -> int:
 
 
 def select_ids(manifest_path, select: str) -> list[str]:
-    """all — все сценарии манифеста; trial — первые пять каждой категории (дешёвая проба)."""
+    """all — all scenarios of the manifest; trial — the first five of each category (a cheap trial)."""
     scenarios = json.load(open(manifest_path))["scenarios"]
     if select == "all":
         return [s["id"] for s in scenarios]
     per: dict[str, int] = {}
     ids = []
-    for s in scenarios:  # trial: первые пять сценариев каждой категории
+    for s in scenarios:  # trial: the first five scenarios of each category
         if per.get(s["category"], 0) < 5:
             per[s["category"]] = per.get(s["category"], 0) + 1
             ids.append(s["id"])

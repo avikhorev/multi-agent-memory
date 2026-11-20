@@ -2,9 +2,9 @@
 window.MAM_DEMO_DATA = {
   "cases": [
     {
-      "agent_note": "Сначала Worker выбирал инструмент в сессии с документом. Позже Planner ответил на вопрос о текущем значении.",
+      "agent_note": "First, the Worker chose a tool in the session with the document. Later the Planner answered the question about the current value.",
       "checkpoint": "cpx-1",
-      "description": "Документ задаёт резерв 727 000 USD; затем пользователь обновляет его до 153 000 USD. Что увидит Planner?",
+      "description": "A document sets the reserve at 727,000 USD; then the user updates it to 153,000 USD. What will the Planner see?",
       "files": {
         "full_history": {
           "trace": "results/live/main/traces/full_history__C1-eval-0000__r0.jsonl",
@@ -39,7 +39,7 @@ window.MAM_DEMO_DATA = {
         }
       ],
       "id": "c1-update",
-      "memory_note": "У ours есть извлечение и разрешение версий; full_history хранит записи без разрешения конфликта.",
+      "memory_note": "ours has extraction and version resolution; full_history stores records without conflict resolution.",
       "question": {
         "expected": "153000",
         "role": "planner",
@@ -49,10 +49,10 @@ window.MAM_DEMO_DATA = {
         ],
         "text": "What is the current contingency reserve for the search module?"
       },
-      "result_note": "Старое число в ответе запрещено строгой проверкой, даже если там встречается и новое.",
+      "result_note": "The old number in the answer is forbidden by the strict check, even if the new one also appears there.",
       "scenario": "C1-eval-0000",
-      "short": "C1 · обновление",
-      "source_note": "Здесь важны два события в разных сессиях: документ и доверенное сообщение пользователя.",
+      "short": "C1 · update",
+      "source_note": "Two events in different sessions matter here: the document and the trusted user message.",
       "systems": {
         "full_history": {
           "checkpoint": {
@@ -207,13 +207,13 @@ window.MAM_DEMO_DATA = {
           ]
         }
       },
-      "title": "Устаревшее значение",
+      "title": "Outdated value",
       "worker_session": 5
     },
     {
-      "agent_note": "Сравните фактический выбор инструмента в сессии 1 и ответ Planner в сессии 28.",
+      "agent_note": "Compare the actual tool choice in session 1 with the Planner's answer in session 28.",
       "checkpoint": "cp-1",
-      "description": "Источник с датой UAT был доступен Worker в сессии 1, но вопрос появился только в сессии 28.",
+      "description": "The source with the UAT date was available to the Worker in session 1, but the question appeared only in session 28.",
       "files": {
         "full_history": {
           "trace": "results/live/main/traces/full_history__C6-eval-0002__r0.jsonl",
@@ -239,7 +239,7 @@ window.MAM_DEMO_DATA = {
         }
       ],
       "id": "c6-document",
-      "memory_note": "Если Worker не вызвал read_document, событие не поступает в память. Это не ошибка извлечения уже прочитанного факта.",
+      "memory_note": "If the Worker did not call read_document, the event does not reach memory. This is not an extraction error for an already-read fact.",
       "question": {
         "expected": "2026-05-07",
         "role": "planner",
@@ -247,10 +247,10 @@ window.MAM_DEMO_DATA = {
         "stale": [],
         "text": "What is the current UAT start date for the notifications module?"
       },
-      "result_note": "Метка agent здесь следует из отсутствия записи обязательного источника; она не доказывает, почему Worker выбрал другой инструмент.",
+      "result_note": "The agent label here follows from the absence of a record of the required source; it does not prove why the Worker chose another tool.",
       "scenario": "C6-eval-0002",
-      "short": "C6 · документ",
-      "source_note": "Предложенный инструмент не означает выполненное чтение: ищите write нужного event_id.",
+      "short": "C6 · document",
+      "source_note": "A proposed tool does not mean the read was done: look for a write with the needed event_id.",
       "systems": {
         "full_history": {
           "checkpoint": {
@@ -362,13 +362,13 @@ window.MAM_DEMO_DATA = {
           ]
         }
       },
-      "title": "Пропущенный документ",
+      "title": "Missed document",
       "worker_session": 1
     },
     {
-      "agent_note": "Сравните действия Worker в сессии 27 и ответ Reviewer в сессии 30.",
+      "agent_note": "Compare the Worker's actions in session 27 with the Reviewer's answer in session 30.",
       "checkpoint": "cp-3",
-      "description": "Сумма бюджета была доступна через read_status в сессии 27; Reviewer запросил её в сессии 30.",
+      "description": "The budget amount was available via read_status in session 27; the Reviewer requested it in session 30.",
       "files": {
         "full_history": {
           "trace": "results/live/main/traces/full_history__C6-eval-0002__r0.jsonl",
@@ -395,7 +395,7 @@ window.MAM_DEMO_DATA = {
         }
       ],
       "id": "c6-status",
-      "memory_note": "Отсутствующий write нельзя компенсировать разрешением конфликтов: входных данных нет.",
+      "memory_note": "A missing write cannot be compensated by conflict resolution: there is no input data.",
       "question": {
         "expected": "343000",
         "role": "reviewer",
@@ -403,10 +403,10 @@ window.MAM_DEMO_DATA = {
         "stale": [],
         "text": "What is the current budget for the archive module?"
       },
-      "result_note": "Неуспех может быть вызван поведением агента до записи памяти. Сравнение не изолирует влияние выбора инструментов.",
+      "result_note": "The failure may be caused by agent behavior before the memory write. The comparison does not isolate the effect of tool choice.",
       "scenario": "C6-eval-0002",
-      "short": "C6 · статус",
-      "source_note": "Источник — ответ инструмента read_status, не пользовательское сообщение.",
+      "short": "C6 · status",
+      "source_note": "The source is the read_status tool response, not a user message.",
       "systems": {
         "full_history": {
           "checkpoint": {
@@ -519,7 +519,7 @@ window.MAM_DEMO_DATA = {
           ]
         }
       },
-      "title": "Пропущенный статус",
+      "title": "Missed status",
       "worker_session": 27
     }
   ],

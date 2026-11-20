@@ -70,18 +70,18 @@ def scan(traces):
 
 
 def table(rows):
-    lines = ["# Зависимость итога `ours` от порядка записей", "",
-             "Источник: трассы `ours` в `results/live/main/traces`, факты и доверие записей взяты из них.",
-             "Записи области `private` не учитываются.",
-             "`order_changes_outcome`: итог меняется, если те же версии записать в обратном порядке.",
-             "`all_versions_dated`: из них случаи, где у всех версий есть дата события.",
-             "`untrusted_beats_trusted`: остаётся недоверенное значение, хотя есть доверенная версия.", "",
-             "| Категория | " + " | ".join(COLUMNS) + " |", "|---|" + "---|" * len(COLUMNS)]
+    lines = ["# Dependence of the `ours` result on the order of writes", "",
+             "Source: `ours` traces in `results/live/main/traces`; facts and record trust are taken from them.",
+             "Records of the `private` scope are not counted.",
+             "`order_changes_outcome`: the result changes if the same versions are written in reverse order.",
+             "`all_versions_dated`: among them, cases where all versions have an event date.",
+             "`untrusted_beats_trusted`: an untrusted value remains even though a trusted version exists.", "",
+             "| Category | " + " | ".join(COLUMNS) + " |", "|---|" + "---|" * len(COLUMNS)]
     total = collections.Counter()
     for cat in CATS:
         total.update(rows[cat])
         lines.append(f"| {cat} | " + " | ".join(str(rows[cat][c]) for c in COLUMNS) + " |")
-    lines.append("| всего | " + " | ".join(str(total[c]) for c in COLUMNS) + " |")
+    lines.append("| total | " + " | ".join(str(total[c]) for c in COLUMNS) + " |")
     return "\n".join(lines) + "\n"
 
 

@@ -1,29 +1,29 @@
-"""Офлайн-счётчик токенов, откалиброванный по данным провайдера (docs/DECISIONS.md, D4).
+"""Offline token counter, calibrated on the provider's data (docs/DECISIONS.md, D4).
 
-Зачем он нужен: бюджет контекста измеряется в токенах, а настоящий токенизатор
-провайдера требует сети и зависимостей. Здесь линейная модель по признакам, которые
-считаются несколькими регулярными выражениями. Она детерминирована (одинаковый текст
-всегда даёт одинаковое число), не ходит в сеть и не имеет зависимостей. Веса подобраны
-по результатам results/pilot/token_counter_fit.json.
+Why it is needed: the context budget is measured in tokens, and the provider's real tokenizer
+requires the network and dependencies. Here a linear model over features is used, which are
+counted by several regular expressions. It is deterministic (the same text
+always gives the same number), does not go to the network and has no dependencies. The weights were chosen
+on the results of results/pilot/token_counter_fit.json.
 """
 import re
 
-# Слово из латинских букв; допускаем суффикс с апострофом ("don't", "agent's").
+# A word of Latin letters; a suffix with an apostrophe is allowed ("don't", "agent's").
 _WORD = re.compile(r"[A-Za-z]+(?:'[a-z]+)?")
-# Подряд идущие цифры считаются одним числом.
+# Consecutive digits count as one number.
 _DIGITS = re.compile(r"\d+")
-# Любой символ, который не пробел, не латинская буква и не цифра (знаки, кириллица и т. д.).
+# Any character that is not a space, not a Latin letter and not a digit (punctuation, non-Latin letters, etc.).
 _PUNCT = re.compile(r"[^\sA-Za-z0-9]")
 
-# Веса модели: сколько токенов «стоит» каждый признак.
-_W_WORD = 1.187   # за каждое слово
-_W_LONG = 0.658   # за каждую букву сверх шестой в слове (длинные слова режутся на части)
-_W_CAPS = 0.845   # за каждую букву слова, написанного заглавными (длина > 1)
-_W_DIGIT = 0.500  # за каждую цифру
-_W_PUNCT = 1.300  # за каждый «прочий» символ
+# Model weights: how many tokens each feature "costs".
+_W_WORD = 1.187   # per word
+_W_LONG = 0.658   # per letter beyond the sixth in a word (long words are split into parts)
+_W_CAPS = 0.845   # per letter of a word written in capitals (length > 1)
+_W_DIGIT = 0.500  # per digit
+_W_PUNCT = 1.300  # per "other" character
 
 def count(text: str) -> int:
-    """Оценка числа токенов в тексте (целое, округлённое)."""
+    """Estimate of the number of tokens in a text (an integer, rounded)."""
     words = _WORD.findall(text)
     total = (
         _W_WORD * len(words)

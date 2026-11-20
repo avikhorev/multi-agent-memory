@@ -1,93 +1,93 @@
-# Известные дефекты и ограничения
+# Known defects and limitations
 
-Здесь перечислено, **что может исказить запуск или вывод**, как это распознать и что делать сейчас. Сведения не означают, что проблема уже исправлена: основной код и сохранённые результаты после заморозки не менялись. Историю исследований и обоснования см. в [`DECISIONS.md`](DECISIONS.md), источники чисел — в [`EVIDENCE.md`](EVIDENCE.md).
+This lists **what may distort a run or its conclusions**, how to recognize it, and what to do now. The listing does not mean that the problem is already fixed: the main code and the saved results have not changed since the freeze. The history of the research and the rationale are in [`DECISIONS.md`](DECISIONS.md); the sources of the numbers are in [`EVIDENCE.md`](EVIDENCE.md).
 
-**Обозначения:** «дефект» — наблюдаемая ошибка реализации или оценщика; «ограничение» — свойство экспериментального протокола, уменьшающее область применимости вывода; «не проверено» — отсутствующее измерение. Статус «открыто» не обещает даты исправления.
+**Notation:** "defect" — an observable error of the implementation or the evaluator; "limitation" — a property of the experimental protocol that narrows the scope of the conclusion; "not verified" — a missing measurement. The status "open" does not promise a fix date.
 
-## Дефекты, влияющие на запуск или оценку
+## Defects affecting the run or the evaluation
 
 <a id="budget-resume"></a>
-### 1. Предел расходов при возобновлении — открыто
+### 1. Cost limit on resumption — open
 
-- **Где:** [`run.py`](../src/mam/run.py), [`extraction.py`](../src/mam/extraction.py), [D20](DECISIONS.md#d20).
-- **Симптом:** после возобновления `MAX_COST` может остановить работу преждевременно: в сумме трат учтены старые партии, а при оценке средней цены — только завершённые единицы текущей партии.
-- **Что делать:** отслеживать суммарную стоимость **в сохранённых результатах** после каждой партии; считать предел мягким, а не гарантированной защитой бюджета. В D20 описан исторический обход через повышение лимита проекции, но его нельзя применять без независимого контроля трат.
-- **Статус:** известный дефект, не исправлен; ранее завершённые единицы не пересчитывались.
+- **Where:** [`run.py`](../src/mam/run.py), [`extraction.py`](../src/mam/extraction.py), [D20](DECISIONS.md#d20).
+- **Symptom:** after resumption `MAX_COST` may stop the work early: the old batches are counted in the sum of spending, while the average price is estimated only from the completed units of the current batch.
+- **What to do:** track the total cost **in the saved results** after each batch; treat the limit as soft, not as a guaranteed budget protection. D20 describes a historical workaround by raising the projection limit, but it must not be applied without independent control of the spending.
+- **Status:** a known defect, not fixed; previously completed units were not recalculated.
 
 <a id="parallel-budget"></a>
-### 2. Параллельные дорогие единицы могут превысить предел — открыто
+### 2. Parallel expensive units may exceed the limit — open
 
-- **Где:** [D44](DECISIONS.md#d44), [раздел 15 отчёта](../REPORT.md#15-внешние-базовые-системы-mem0-и-graphiti-post-hoc).
-- **Симптом:** перед завершением первой единицы оценка средней цены равна нулю; раннер может запустить все параллельные задачи. Graphiti превысила предел $2,5 на систему: записано $2,58, ещё около $0,7 оценено, но не сохранилось.
-- **Что делать:** дорогие внешние запуски начинать с малого числа потоков и маленькой выборки; проверять фактический расход, а не только `MAX_COST`. Это не доказательство перерасхода в исходном основном прогоне.
-- **Статус:** известное ограничение бюджетного контроля, не исправлено.
+- **Where:** [D44](DECISIONS.md#d44), [section 15 of the report](../REPORT.md#15-external-baseline-systems-mem0-and-graphiti-post-hoc).
+- **Symptom:** before the first unit completes, the average price estimate is zero; the runner may launch all parallel tasks. Graphiti exceeded the limit of $2.5 per system: $2.58 was recorded, about $0.7 more was estimated but not saved.
+- **What to do:** start expensive external runs with a small number of threads and a small sample; check the actual spending, not only `MAX_COST`. This is not proof of an overspend in the original main run.
+- **Status:** a known limitation of the budget control, not fixed.
 
 <a id="scorer-paraphrase"></a>
-### 3. Оценщик пропускает некоторые нарушения запретов — открыто
+### 3. The evaluator misses some violations of prohibitions — open
 
-- **Где:** [`scoring.py`](../src/mam/scoring.py), [D39](DECISIONS.md#d39), [таблица сравнения](../results/post_hoc/paraphrase/comparison.md).
-- **Симптом:** `update_record` на тот же смысловой атрибут под другим именем может пройти штатную проверку поля. При перефразированных ограничениях `ours` совершил запрещённую правку в 3 из 3 случаев, но исходный оценщик не зафиксировал нарушение.
-- **Что делать:** для дополнительных проверок ограничений смотреть **скорректированный счёт D39** и реальные действия, а не только `passed`. Основной счёт не пересчитан задним числом.
-- **Статус:** дефект оценщика не исправлен; скорректированные значения опубликованы отдельно (*post hoc*).
+- **Where:** [`scoring.py`](../src/mam/scoring.py), [D39](DECISIONS.md#d39), [comparison table](../results/post_hoc/paraphrase/comparison.md).
+- **Symptom:** `update_record` on the same semantic attribute under a different name may pass the standard field check. With rephrased constraints `ours` made a forbidden edit in 3 of 3 cases, but the original evaluator did not record the violation.
+- **What to do:** for the additional checks of the constraints look at the **adjusted count of D39** and the real actions, not only at `passed`. The main count has not been recalculated retroactively.
+- **Status:** the evaluator defect is not fixed; the adjusted values are published separately (*post hoc*).
 
 <a id="order-dependence"></a>
-### 4. Разрешение версий зависит от порядка записи — открыто
+### 4. Version resolution depends on the write order — open
 
-- **Где:** [`Ours._resolve`](../src/mam/systems/ours.py), [проверка порядка](../results/post_hoc/write_order.md), [раздел 9 отчёта](../REPORT.md#9-ограничения).
-- **Симптом:** при обратном порядке записи меняется итог **4 из 11** конфликтных ключей на исходном `eval` (все четыре — C1). Факты без даты получают относительное время по порядку поступления; возможно и преимущество ранее записанного недоверенного значения над более старым доверенным.
-- **Что делать:** не считать поведение детерминированным относительно перестановки входных записей; отдельно тестировать записи без дат и реальные конкурентные обновления.
-- **Статус:** подтверждено дополнительной офлайн-проверкой; конкурентная запись не проверялась.
+- **Where:** [`Ours._resolve`](../src/mam/systems/ours.py), [write order check](../results/post_hoc/write_order.md), [section 9 of the report](../REPORT.md#9-limitations).
+- **Symptom:** with the reverse write order the outcome changes for **4 of 11** conflicting keys on the original `eval` (all four are C1). Facts without a date get relative time by the order of arrival; an earlier-written untrusted value may also outrank an older trusted one.
+- **What to do:** do not treat the behavior as deterministic with respect to a permutation of the input records; test separately the records without dates and real concurrent updates.
+- **Status:** confirmed by an additional offline check; concurrent writing was not tested.
 
-## Ограничения исследования
+## Limitations of the study
 
 <a id="template-dependence"></a>
-### 5. Извлечение и фильтр знают шаблоны генератора
+### 5. Extraction and the filter know the generator's templates
 
-- **Где:** [`extract.py`](../src/mam/extract.py), [D25](DECISIONS.md#d25), [раздел 9 отчёта](../REPORT.md#9-ограничения).
-- **Симптом:** закрытый список атрибутов, схема `Atlas/<module>` и регулярные выражения для ограничений и источников согласованы с шаблонами сценариев; настоящие заметки агентов без `x-` не попадают в `ours`.
-- **Как читать результат:** полнота извлечения на `eval` и `holdout` **не измеряет** устойчивость к произвольному тексту. Перефразирование исследовано только на малой выборке после заморозки.
-- **Статус:** ограничение применимости, не исправлено. Разрывы и план для боевой работы: [`PRODUCTION.md`](PRODUCTION.md).
+- **Where:** [`extract.py`](../src/mam/extract.py), [D25](DECISIONS.md#d25), [section 9 of the report](../REPORT.md#9-limitations).
+- **Symptom:** the closed list of attributes, the scheme `Atlas/<module>` and the regular expressions for constraints and sources are matched to the scenario templates; real agent notes without `x-` do not get into `ours`.
+- **How to read the result:** the completeness of the extraction on `eval` and `holdout` **does not measure** robustness to arbitrary text. Rephrasing was studied only on a small sample after the freeze.
+- **Status:** a limitation of applicability, not fixed. The gaps and the plan for production work: [`PRODUCTION.md`](PRODUCTION.md).
 
 <a id="agent-protocol"></a>
-### 6. Рабочий цикл агента слишком короток для некоторых задач
+### 6. The agent's working cycle is too short for some tasks
 
-- **Где:** [`live.py`](../src/mam/live.py), [схема сессии](ARCHITECTURE.md#2-одна-сессия), [E4](EVIDENCE.md#e4).
-- **Симптом:** Planner вызывается один раз, Worker дважды с одним и тем же контекстом, Reviewer один раз. Worker выбирает действие и иногда обновляет запись **вместо** чтения предложенного источника; Reviewer не видит новые факты, пока не завершена сессия.
-- **Как читать результат:** промахи `agent` нельзя трактовать как доказанный дефект алгоритма хранения; [C6-eval-0002](FAILURE_WALKTHROUGH.md) показывает реальную трассу с невыбранным источником. Поведение полноценного многократного агентного цикла не измерялось.
-- **Статус:** ограничение протокола.
+- **Where:** [`live.py`](../src/mam/live.py), [session diagram](ARCHITECTURE.md#2-one-session), [E4](EVIDENCE.md#e4).
+- **Symptom:** the Planner is called once, the Worker twice with the same context, the Reviewer once. The Worker chooses an action and sometimes updates a record **instead of** reading the proposed source; the Reviewer does not see new facts until the session ends.
+- **How to read the result:** misses labeled `agent` must not be treated as a proven defect of the storage algorithm; [C6-eval-0002](FAILURE_WALKTHROUGH.md) shows a real trace with an unselected source. The behavior of a full multi-step agent cycle was not measured.
+- **Status:** a limitation of the protocol.
 
 <a id="strict-score"></a>
-### 7. Строгий счёт и подача базовых систем меняют интерпретацию
+### 7. The strict count and the presentation of the baseline systems change the interpretation
 
-- **Где:** [E3](EVIDENCE.md#e3), [E6](EVIDENCE.md#e6), [`scoring.py`](../src/mam/scoring.py).
-- **Симптом:** правильно названное текущее значение вместе со старым считается провалом; исходная `full_history` не показывает автора и время в том же виде, что поздний контроль `full_history_meta`.
-- **Как читать результат:** разделять строгий основной и мягкий дополнительный счёт, не сравнивать их как одну метрику. Объяснение части разрыва подачей — результат *post hoc*, без повторного запуска `ours` в тех же условиях.
-- **Статус:** ограничение метрики и сравнительного протокола.
+- **Where:** [E3](EVIDENCE.md#e3), [E6](EVIDENCE.md#e6), [`scoring.py`](../src/mam/scoring.py).
+- **Symptom:** a correctly named current value together with the old one counts as a failure; the original `full_history` does not show the author and time in the same form as the late control `full_history_meta`.
+- **How to read the result:** separate the strict main count from the soft additional count and do not compare them as one metric. The explanation of part of the gap by presentation is a *post hoc* result, without a re-run of `ours` under the same conditions.
+- **Status:** a limitation of the metric and of the comparison protocol.
 
 <a id="security-scope"></a>
-### 8. Проверки защиты и изоляции ограничены синтетикой
+### 8. The checks of protection and isolation are limited to synthetic data
 
-- **Где:** [`THREAT_MODEL.md`](THREAT_MODEL.md), [`ASSUMPTIONS.md`](ASSUMPTIONS.md), [раздел 9 отчёта](../REPORT.md#9-ограничения).
-- **Симптом:** фильтр недоверенных инструкций ищет текстовые признаки, а не смысл угрозы; `holdout` не содержит независимого набора таких атак. Проверка C4 на кеше может не обнаружить утечку просто потому, что экстрактор не взял факт из черновика.
-- **Как читать результат:** 6/6 живых проверок C4 и C5 у всех систем **не доказывают** устойчивость в произвольной среде.
-- **Статус:** ограничение покрытия.
+- **Where:** [`THREAT_MODEL.md`](THREAT_MODEL.md), [`ASSUMPTIONS.md`](ASSUMPTIONS.md), [section 9 of the report](../REPORT.md#9-limitations).
+- **Symptom:** the filter of untrusted instructions looks for textual signs, not for the meaning of the threat; `holdout` contains no independent set of such attacks. The C4 check on the cache may fail to detect a leak simply because the extractor did not take the fact from the draft.
+- **How to read the result:** 6/6 live checks of C4 and C5 for all systems **do not prove** robustness in an arbitrary environment.
+- **Status:** a limitation of coverage.
 
 <a id="trace-detail"></a>
-### 9. Сохранённые трассы не содержат полного контекста
+### 9. The saved traces do not contain the full context
 
-- **Где:** [`live.py`](../src/mam/live.py), [трассы основного прогона](../results/live/main/traces/), [сквозной пример](WALKTHROUGH.md).
-- **Симптом:** в трассе есть ID элементов и сокращённые ответы, но нет полного текста каждого промпта и памяти.
-- **Что делать:** сопоставлять трассу с `units/*.json`, самим сценарием и кодом сборки контекста. Не выдавать реконструированную строку за точный сохранённый промпт.
-- **Статус:** ограничение наблюдаемости.
+- **Where:** [`live.py`](../src/mam/live.py), [traces of the main run](../results/live/main/traces/), [end-to-end example](WALKTHROUGH.md).
+- **Symptom:** the trace contains the IDs of the items and shortened answers, but not the full text of each prompt and of the memory.
+- **What to do:** compare the trace with `units/*.json`, with the scenario itself and with the context assembly code. Do not present a reconstructed string as the exact saved prompt.
+- **Status:** a limitation of observability.
 
 <a id="external-scope"></a>
-### 10. Внешние системы и часть запусков не проверены полностью
+### 10. External systems and part of the runs are not fully verified
 
-- **Где:** [E10](EVIDENCE.md#e10), [D44](DECISIONS.md#d44), [`RUNBOOK.md`](RUNBOOK.md).
-- **Симптом:** Graphiti проверялась на 12 единицах и без C4, A-Mem — `NOT RUN`; полный живой Docker-прогон и путь авторизации API-ключом не проверены. Траты одного остановленного запуска Graphiti оценены, но не подтверждены сохранёнными единицами.
-- **Как читать результат:** не переносить вывод об отсутствии утечки или сравнительную стоимость на непроверенные конфигурации.
-- **Статус:** не проверено / частично проверено.
+- **Where:** [E10](EVIDENCE.md#e10), [D44](DECISIONS.md#d44), [`RUNBOOK.md`](RUNBOOK.md).
+- **Symptom:** Graphiti was checked on 12 units and without C4; A-Mem — `NOT RUN`; a full live run in Docker and the API-key authorization path were not verified. The spending of one stopped Graphiti run is estimated but not confirmed by saved units.
+- **How to read the result:** do not transfer the conclusion about the absence of a leak or the comparative cost to unverified configurations.
+- **Status:** not verified / partly verified.
 
-## Как сообщать о новой проблеме
+## How to report a new problem
 
-Укажите ID сценария, систему и повтор, путь к `unit` и `trace`, ожидаемое и фактическое поведение, класс проблемы (код / оценка / протокол) и момент обнаружения относительно заморозки. Не исправляйте старые численные выводы без отдельной записи об изменении критериев. История решений сохранена в [`DECISIONS.md`](DECISIONS.md).
+State the scenario ID, the system and the repeat, the path to the `unit` and the `trace`, the expected and the actual behavior, the class of the problem (code / evaluation / protocol) and the moment of discovery relative to the freeze. Do not correct the old numerical conclusions without a separate record of the change of criteria. The history of decisions is kept in [`DECISIONS.md`](DECISIONS.md).

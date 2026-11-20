@@ -1,82 +1,82 @@
-# Память для мультиагентной системы
+# Memory for a multi-agent system
 
-Проект сравнивает структурированную память `ours` с четырьмя простыми подходами к хранению контекста. В синтетических проектах Planner планирует работу, Worker использует инструменты, Reviewer проверяет результат. Задача памяти — передавать между сессиями актуальные факты и ограничения, не раскрывая чужие черновики и не превращая данные из документов в инструкции.
+The project compares the structured memory `ours` with four simple approaches to storing context. In synthetic projects, a Planner plans the work, a Worker uses tools, and a Reviewer checks the result. The job of memory is to pass current facts and constraints between sessions, without exposing other agents' drafts and without turning data from documents into instructions.
 
-В репозитории есть код систем памяти, генератор сценариев, тесты и результаты двух видов проверок:
+The repository contains the code of the memory systems, a scenario generator, tests, and the results of two kinds of checks:
 
-- **Уровень памяти (без LLM):** проверяет содержимое контекста на всех сценариях.
-- **Живой слой (с LLM):** проверяет ответы и действия агентов на меньшей выборке.
+- **Memory level (no LLM):** checks the content of the context on all scenarios.
+- **Live layer (with LLM):** checks the answers and actions of the agents on a smaller sample.
 
-Результаты этих проверок нельзя приравнивать друг к другу. Ключевые цифры и ограничения — в [кратком обзоре результатов](docs/RESULTS.md); полный разбор — в [`REPORT.md`](REPORT.md). Карта документации — в [`docs/README.md`](docs/README.md). Чтобы увидеть механику на реальном сценарии, начните со [сквозного примера](docs/WALKTHROUGH.md).
+The results of these checks must not be compared with each other. The key numbers and limitations are in the [short results overview](docs/RESULTS.md); the full analysis is in [`REPORT.md`](REPORT.md). The documentation map is in [`docs/README.md`](docs/README.md). To see the mechanics on a real scenario, start with the [end-to-end example](docs/WALKTHROUGH.md).
 
-## Как работает память — на одном примере
+## How memory works — on one example
 
-![Четыре этапа: источник, память, агент и оценщик. Два исхода на реальных C1 и C6](docs/img/visual-story.svg)
+![Four stages: source, memory, agent and evaluator. Two outcomes on real C1 and C6](docs/img/visual-story.svg)
 
-**[Пошаговое интерактивное демо](docs/demo/README.md)** открывается локально без API-ключа: три реальные контрольные точки, переключатель `ours` / `full_history`, ответы и действия из сохранённых трасс. На GitHub изображение выше доступно без JavaScript. Полные условия и источники данных — в [описании демо](docs/demo/README.md).
+**[Step-by-step interactive demo](docs/demo/README.md)** opens locally without an API key: three real checkpoints, a switch between `ours` and `full_history`, and answers and actions from the saved traces. On GitHub the image above is available without JavaScript. The full conditions and data sources are in the [demo description](docs/demo/README.md).
 
-## Быстрый старт
+## Quick start
 
-Для тестов можно использовать Docker; команды выполняются из корня репозитория:
+For tests you can use Docker; run the commands from the repository root:
 
 ```bash
-make docker-test       # тесты Python, модель не нужна
-make docker-reproduce  # пересчитать уровень памяти и таблицы; перезаписывает results/
+make docker-test       # Python tests, no model needed
+make docker-reproduce  # recompute the memory level and tables; overwrites results/
 ```
 
-Для запуска без Docker нужны Python 3.11+, `make venv`, затем `make test`. При наличии Python 3.11+ на хосте команда `make docs-check` проверяет ссылки, числа и контрольные суммы исходных артефактов без установки зависимостей проекта. Сборка Docker-образа может потребовать сеть; проверки после установки не вызывают модель.
+To run without Docker you need Python 3.11+, then `make venv` and `make test`. If Python 3.11+ is available on the host, `make docs-check` checks links, numbers and checksums of the source artifacts without installing the project's dependencies. Building the Docker image may require network access; the checks after installation do not call the model.
 
-**Пересчитать результаты:** `make reproduce` или `make docker-reproduce` не вызывают модель, но **перезаписывают** файлы в `results/` (Docker монтирует этот каталог из текущей папки). Запускайте их в [отдельной рабочей копии Git](docs/RUNBOOK.md#безопасный-пересчёт-в-отдельной-рабочей-копии); если нужно только проверить числа, достаточно `make docs-check`.
+**Recompute the results:** `make reproduce` or `make docker-reproduce` do not call the model, but they **overwrite** the files in `results/` (Docker mounts this directory from the current folder). Run them in a [separate Git working copy](docs/RUNBOOK.md#safe-recalculation-in-a-separate-working-copy); if you only need to check the numbers, `make docs-check` is enough.
 
-Для нового **платного** прогона агентов требуются Node.js 18+ и Claude Code 2.1.316 (или Docker-образ проекта):
+To run a new **paid** agent run you need Node.js 18+ and Claude Code 2.1.316 (or the project's Docker image):
 
 ```bash
-npm install -g @anthropic-ai/claude-code@2.1.316  # только без Docker
+npm install -g @anthropic-ai/claude-code@2.1.316  # only without Docker
 make doctor
-make live  # по умолчанию пишет в results/live/rerun
-# или: ANTHROPIC_API_KEY=... make docker-live
+make live  # by default writes to results/live/rerun
+# or: ANTHROPIC_API_KEY=... make docker-live
 ```
 
-Авторизация: `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN` (через `claude setup-token`) или интерактивный вход `claude`. Короткий запуск с токеном подписки проверен, по API-ключу — нет. Секреты не записываются в результаты. Реальные условия и ограничения проверенного Docker-прогона — в [руководстве](docs/RUNBOOK.md#проверенные-условия-docker).
+Authorization: `ANTHROPIC_API_KEY`, `CLAUDE_CODE_OAUTH_TOKEN` (via `claude setup-token`), or interactive sign-in with `claude`. A short run with a subscription token has been verified; with an API key it has not. Secrets are not written to the results. The real conditions and limitations of the verified Docker run are in the [runbook](docs/RUNBOOK.md#verified-docker-conditions).
 
-Источники цифр — в [карте доказательств](docs/EVIDENCE.md), различие **55/66**, **124/156** и **778/780** — в [объяснении метрик](docs/PROBLEM.md#как-читать-знаменатели), известные дефекты — в [реестре](docs/KNOWN_ISSUES.md).
+The sources of the numbers are in the [evidence map](docs/EVIDENCE.md). The difference between **55/66**, **124/156** and **778/780** is explained in [the metrics section](docs/PROBLEM.md#how-to-read-the-denominators); known defects are in the [register](docs/KNOWN_ISSUES.md).
 
-## Как читать результаты
+## How to read the results
 
-| Вопрос | Где смотреть |
+| Question | Where to look |
 |---|---|
-| Помогла ли память и при каких условиях? | [`docs/RESULTS.md`](docs/RESULTS.md); подробно — [`REPORT.md`](REPORT.md), разделы 5–9 |
-| Что изменилось в последующих итерациях? | [`REPORT.md`](REPORT.md), разделы 11–15 (проверки *post hoc*) |
-| Что считается успехом или провалом? | [`docs/PROBLEM.md`](docs/PROBLEM.md), [`docs/SCENARIO_FORMAT.md`](docs/SCENARIO_FORMAT.md) |
-| Как устроена реализация? | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
-| Как проверить числа и их происхождение? | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) |
-| Как посмотреть известные проблемы? | [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) |
-| Почему оценщик пишет `agent`, если ответ неверен? | [Разбор провала C6](docs/FAILURE_WALKTHROUGH.md) |
-| Как добавить собственную память? | [Руководство по расширению](docs/EXTENDING.md) |
-| Чем отличаются версии `ours`–`ours4`? | [Реестр версий](docs/EXPERIMENT_VERSIONS.md) |
-| Как пересчитать таблицы и найти трассу? | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
+| Did memory help, and under which conditions? | [`docs/RESULTS.md`](docs/RESULTS.md); details — [`REPORT.md`](REPORT.md), sections 5–9 |
+| What changed in the later iterations? | [`REPORT.md`](REPORT.md), sections 11–15 (*post hoc* checks) |
+| What counts as success or failure? | [`docs/PROBLEM.md`](docs/PROBLEM.md), [`docs/SCENARIO_FORMAT.md`](docs/SCENARIO_FORMAT.md) |
+| How is the implementation built? | [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) |
+| How do I verify the numbers and where they come from? | [`docs/EVIDENCE.md`](docs/EVIDENCE.md) |
+| Where are the known problems? | [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md) |
+| Why does the evaluator write `agent` when the answer is wrong? | [C6 failure walkthrough](docs/FAILURE_WALKTHROUGH.md) |
+| How do I add my own memory? | [Extension guide](docs/EXTENDING.md) |
+| How do `ours`–`ours4` differ? | [Version register](docs/EXPERIMENT_VERSIONS.md) |
+| How do I recompute the tables and find a trace? | [`docs/RUNBOOK.md`](docs/RUNBOOK.md) |
 
-**Важно:** `eval` использовался для основных результатов; `dev` — для настройки; `holdout/` показывает отдельные трудные сценарии. Повторные настройки и внешние сравнения, выполненные после заморозки бенчмарка, не заменяют основной результат. Основной живой прогон мал; его отличия в несколько проверок могут лежать в пределах разброса.
+**Important:** `eval` was used for the main results; `dev` for tuning; `holdout/` shows separate hard scenarios. Repeated tuning and external comparisons made after the benchmark was frozen do not replace the main result. The main live run is small; its differences of a few checks may lie within the spread.
 
-## Структура репозитория
+## Repository structure
 
-| Путь | Содержимое |
+| Path | Contents |
 |---|---|
-| [`src/mam/`](src/mam/) | код проекта: память, генератор, оценщик, агенты и раннер |
-| [`src/mam/systems/`](src/mam/systems/) | реализации памяти: [`ours`](src/mam/systems/ours.py), [базовые системы](src/mam/systems/baselines.py), [резюме](src/mam/systems/summary.py), [интерфейс](src/mam/systems/base.py) |
-| [`src/mam/generate.py`](src/mam/generate.py), [`validate.py`](src/mam/validate.py) | генератор сценариев и их проверка |
-| [`src/mam/simulate.py`](src/mam/simulate.py), [`scoring.py`](src/mam/scoring.py) | симулятор инструментов и оценка контекста и действий |
-| [`src/mam/live.py`](src/mam/live.py), [`agents.py`](src/mam/agents.py) | живой протокол сессии и промпты агентов |
-| [`src/mam/llm.py`](src/mam/llm.py) | обёртка над Claude CLI и тестовый клиент |
-| [`tests/`](tests/) | приёмочные и модульные тесты |
-| [`scripts/`](scripts/) | проверки документации, таблицы и дополнительные анализы |
-| [`data/dev/`](data/dev/), [`data/eval/`](data/eval/), [`holdout/`](holdout/) | сценарии и эталонные ответы |
-| [`results/memory_level/`](results/memory_level/) | оценки контекста и таблицы |
-| [`results/live/`](results/live/) | прогоны с агентами, трассы и таблицы |
-| [`results/extraction/`](results/extraction/), [`results/pilot/`](results/pilot/) | кеш извлечения и измерения вызовов модели |
-| [`results/post_hoc/`](results/post_hoc/) | дополнительные проверки и итерации после заморозки |
-| [`docs/`](docs/) | спецификация, архитектура, допущения и журнал решений |
+| [`src/mam/`](src/mam/) | project code: memory, generator, evaluator, agents and runner |
+| [`src/mam/systems/`](src/mam/systems/) | memory implementations: [`ours`](src/mam/systems/ours.py), [baseline systems](src/mam/systems/baselines.py), [summary](src/mam/systems/summary.py), [interface](src/mam/systems/base.py) |
+| [`src/mam/generate.py`](src/mam/generate.py), [`validate.py`](src/mam/validate.py) | scenario generator and its validation |
+| [`src/mam/simulate.py`](src/mam/simulate.py), [`scoring.py`](src/mam/scoring.py) | tool simulator and evaluation of context and actions |
+| [`src/mam/live.py`](src/mam/live.py), [`agents.py`](src/mam/agents.py) | live session protocol and agent prompts |
+| [`src/mam/llm.py`](src/mam/llm.py) | wrapper over the Claude CLI and a test client |
+| [`tests/`](tests/) | acceptance and unit tests |
+| [`scripts/`](scripts/) | documentation checks, tables and additional analyses |
+| [`data/dev/`](data/dev/), [`data/eval/`](data/eval/), [`holdout/`](holdout/) | scenarios and reference answers |
+| [`results/memory_level/`](results/memory_level/) | context evaluations and tables |
+| [`results/live/`](results/live/) | agent runs, traces and tables |
+| [`results/extraction/`](results/extraction/), [`results/pilot/`](results/pilot/) | extraction cache and model call measurements |
+| [`results/post_hoc/`](results/post_hoc/) | additional checks and iterations after the freeze |
+| [`docs/`](docs/) | specification, architecture, assumptions and decision log |
 
-## Лицензия
+## License
 
 [MIT](LICENSE).

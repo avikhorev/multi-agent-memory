@@ -1,29 +1,29 @@
-"""Оценки релевантности BM25; общие для базовой системы с поиском и для `ours`."""
+"""BM25 relevance scores; shared by the baseline system with search and by `ours`."""
 from __future__ import annotations
 
 import math
 import re
 
-# Токен — последовательность латинских букв/цифр в нижнем регистре.
+# A token is a sequence of Latin letters/digits in lower case.
 _TOKEN = re.compile(r"[a-z0-9]+")
-# Стандартные параметры BM25: K1 — насыщение частоты слова, B — сила нормировки на длину текста.
+# Standard BM25 parameters: K1 — saturation of the word frequency, B — strength of the normalization by text length.
 K1, B = 1.5, 0.75
 
 def tokenize(text: str) -> list[str]:
     return _TOKEN.findall(text.lower())
 
 def bm25_scores(query: str, texts: list[str]) -> list[float]:
-    """Оценка каждого текста относительно запроса (больше — релевантнее); порядок как у texts.
+    """Score of each text relative to the query (higher means more relevant); the order is the same as texts.
 
-    Идея: слово ценно, если оно редкое среди текстов (idf) и часто встречается в данном
-    тексте (tf), но частота насыщается, а длинные тексты слегка штрафуются.
+    Idea: a word is valuable if it is rare among the texts (idf) and often occurs in the given
+    text (tf), but the frequency saturates, and long texts are penalized slightly.
     """
     if not texts:
         return []
     toks = [tokenize(t) for t in texts]
-    # Средняя длина текста; "or 1.0" защищает от деления на ноль, если все тексты пустые.
+    # Average text length; "or 1.0" protects against division by zero if all texts are empty.
     avg = (sum(len(t) for t in toks) / len(toks)) or 1.0
-    # df[w] — в скольких текстах встречается слово w.
+    # df[w] — in how many texts the word w occurs.
     df: dict[str, int] = {}
     for t in toks:
         for w in set(t):
@@ -31,12 +31,12 @@ def bm25_scores(query: str, texts: list[str]) -> list[float]:
     q = set(tokenize(query))
     out = []
     for t in toks:
-        # tf[w] — сколько раз слово w встречается в этом тексте.
+        # tf[w] — how many times the word w occurs in this text.
         tf: dict[str, int] = {}
         for w in t:
             tf[w] = tf.get(w, 0) + 1
         score = 0.0
-        # Считаем только слова, общие для запроса и текста.
+        # Count only the words shared by the query and the text.
         for w in q & tf.keys():
             idf = math.log(1 + (len(texts) - df[w] + 0.5) / (df[w] + 0.5))
             score += idf * tf[w] * (K1 + 1) / (tf[w] + K1 * (1 - B + B * len(t) / avg))

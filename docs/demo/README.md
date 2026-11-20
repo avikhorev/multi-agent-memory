@@ -1,47 +1,47 @@
-# Визуальная экскурсия: один факт, четыре этапа
+# Visual tour: one fact, four stages
 
-[**Открыть интерактивное демо**](index.html) · [Статическая схема для GitHub](../img/visual-story.svg)
+[**Open the interactive demo**](index.html) · [Static diagram for GitHub](../img/visual-story.svg)
 
-Это **проигрыватель сохранённых трасс**, а не симулятор или повторный запуск LLM. Все ответы, действия Worker, метки и числа берутся из основного прогона `results/live/main/`, повтор **r0**. Можно переключить систему `ours` / `full_history` и пройти четыре этапа: **источник → память → агент → оценка**.
+This is a **player of saved traces**, not a simulator or a re-run of the LLM. All answers, Worker actions, labels and numbers are taken from the main run `results/live/main/`, repeat **r0**. You can switch the system `ours` / `full_history` and go through four stages: **source → memory → agent → evaluation**.
 
-| Сюжет | Сценарий и контрольная точка | Что видно |
+| Storyline | Scenario and checkpoint | What you see |
 |---|---|---|
-| Замена значения | `C1-eval-0000`, `cpx-1` | Документ с резервом 727000, обновление до 153000, разрешение версий и разные ответы Planner |
-| Пропущенный документ | `C6-eval-0002`, `cp-1` | В `ours` Worker не читает `D-011`; `full_history` читает |
-| Пропущенный статус | `C6-eval-0002`, `cp-3` | В `ours` Worker не вызывает `read_status` для `e-0086`; `full_history` вызывает |
+| Replacement of a value | `C1-eval-0000`, `cpx-1` | A document with the reserve 727000, the update to 153000, version resolution and different Planner answers |
+| Missed document | `C6-eval-0002`, `cp-1` | In `ours` the Worker does not read `D-011`; `full_history` reads it |
+| Missed status | `C6-eval-0002`, `cp-3` | In `ours` the Worker does not call `read_status` for `e-0086`; `full_history` calls it |
 
-## Как открыть
+## How to open
 
-Скачайте или клонируйте репозиторий и откройте [`docs/demo/index.html`](index.html) в браузере. Никакая установка не нужна, **файл работает и через `file://`**: данные подключаются локальным `data.js`, без `fetch()`, сервера и API-ключей. Если браузер запрещает локальные файлы, запустите из корня репозитория:
+Download or clone the repository and open [`docs/demo/index.html`](index.html) in a browser. No installation is needed, **the file also works via `file://`**: the data is loaded by the local `data.js`, without `fetch()`, a server or API keys. If the browser blocks local files, run this from the repository root:
 
 ```bash
 python3 -m http.server 8000
 ```
 
-Затем откройте `http://localhost:8000/docs/demo/`. В интерфейсе есть выбор случая и системы, переход к любому этапу, пошаговое воспроизведение и ссылки на исходные файлы. Анимация запускается только по нажатию кнопки; автоматические переходы останавливаются на четвёртом этапе. При включённом системном режиме уменьшения движения CSS-переходы отключены. Есть клавиатурная навигация по этапам стрелками.
+Then open `http://localhost:8000/docs/demo/`. The interface has a choice of case and system, a jump to any stage, step-by-step playback and links to the source files. The animation starts only on a button press; automatic transitions stop at the fourth stage. With the system reduced-motion mode enabled, the CSS transitions are turned off. There is keyboard navigation between the stages with the arrows.
 
-> GitHub просматривает `.html` как исходный файл, а не как готовый сайт. **На странице репозитория используйте [SVG](../img/visual-story.svg)**; интерактивный вариант откройте локально. Это не GitHub Pages и не внешняя аналитика.
+> GitHub displays `.html` as a source file, not as a finished site. **On the repository page use the [SVG](../img/visual-story.svg)**; open the interactive version locally. This is not GitHub Pages and not external analytics.
 
-## Откуда берутся данные
+## Where the data comes from
 
-Файлы, на основе которых построено демо:
+The files on which the demo is built:
 
-- [`data/eval/C1-eval-0000.json`](../../data/eval/C1-eval-0000.json), [`data/eval/C6-eval-0002.json`](../../data/eval/C6-eval-0002.json) — события и эталоны.
-- [`results/live/main/units/`](../../results/live/main/units) — ответы, метки, `context_passed`, `token_count`.
+- [`data/eval/C1-eval-0000.json`](../../data/eval/C1-eval-0000.json), [`data/eval/C6-eval-0002.json`](../../data/eval/C6-eval-0002.json) — events and references.
+- [`results/live/main/units/`](../../results/live/main/units) — answers, labels, `context_passed`, `token_count`.
 - [`results/live/main/traces/`](../../results/live/main/traces) — `write`, `read`, `extraction`, `resolve`, `agent_action`.
 
-**Не показано:** точный текст контекста. Он не сохраняется в живой трассе; `read.item_ids` — это ссылки на элементы, а не их содержимое. Например, `frag-e-0017-4` не доказывает, что старое значение из документа присутствовало в контексте. Проигрыватель не делает предположений о незаписанных фактах и не доказывает причинность меток `agent` или `memory`.
+**Not shown:** the exact text of the context. It is not saved in the live trace; `read.item_ids` are references to items, not their content. For example, `frag-e-0017-4` does not prove that the old value from the document was present in the context. The player makes no assumptions about unrecorded facts and does not prove the causality of the labels `agent` or `memory`.
 
-Число токенов берётся из `read` соответствующей роли и сессии и сверяется с `checkpoints[].token_count`; ответ из `agent_action` — с сохранённым `checkpoints[].answer`. Снимок содержит **только выбранные** контрольные точки `r0`, поэтому ничего не говорит о статистическом разбросе или среднем качестве систем.
+The number of tokens is taken from the `read` of the corresponding role and session and is checked against `checkpoints[].token_count`; the answer from `agent_action` — against the saved `checkpoints[].answer`. The snapshot contains **only the selected** checkpoints of `r0`, so it says nothing about the statistical spread or the average quality of the systems.
 
-## Как обновить демо
+## How to update the demo
 
 ```bash
-python3 scripts/build_visual_demo.py          # обновить docs/demo/data.js по замороженным JSON/JSONL
-python3 scripts/build_visual_demo.py --check  # проверить, что снимок не устарел
-make docs-check                              # ссылки, тесты, артефакты и снимок демо
+python3 scripts/build_visual_demo.py          # update docs/demo/data.js from the frozen JSON/JSONL
+python3 scripts/build_visual_demo.py --check  # check that the snapshot is not outdated
+make docs-check                              # links, tests, artifacts and the demo snapshot
 ```
 
-Генератор использует только стандартную библиотеку Python 3.11+, **не изменяет** файлы в `data/` и `results/` и не обращается к модели. После изменения исходных данных сначала определите, остаются ли результаты сравнимыми с замороженным экспериментом; не выдавайте новый прогон за исторический. Смена сюжетов делается в `CASES` файла [`scripts/build_visual_demo.py`](../../scripts/build_visual_demo.py); интерфейс — [`demo.js`](demo.js), [`style.css`](style.css).
+The generator uses only the Python 3.11+ standard library, **does not change** the files in `data/` and `results/`, and does not call the model. After changing the source data, first determine whether the results remain comparable with the frozen experiment; do not present a new run as a historical one. The storylines are changed in `CASES` of the file [`scripts/build_visual_demo.py`](../../scripts/build_visual_demo.py); the interface is in [`demo.js`](demo.js) and [`style.css`](style.css).
 
-Дополнительные разборы: [обновление C1](../WALKTHROUGH.md), [пропуск источников C6](../FAILURE_WALKTHROUGH.md), [ограничения оценщика](../KNOWN_ISSUES.md).
+Additional analyses: [C1 update](../WALKTHROUGH.md), [C6 source omission](../FAILURE_WALKTHROUGH.md), [evaluator limitations](../KNOWN_ISSUES.md).

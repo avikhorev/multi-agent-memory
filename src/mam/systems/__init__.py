@@ -1,4 +1,4 @@
-"""Системы памяти за одним интерфейсом (docs/SCENARIO_FORMAT.md, раздел 8)."""
+"""Memory systems behind one interface (docs/SCENARIO_FORMAT.md, section 8)."""
 from __future__ import annotations
 
 from mam.systems.base import MemorySystem
@@ -6,19 +6,19 @@ from mam.systems.baselines import FullHistory, SharedRagBm25, SlidingWindow
 from mam.systems.ours import Ours
 from mam.systems.summary import CachedSummary, LLMSummary, RollingSummary
 
-# Допустимые имена систем: наша и четыре базовых для сравнения.
+# Allowed system names: ours and four baselines for comparison.
 NAMES = ("ours", "full_history", "sliding_window", "rolling_summary", "shared_rag_bm25")
-# Что можно отключать в нашей системе, чтобы измерить вклад каждого механизма (абляции).
+# What can be switched off in our system to measure the contribution of each mechanism (ablations).
 ABLATIONS = frozenset({"validity", "scopes", "trust", "pinned_constraints"})
-# Способы извлекать факты из записей: эталон сценария, правила, кеш, живая модель.
+# Ways to extract facts from records: the scenario's reference, rules, cache, live model.
 EXTRACTORS = ("oracle", "rules", "cache", "llm")
 
 def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str = "oracle",
            cache_path=None, llm=None) -> MemorySystem:
-    """Фабрика систем памяти. limit — бюджет контекста в токенах.
+    """Factory of memory systems. limit — the context budget in tokens.
 
-    Все параметры проверяются до создания, чтобы опечатка в конфигурации
-    падала сразу, а не посреди долгого прогона.
+    All parameters are checked before creation, so that a typo in the configuration
+    fails at once, not in the middle of a long run.
     """
     ablate = frozenset(ablate)
     if name not in NAMES:
@@ -28,7 +28,7 @@ def create(name: str, *, limit: int = 2000, ablate=frozenset(), extractor: str =
     if not ablate <= ABLATIONS:
         raise ValueError(f"unknown ablation: {sorted(ablate - ABLATIONS)}")
     if ablate and name != "ours":
-        # Абляции — это отключение частей именно нашей системы; у базовых частей нет.
+        # Ablations are switches off of parts of our system specifically; the baselines have no parts.
         raise ValueError("ablations apply to 'ours' only")
     if name == "full_history":
         return FullHistory(limit)

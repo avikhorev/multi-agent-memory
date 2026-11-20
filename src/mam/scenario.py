@@ -1,7 +1,7 @@
-"""Типы сценария и (де)сериализация в JSON (разделы 3 и 7 спецификации).
+"""Scenario types and (de)serialization to JSON (sections 3 and 7 of the specification).
 
-Сценарий — это воспроизводимая история работы нескольких агентов (сессии и события),
-ключ правильных ответов (факты) и контрольные точки, в которых проверяют память.
+A scenario is a reproducible history of the work of several agents (sessions and events),
+a key of correct answers (facts) and checkpoints at which the memory is checked.
 """
 from __future__ import annotations
 
@@ -15,109 +15,109 @@ from .types import Fact
 
 @dataclass
 class ActionPattern:
-    """Шаблон действия агента: совпадает, если инструмент тот же, а в аргументах есть заданные значения."""
-    tool: str  # имя инструмента: read_document | read_status | update_record
-    args: dict  # значения, которые должны быть в аргументах вызова, например {"field": "atlas.budget_usd"}
+    """Action template of an agent: matches if the tool is the same and the arguments contain the given values."""
+    tool: str  # tool name: read_document | read_status | update_record
+    args: dict  # values that must be in the call's arguments, e.g. {"field": "atlas.budget_usd"}
 
 
 @dataclass
 class Event:
-    """Одно событие истории: реплика пользователя, ответ инструмента или заметка агента."""
-    id: str  # уникален: "e-NNNN" для базовых событий, "x-NNNN" для событий фактора
+    """One event of the history: a user utterance, a tool response or an agent note."""
+    id: str  # unique: "e-NNNN" for base events, "x-NNNN" for factor events
     type: str  # user_message | tool_data | note
-    text: str  # что говорит событие; для tool_data — текст, который вернул инструмент
+    text: str  # what the event says; for tool_data — the text the tool returned
     author: str  # user | planner | worker | reviewer | tool
-    scope: str  # task | shared | private; private — черновик, который видит только его автор
-    tool: str | None  # только для tool_data: read_document | read_status; иначе None
-    args: dict | None  # только для tool_data: аргументы этого вызова, например {"doc_id": "D-12"}
-    facts: list[str]  # id фактов эталона (oracle), о которых сообщает событие; ключ для экстрактора и оценки
-    factor: bool  # True, если событие добавил фактор категории
+    scope: str  # task | shared | private; private is a draft that only its author sees
+    tool: str | None  # only for tool_data: read_document | read_status; otherwise None
+    args: dict | None  # only for tool_data: the arguments of this call, e.g. {"doc_id": "D-12"}
+    facts: list[str]  # ids of reference facts (oracle) that the event reports; the key for the extractor and for evaluation
+    factor: bool  # True if the event was added by the category's factor
 
 
 @dataclass
 class Session:
-    """Группа событий одной рабочей сессии; между сессиями у агентов нет своей памяти."""
-    index: int  # номер сессии, с 1
-    events: list[Event]  # в том порядке, в котором память их получает
+    """A group of events of one work session; agents have no memory of their own between sessions."""
+    index: int  # session number, from 1
+    events: list[Event]  # in the order in which the memory receives them
 
 
 @dataclass
 class Constraint:
-    """Стоячее ограничение пользователя («никогда не делай X»); проверяется в категории C2."""
-    id: str  # например "k-0001"
-    text: str  # формулировка ограничения пользователя
-    introduced_in: int  # номер сессии, в которой пользователь его называет
-    event_id: str  # id события user_message, в котором оно названо
-    forbidden: list[ActionPattern]  # действия, которые нарушили бы ограничение
+    """A standing user constraint ("never do X"); checked in category C2."""
+    id: str  # e.g. "k-0001"
+    text: str  # the user's wording of the constraint
+    introduced_in: int  # number of the session in which the user names it
+    event_id: str  # id of the user_message event in which it is named
+    forbidden: list[ActionPattern]  # actions that would violate the constraint
 
 
 @dataclass
 class CheckpointContext:
-    """Требования к контексту памяти (уровень контекста): что в нём должно и не должно быть."""
-    present: list[str] = field(default_factory=list)  # должны быть в собранном контексте
-    absent: list[str] = field(default_factory=list)  # не должны появиться в контексте нигде
-    absent_outside_quoted: list[str] = field(default_factory=list)  # допустимы только внутри элементов quoted_data
-    disputed_both: list[list[str]] = field(default_factory=list)  # пары значений: обе должны быть в контексте и помечены спорными
+    """Requirements on the memory context (context level): what it must and must not contain."""
+    present: list[str] = field(default_factory=list)  # must be in the assembled context
+    absent: list[str] = field(default_factory=list)  # must not appear anywhere in the context
+    absent_outside_quoted: list[str] = field(default_factory=list)  # allowed only inside quoted_data items
+    disputed_both: list[list[str]] = field(default_factory=list)  # pairs of values: both must be in the context and marked disputed
 
 
 @dataclass
 class CheckpointAnswer:
-    """Требования к ответу агента (уровень действия)."""
-    expect: str | None = None  # ожидаемый ответ (только для оценки); None, если значение не ожидается
-    stale: list[str] = field(default_factory=list)  # замещённые значения, которых не должно быть в ответе
-    disputed: bool = False  # True, если ответ должен содержать DISPUTED
+    """Requirements on the agent's answer (action level)."""
+    expect: str | None = None  # expected answer (for evaluation only); None if no value is expected
+    stale: list[str] = field(default_factory=list)  # replaced values that must not be in the answer
+    disputed: bool = False  # True if the answer must contain DISPUTED
 
 
 @dataclass
 class CheckpointAction:
-    """Требования к действиям агента с инструментами."""
-    forbidden: list[ActionPattern] = field(default_factory=list)  # действия, которых не должно быть (только для оценки)
-    required: list[ActionPattern] = field(default_factory=list)  # действия, которые должны быть (только для оценки)
+    """Requirements on the agent's actions with tools."""
+    forbidden: list[ActionPattern] = field(default_factory=list)  # actions that must not occur (evaluation only)
+    required: list[ActionPattern] = field(default_factory=list)  # actions that must occur (evaluation only)
 
 
 @dataclass
 class Checkpoint:
-    """Контрольная точка: вопрос агенту в заданный момент и ключ для его автоматической проверки."""
-    id: str  # "cp-N" для базовых контрольных точек, "cpx-N" для контрольных точек фактора
-    session: int  # номер сессии, в которой задан вопрос
-    role: str  # planner | worker | reviewer: чей контекст памяти проверяется
-    task_text: str  # вопрос, который получает агент; поля ниже ему не показываются
-    kind: str  # что проверяется: value | constraint | conflict | isolation | injection
-    context: CheckpointContext  # что контекст памяти должен или не должен содержать
-    answer: CheckpointAnswer  # ожидаемый ответ (только для оценки)
-    action: CheckpointAction  # ожидаемые и запрещённые действия (только для оценки)
-    required_events: list[str]  # id событий, в которых есть ответ; достаточно любого одного
-    factor: bool  # True, если контрольную точку добавил фактор категории
+    """Checkpoint: a question to the agent at a given moment and the key for its automatic check."""
+    id: str  # "cp-N" for base checkpoints, "cpx-N" for factor checkpoints
+    session: int  # number of the session in which the question is asked
+    role: str  # planner | worker | reviewer: whose memory context is checked
+    task_text: str  # the question the agent receives; the fields below are not shown to it
+    kind: str  # what is checked: value | constraint | conflict | isolation | injection
+    context: CheckpointContext  # what the memory context must or must not contain
+    answer: CheckpointAnswer  # expected answer (evaluation only)
+    action: CheckpointAction  # expected and forbidden actions (evaluation only)
+    required_events: list[str]  # ids of events that carry the answer; any one of them is enough
+    factor: bool  # True if the checkpoint was added by the category's factor
 
 
 @dataclass
 class Scenario:
-    """Один сценарий бенчмарка. Полный формат: docs/SCENARIO_FORMAT.md, раздел 3."""
-    id: str  # уникален: "<category>-<split>-<number>", например "C3-eval-0000"
-    category: str  # C0 контроль, C1 обновление, C2 ограничение, C3 конфликт, C4 изоляция, C5 инъекция, C6 длинная история
-    split: str  # dev (настройка), eval (основные результаты), holdout (трудные случаи)
-    seed: int  # seed генератора; вместе с category, variant и n_sessions однозначно задаёт файл побайтно
-    variant: str  # C1 и C3: explicit | implicit; иначе none
-    resolution: str  # только C3: later_event | authority | disputed; иначе none
-    n_sessions: int  # 10 в C0–C5; 10, 20 или 30 в C6
-    sessions: list[Session]  # история, которая передаётся памяти в этом порядке
-    facts: list[Fact]  # ключ ответов: все истинные факты мира, включая замещённые
-    constraints: list[Constraint]  # ограничения пользователя (C2)
-    checkpoints: list[Checkpoint]  # вопросы с их ключами ответов
+    """One benchmark scenario. Full format: docs/SCENARIO_FORMAT.md, section 3."""
+    id: str  # unique: "<category>-<split>-<number>", e.g. "C3-eval-0000"
+    category: str  # C0 control, C1 update, C2 constraint, C3 conflict, C4 isolation, C5 injection, C6 long history
+    split: str  # dev (tuning), eval (main results), holdout (hard cases)
+    seed: int  # generator seed; together with category, variant and n_sessions it determines the file byte for byte
+    variant: str  # C1 and C3: explicit | implicit; otherwise none
+    resolution: str  # only C3: later_event | authority | disputed; otherwise none
+    n_sessions: int  # 10 in C0–C5; 10, 20 or 30 in C6
+    sessions: list[Session]  # the history passed to the memory, in this order
+    facts: list[Fact]  # the key of answers: all true facts of the world, including replaced ones
+    constraints: list[Constraint]  # user constraints (C2)
+    checkpoints: list[Checkpoint]  # questions with their answer keys
 
 
 def to_dict(scenario: Scenario) -> dict:
-    """Сценарий в обычный dict (вложенные dataclass разворачиваются рекурсивно)."""
+    """The scenario as a plain dict (nested dataclasses are unfolded recursively)."""
     return dataclasses.asdict(scenario)
 
 
 def _patterns(items: list[dict]) -> list[ActionPattern]:
-    """Список dict из JSON -> список ActionPattern."""
+    """List of dicts from JSON -> list of ActionPattern."""
     return [ActionPattern(**p) for p in items]
 
 
 def from_dict(d: dict) -> Scenario:
-    """Обратное к to_dict: вложенные структуры собираем вручную, потому что Event(**e) и т. п. сами их не создают."""
+    """The inverse of to_dict: nested structures are assembled by hand, because Event(**e) and the like do not create them themselves."""
     sessions = [Session(index=s["index"], events=[Event(**e) for e in s["events"]]) for s in d["sessions"]]
     constraints = [
         Constraint(id=c["id"], text=c["text"], introduced_in=c["introduced_in"], event_id=c["event_id"],
@@ -140,8 +140,8 @@ def from_dict(d: dict) -> Scenario:
 
 
 def dumps(scenario: Scenario) -> str:
-    """JSON-текст сценария. sort_keys и фиксированный отступ дают одинаковый результат при каждом запуске
-    (нужна побайтовая воспроизводимость); ensure_ascii=False оставляет кириллицу читаемой."""
+    """JSON text of the scenario. sort_keys and a fixed indent give the same result on every run
+    (byte-for-byte reproducibility is needed); ensure_ascii=False keeps non-ASCII text readable."""
     return json.dumps(to_dict(scenario), sort_keys=True, indent=2, ensure_ascii=False) + "\n"
 
 
@@ -150,7 +150,7 @@ def loads(text: str) -> Scenario:
 
 
 def dump(scenario: Scenario, path) -> None:
-    """Пишем байтами, чтобы переводы строк не зависели от ОС."""
+    """We write bytes so that line breaks do not depend on the OS."""
     Path(path).write_bytes(dumps(scenario).encode("utf-8"))
 
 

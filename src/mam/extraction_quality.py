@@ -1,4 +1,4 @@
-"""Качество сохранённых извлечений относительно эталона (гипотеза H2: неявные обновления могут пропускаться).
+"""Quality of the saved extractions against the reference (hypothesis H2: implicit updates may be skipped).
 
   python -m mam.extraction_quality <cache.jsonl> <data-dir>
 """
@@ -13,13 +13,13 @@ from mam.scenario import load
 from mam.simulate import entries
 
 def quality(cache_path, data_dir) -> dict:
-    """Счётчики tp, fp и fn по (вид обновления, часть) на тройках (entity, attribute, value).
+    """Counts tp, fp and fn by (kind of update, part) over the triples (entity, attribute, value).
 
-    tp — факт найден и верен; fp — найден лишний или неверный; fn — ожидался, но пропущен.
-    part = "update" для фактов событий-факторов (id начинается с x-) и "base" для остальных.
-    Если извлечение записи было отклонено (refusal), все её ожидаемые факты считаются пропущенными.
+    tp — fact found and correct; fp — found extra or incorrect; fn — expected but missed.
+    part = "update" for the facts of factor events (id starts with x-) and "base" for the others.
+    If the extraction of a record was rejected (refusal), all its expected facts count as missed.
     """
-    # Читаем кеш: по ключу (задача, запись) храним строку извлечения; сводки (summary) пропускаем.
+    # Read the cache: by key (task, record) we store the extraction line; summaries are skipped.
     rows = {}
     for line in Path(cache_path).read_text(encoding="utf-8").splitlines():
         if line.strip():
@@ -28,7 +28,7 @@ def quality(cache_path, data_dir) -> dict:
                 rows[(r["task_id"], r["entry_id"])] = r
     out: dict = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
     refusals = 0
-    # task_id имеет вид "task-<id сценария>", отрезаем префикс "task-" (5 символов).
+    # task_id has the form "task-<scenario id>"; cut off the prefix "task-" (5 characters).
     scenarios = sorted({t[5:] for t, _ in rows})
     for sid in scenarios:
         s = load(Path(data_dir) / f"{sid}.json")
@@ -36,7 +36,7 @@ def quality(cache_path, data_dir) -> dict:
         for e in entries(s):
             row = rows.get((f"task-{sid}", e.id))
             if row is None:
-                continue  # запись не извлекалась — в оценку не входит
+                continue  # the record was not extracted — not part of the evaluation
             part = "update" if e.id.startswith("x-") else "base"
             expected = {(f.entity, f.attribute, f.value) for f in e.oracle_facts}
             got = set() if row["refusal"] else {(f["entity"], f["attribute"], f["value"]) for f in row["facts"]}
@@ -46,17 +46,17 @@ def quality(cache_path, data_dir) -> dict:
             bucket["fp"] += len(got - expected)
             bucket["fn"] += len(expected - got)
     result = dict(out)
-    # Служебный ключ (не кортеж), чтобы render() отличал его от строк таблицы.
+    # Service key (not a tuple), so that render() tells it apart from the table rows.
     result["_refusals"] = refusals
     return result
 
 def render(q: dict) -> str:
-    """Таблица в Markdown: точность (precision) и полнота (recall) по каждой группе."""
+    """Table in Markdown: precision and recall for each group."""
     lines = ["| kind of update | part | expected | found | wrong | missed | precision | recall |", "|---|---|---|---|---|---|---|---|"]
     for key in sorted(k for k in q if isinstance(k, tuple)):
         c = q[key]
-        # precision = tp/(tp+fp): доля найденного, что верно. recall = tp/(tp+fn): доля ожидаемого, что найдено.
-        # Если делить не на что — nan, а не 0, чтобы «нет данных» не выглядело как «плохо».
+        # precision = tp/(tp+fp): the share of what was found that is correct. recall = tp/(tp+fn): the share of what was expected that was found.
+        # If there is nothing to divide — nan, not 0, so that "no data" does not look like "bad".
         p = c["tp"] / (c["tp"] + c["fp"]) if c["tp"] + c["fp"] else float("nan")
         r = c["tp"] / (c["tp"] + c["fn"]) if c["tp"] + c["fn"] else float("nan")
         lines.append(f"| {key[0]} | {key[1]} | {c['tp'] + c['fn']} | {c['tp']} | {c['fp']} | {c['fn']} | {p:.3f} | {r:.3f} |")

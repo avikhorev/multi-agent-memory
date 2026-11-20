@@ -1,4 +1,4 @@
-"""Симулятор инструментов и лента записей памяти (раздел 4 спецификации)."""
+"""Tool simulator and the memory entry stream (section 4 of the specification)."""
 from __future__ import annotations
 
 import json
@@ -7,67 +7,67 @@ from .scenario import Scenario
 from .types import Entry
 
 def _key(tool: str, args: dict) -> tuple[str, str]:
-    """Ключ поиска ответа: имя инструмента и аргументы в каноническом виде
-    (sort_keys, чтобы порядок аргументов не влиял на совпадение)."""
+    """Key of the answer lookup: the tool name and the arguments in canonical form
+    (sort_keys, so that the order of the arguments does not affect the match)."""
     return (tool, json.dumps(args, sort_keys=True))
 
 class Simulator:
-    """Возвращает tool_data сценария по паре (инструмент, аргументы); update_record только пишет в журнал действий.
+    """Returns the tool_data of the scenario by the pair (tool, arguments); update_record only writes to the action journal.
 
-    Нужен, чтобы агент мог «вызывать инструменты» без реальных систем: все ответы
-    заранее записаны в сценарии, поэтому прогон воспроизводим.
+    Needed so that the agent can "call tools" without real systems: all responses
+    are recorded in the scenario in advance, so the run is reproducible.
     """
 
     def __init__(self, scenario: Scenario):
-        # Таблица готовых ответов: берём все события tool_data из всех сессий.
+        # Table of ready answers: take all tool_data events from all sessions.
         self._data = {_key(e.tool, e.args): e.text
                       for sess in scenario.sessions for e in sess.events if e.type == "tool_data"}
-        # Журнал изменяющих вызовов; по нему потом проверяется, что агент сделал.
+        # Journal of modifying calls; it is later used to check what the agent did.
         self.action_log: list[dict] = []
 
     def call(self, tool: str, args: dict) -> str:
         if tool == "update_record":
-            # Запись ничего не меняет в данных, но фиксируется для оценки действий агента.
+            # The record changes nothing in the data, but it is logged for the evaluation of the agent's actions.
             self.action_log.append({"tool": tool, "args": dict(args)})
             return "OK: change recorded"
         text = self._data.get(_key(tool, args))
         if text is None:
-            # Агент позвал то, чего в сценарии нет: возвращаем ошибку, а не выдумываем данные.
+            # The agent called something that is not in the scenario: return an error, do not invent data.
             return f"ERROR: no data for {tool} {json.dumps(args, sort_keys=True)}"
         return text
 
 def entries(scenario: Scenario) -> list[Entry]:
-    """Одна запись Entry на каждое событие в порядке ленты; часы растут на 1 за запись.
+    """One Entry record per event in stream order; the clock grows by 1 per record.
 
-    Здесь же решается, чему доверять (trust) и откуда запись (source):
-    это определяет, как система памяти обработает запись дальше.
+    Here it is also decided what to trust (trust) and where the record comes from (source):
+    this determines how the memory system will process the record further.
     """
     facts = {f.id: f for f in scenario.facts}
     task_id = f"task-{scenario.id}"
     out: list[Entry] = []
     clock = 0
     for sess in scenario.sessions:
-        # Какое событие tool_data породило данный факт (по id факта) — нужно, чтобы
-        # узнать происхождение заметки агента, пересказывающей вывод инструмента.
+        # Which tool_data event produced this fact (by the fact id) — needed to
+        # find the origin of an agent note that restates the tool's output.
         tool_events = {fid: e for e in sess.events if e.type == "tool_data" for fid in e.facts}
         for e in sess.events:
             clock += 1
             origin = None
             if e.type == "user_message":
-                # Сообщение пользователя — самый доверенный источник.
+                # A user message is the most trusted source.
                 kind, source, trust = "user_message", "user", "trusted"
             elif e.type == "tool_data":
-                # Данные инструментов и документов — недоверенные: в них может быть внедрена инструкция.
+                # Tool and document data are untrusted: an instruction may be injected into them.
                 kind, source, trust = (("document", "document", "untrusted") if e.tool == "read_document"
                                        else ("tool_output", "tool", "untrusted"))
             else:
-                # Остальное — записи самого агента: личный черновик или общая заметка.
+                # The rest are the agent's own records: a personal draft or a shared note.
                 kind = "draft" if e.scope == "private" else "agent_note"
                 source, trust = "agent", "agent"
                 srcs = [tool_events.get(fid) for fid in e.facts]
                 if e.facts and all(srcs) and len({x.id for x in srcs}) == 1:
-                    # Заметка целиком пересказывает один источник: наследуем его происхождение
-                    # и недоверие, чтобы заметка не «отмыла» недоверенные данные.
+                    # A note that restates one source entirely inherits its origin
+                    # and its distrust, so that the note does not "launder" untrusted data.
                     origin = srcs[0].id
                     source = "document" if srcs[0].tool == "read_document" else "tool"
                     trust = "untrusted"

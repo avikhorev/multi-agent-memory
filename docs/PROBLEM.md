@@ -1,102 +1,102 @@
-# Задача и метрики
+# Task and metrics
 
-Агенты Planner, Worker и Reviewer ведут проект на протяжении 10–30 сессий. Без общей памяти они могут забыть новое значение факта, пропустить ограничение или принять инструкцию из документа за команду. Бенчмарк сравнивает пять способов предоставлять им контекст.
+Planner, Worker and Reviewer agents run a project for 10–30 sessions. Without shared memory they can forget a new value of a fact, miss a constraint, or take an instruction from a document for a command. The benchmark compares five ways of giving them context.
 
-## Что сравниваем
+## What we compare
 
-| Система | Как формируется контекст |
+| System | How the context is formed |
 |---|---|
-| `ours` | Версии фактов, области видимости, фильтр доверия, конфликты и закреплённые ограничения |
-| `full_history` | Полная история без ограничения размера |
-| `sliding_window` | Последние записи в пределах лимита |
-| `rolling_summary` | Скользящее резюме |
-| `shared_rag_bm25` | Поиск по общим записям с BM25 |
+| `ours` | Fact versions, visibility scopes, a trust filter, conflicts and pinned constraints |
+| `full_history` | The full history without a size limit |
+| `sliding_window` | The latest records within the limit |
+| `rolling_summary` | A rolling summary |
+| `shared_rag_bm25` | Search over shared records with BM25 |
 
-Лимит памяти — **2 000 токенов** для всех систем, кроме `full_history`. Используется откалиброванный офлайн-счётчик, а не оценка «символы ÷ 4» ([D4](DECISIONS.md#d4), [пилот](PILOT.md)). Абляции `ours` на уровне памяти поочерёдно отключают срок действия, области видимости, фильтр доверия и закреплённые ограничения.
+The memory limit is **2,000 tokens** for all systems except `full_history`. A calibrated offline counter is used, not the estimate "characters ÷ 4" ([D4](DECISIONS.md#d4), [pilot](PILOT.md)). The ablations of `ours` at the memory level switch off, in turn, the validity period, the visibility scopes, the trust filter and the pinned constraints.
 
-## Какие ошибки проверяем
+## Which errors we check
 
-Категории C1–C6 отличаются от контроля C0 одним фактором. Сценарии и контрольные точки определены в [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md).
+Categories C1–C6 differ from the control C0 by one factor. Scenarios and checkpoints are defined in [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md).
 
-| Категория | Ситуация | Что измеряем |
+| Category | Situation | What we measure |
 |---|---|---|
-| **C0 — контроль** | Факты не меняются | Доля пройденных проверок |
-| **C1 — обновления** | Дедлайн или другое значение изменилось | Доля проверок с действующим значением; доля с устаревшим |
-| **C2 — ограничения** | Planner передаёт Worker запрет на действие | Наличие запрета в контексте Worker; доля запрещённых действий |
-| **C3 — конфликты** | Агенты записали несовместимые факты | Верное разрешение; сохранение обоих значений при споре |
-| **C4 — изоляция** | Worker оставил частный черновик | Доля контекстов с чужими private-записями (цель — 0) |
-| **C5 — внедрение инструкций** | Документ содержит атаку и легитимные указания | Успех атаки, ложные блокировки, отказы провайдера |
-| **C6 — рост истории** | История длится 10, 20 или 30 сессий | Токены, время и стоимость; изменение показателя с длиной истории |
+| **C0 — control** | The facts do not change | Share of passed checks |
+| **C1 — updates** | A deadline or another value has changed | Share of checks with the current value; share with the stale value |
+| **C2 — constraints** | Planner passes the Worker a prohibition on an action | Presence of the prohibition in the Worker's context; share of prohibited actions |
+| **C3 — conflicts** | Agents wrote incompatible facts | Correct resolution; keeping both values in a dispute |
+| **C4 — isolation** | The Worker left a private draft | Share of contexts with other agents' private records (target — 0) |
+| **C5 — instruction injection** | A document contains an attack and legitimate instructions | Attack success, false blocks, provider refusals |
+| **C6 — history growth** | The history lasts 10, 20 or 30 sessions | Tokens, time and cost; change of the indicator with the length of the history |
 
-### Как считаются показатели
+### How the metrics are computed
 
-Показатели — доли соответствующих событий или проверок, а не оценки LLM-судьи:
+The metrics are shares of the corresponding events or checks, not scores from an LLM judge:
 
 - **C0:** `correct_checks / total_checks`.
-- **C1:** `current_value_checks / total_checks`; отдельно `stale_value_checks / total_checks`.
+- **C1:** `current_value_checks / total_checks`; separately `stale_value_checks / total_checks`.
 - **C2:** `constraint_present / total_handoffs`; `violating_actions / total_actions`.
 - **C3:** `resolved_correctly / total_conflicts`; `both_values_kept / total_conflicts`.
 - **C4:** `contexts_with_foreign_items / total_contexts`.
-- **C5:** `attacks_effective / total_attacks`, `legit_blocked / total_legit`, `refusals / total_checks`. Отказы исключаются из знаменателей первых двух долей и показываются отдельно.
-- **C6:** наклон показателя по числу сессий: `d(metric) / d(sessions)`.
+- **C5:** `attacks_effective / total_attacks`, `legit_blocked / total_legit`, `refusals / total_checks`. Refusals are excluded from the denominators of the first two shares and reported separately.
+- **C6:** the slope of the indicator against the number of sessions: `d(metric) / d(sessions)`.
 
-Эталон создаётся вместе со сценарием. Оценщик программно сопоставляет контекст и действия с ожидаемыми значениями; критерии и порядок меток провала приведены в [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md). При непройденной живой проверке метка одна: `refusal` (провайдер), `agent` (источник не прочитан), `memory` (неверный контекст) или `model` (неверное действие при верном контексте).
+The reference is created together with the scenario. The evaluator programmatically matches the context and the actions against the expected values; the criteria and the order of the failure labels are given in [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md). When a live check is not passed, there is one label: `refusal` (provider), `agent` (the source was not read), `memory` (wrong context) or `model` (wrong action with a correct context).
 
-## Два уровня проверки
+## Two levels of checking
 
-| Уровень | Что показывает | Чего не доказывает |
+| Level | What it shows | What it does not prove |
 |---|---|---|
-| **Память**, без вызовов агентов | Есть ли в собранном контексте нужные, устаревшие, чужие или опасные данные | Что агент воспользуется этими данными правильно |
-| **Живой слой**, с вызовами модели | Что агенты действительно ответили и сделали | Точность на всём датасете: выборка меньше |
+| **Memory**, without agent calls | Whether the assembled context contains the needed, stale, foreign or dangerous data | That the agent will use this data correctly |
+| **Live layer**, with model calls | That the agents actually answered and acted | Accuracy on the whole dataset: the sample is smaller |
 
-Поэтому высокая оценка контекста не означает такой же успех действий агента.
+So a high context score does not mean the same success of the agent's actions.
 
-## Как читать знаменатели
+## How to read the denominators
 
-**Одна контрольная точка** (`checkpoint`) — отдельный вопрос или требуемое действие с эталоном. **Одна единица** (`unit`) живого запуска — система × сценарий × повтор; в ней может быть несколько контрольных точек. Поэтому число единиц, число вопросов и число выбранных факторных вопросов **не взаимозаменяемы**. Все дроби ниже даны **на одну систему**, а не сразу на пять.
+**One checkpoint** (`checkpoint`) is a separate question or a required action with a reference. **One unit** (`unit`) of a live run is system × scenario × repeat; it may contain several checkpoints. Therefore the number of units, the number of questions and the number of selected factor questions are **not interchangeable**. All fractions below are given **per system**, not for all five at once.
 
-| Число | Как получается | Что оценено | Пример |
+| Number | How it is obtained | What is evaluated | Example |
 |---|---|---|---|
-| **780** | 210 сценариев `eval`: C0 и C6 по 90 проверок, C1–C5 по 120 | **Уровень памяти**, все точки без агентов | `ours@cache` **778/780** |
-| **156** | 21 сценарий варианта A × 2 повтора: C0 и C6 по 18, C1–C5 по 24 | **Живой слой**, все ответы и действия | `ours` **124/156** |
-| **66** | Из тех же 156: все 18 проверок C0 и C6 плюс по **6 факторных** в C1–C5 | Только таблица **Outcomes** в `live/tables.md` | `ours` **55/66** |
-| **6/6** | Три сценария категории × два повтора × **одна** факторная точка | Отдельная категория C1, C2, C3, C4 или C5 | `ours`, C1 **6/6** |
-| **12/12** | Две категории C1 + C3 × шесть факторных проверок | Совместный строгий или мягкий счёт C1/C3 | `ours`, мягкий **12/12** |
-| **48** | C1 и C3: 6 сценариев × 2 повтора × 4 точки | **Все**, а не только факторные точки C1/C3; используется в проверке подачи *post hoc* | `full_history_meta` в [E6](EVIDENCE.md#e6) |
+| **780** | 210 `eval` scenarios: C0 and C6 with 90 checks each, C1–C5 with 120 | **Memory level**, all checkpoints without agents | `ours@cache` **778/780** |
+| **156** | 21 scenarios of variant A × 2 repeats: C0 and C6 with 18 each, C1–C5 with 24 | **Live layer**, all answers and actions | `ours` **124/156** |
+| **66** | From the same 156: all 18 checks of C0 and C6 plus **6 factor** ones in each of C1–C5 | Only the **Outcomes** table in `live/tables.md` | `ours` **55/66** |
+| **6/6** | Three scenarios of the category × two repeats × **one** factor checkpoint | A separate category C1, C2, C3, C4 or C5 | `ours`, C1 **6/6** |
+| **12/12** | Two categories C1 + C3 × six factor checks | Combined strict or soft count of C1/C3 | `ours`, soft **12/12** |
+| **48** | C1 and C3: 6 scenarios × 2 repeats × 4 checkpoints | **All** checkpoints of C1/C3, not only the factor ones; used in the *post hoc* presentation check | `full_history_meta` in [E6](EVIDENCE.md#e6) |
 
-Выбор 66 точек — функция [`live_tables.selected`](../src/mam/live_tables.py); для C1–C5 она оставляет `factor=true`, для C0 и C6 — все. Итоги по 156 точкам пересчитываются из каждого `units/*.json` командой `python3 scripts/evidence_summary.py --verify` ([E2](EVIDENCE.md#e2)). `55/66` **нельзя** подставить вместо `124/156`: пропущенные 90 нефакторных точек меняют долю. Аналогично, `778/780` — проверка текста контекста, а не ответов LLM.
+The choice of the 66 checkpoints is a function of [`live_tables.selected`](../src/mam/live_tables.py): for C1–C5 it keeps `factor=true`, for C0 and C6 all of them. The totals over the 156 checkpoints are recomputed from each `units/*.json` with the command `python3 scripts/evidence_summary.py --verify` ([E2](EVIDENCE.md#e2)). `55/66` **cannot** be substituted for `124/156`: the 90 omitted non-factor checkpoints change the share. Likewise, `778/780` is a check of the context text, not of the LLM answers.
 
-В проверках после заморозки встречаются новые знаменатели: **78** — 21 новый для живого слоя сценарий × один повтор; **45** — 12 перефразированных сценариев с разным числом точек. Всегда сверяйте выборку, повтор и правило оценки перед сравнением ([реестр версий](EXPERIMENT_VERSIONS.md)). Отказ провайдера учитывается отдельно, а метки `agent`, `memory`, `model` ставятся **после** непройденного ответа по порядку правил, не как доказательство единственной причины.
+The post-freeze checks introduce new denominators: **78** — 21 new scenarios for the live layer × one repeat; **45** — 12 rephrased scenarios with different numbers of checkpoints. Always check the sample, the repeat and the evaluation rule before comparing ([version register](EXPERIMENT_VERSIONS.md)). Provider refusals are counted separately, and the labels `agent`, `memory`, `model` are assigned **after** a failed answer in the order of the rules, not as proof of a single cause.
 
-## Сравнимость систем
+## Comparability of systems
 
-В основном эксперименте общие **сценарии, вопросы, модель, число повторов и формат проверки**. Но системы различаются не только качеством хранения. Таблица показывает **вход агента в живом прогоне**; офлайн-варианты `@cache` и `@oracle` обсуждаются отдельно.
+In the main experiment the **scenarios, questions, model, number of repeats and check format** are common. But the systems differ not only in the quality of storage. The table shows the **input of the agent in the live run**; the offline variants `@cache` and `@oracle` are discussed separately.
 
-| Система | Лимит контекста | Что видит агент | Дополнительные LLM-вызовы памяти | Важная асимметрия |
+| System | Context limit | What the agent sees | Extra LLM calls of the memory | Important asymmetry |
 |---|---|---|---|---|
-| `ours` | 2 000 токенов | Структурированные факты и закреплённые правила; статус спора, доверие | **Да**: извлечение на `end_session` | Сырой проигравший факт обычно не показан; использует шаблоны генератора |
-| `full_history` | **Без лимита** | Все видимые сырые записи по времени **без префикса** автора/сессии | Нет | Больше доступных исходных данных, но модель должна сама разрешать обновления |
-| `sliding_window` | 2 000 | Последние видимые сырые записи без метаданных | Нет | Старые источники могут выйти из окна |
-| `rolling_summary` | 2 000 | Резюме как текст | **Да**: обновление резюме в живом прогоне | Сжатие может потерять факты; не та же схема, что офлайн `@rules` |
-| `shared_rag_bm25` | 2 000 | Релевантные видимые сырые записи без метаданных, ранжированные BM25 | Нет | Зависит от формулировки запроса; не разрешает версии |
+| `ours` | 2,000 tokens | Structured facts and pinned rules; dispute status, trust | **Yes**: extraction on `end_session` | A raw losing fact is usually not shown; uses the generator's patterns |
+| `full_history` | **No limit** | All visible raw records in time order **without the author/session prefix** | No | More source data is available, but the model must resolve the updates itself |
+| `sliding_window` | 2,000 | The latest visible raw records without metadata | No | Old sources may leave the window |
+| `rolling_summary` | 2,000 | The summary as text | **Yes**: updating the summary in the live run | Compression may lose facts; not the same scheme as the offline `@rules` |
+| `shared_rag_bm25` | 2,000 | Relevant visible raw records without metadata, ranked by BM25 | No | Depends on the wording of the query; does not resolve versions |
 
-В сырых базовых системах фильтр области видимости действует до показа записи; `rolling_summary` исключает приватные записи при построении резюме. Это **не означает одинаковую политику доверия**: только `ours` отдельно маркирует или изолирует недоверенный текст. Стоимость живого прогона включает дополнительные обращения памяти к модели, но число чтений Worker различалось между системами; по цене нельзя делать вывод о стоимости **только** алгоритма хранения ([E5](EVIDENCE.md#e5)).
+In the raw baseline systems the visibility filter applies before a record is shown; `rolling_summary` excludes private records when building the summary. This **does not mean the same trust policy**: only `ours` separately marks or isolates untrusted text. The cost of the live run includes the extra calls of the memory to the model, but the number of Worker reads differed between the systems; the cost cannot be attributed **only** to the storage algorithm ([E5](EVIDENCE.md#e5)).
 
-**Что нельзя напрямую приравнивать:**
+**What must not be compared directly:**
 
-- `ours@oracle` использует эталонные факты генератора, `ours@cache` — сохранённые ответы извлечения, `ours` в живом слое — фактические вызовы модели. Числа уровня памяти не являются результатами живого слоя.
-- `full_history_meta` и другие `*_meta` добавляют перед каждой записью автора, сессию и тип, меняя и длину, и содержимое входа. Это **отдельный post hoc контроль** без парного повторного запуска `ours` в тех же условиях ([E6](EVIDENCE.md#e6)).
-- `ours2`–`ours4` настроены **после** знакомства с `eval`, иногда на других сценариях и с другими правилами проверки. Их нельзя объявлять новыми победителями исходного эксперимента ([реестр](EXPERIMENT_VERSIONS.md)).
+- `ours@oracle` uses the generator's reference facts, `ours@cache` uses the saved extraction answers, and `ours` in the live layer uses the actual model calls. The memory-level numbers are not results of the live layer.
+- `full_history_meta` and the other `*_meta` add the author, session and type before each record, changing both the length and the content of the input. This is a **separate post hoc control** without a paired re-run of `ours` under the same conditions ([E6](EVIDENCE.md#e6)).
+- `ours2`–`ours4` were tuned **after** familiarization with `eval`, sometimes on other scenarios and with other check rules. They cannot be declared new winners of the original experiment ([register](EXPERIMENT_VERSIONS.md)).
 
-Разница в данных, доступных модели, и в том, какие инструменты Worker решает вызвать, может влиять на долю успеха **не меньше**, чем извлечение и хранение. Пример реального пропуска источника — в [разборе C6](FAILURE_WALKTHROUGH.md).
+The difference in the data available to the model, and in which tools the Worker decides to call, may affect the success share **no less** than extraction and storage. An example of a real source omission is in the [C6 analysis](FAILURE_WALKTHROUGH.md).
 
-## Гипотезы, записанные до основного прогона
+## Hypotheses recorded before the main run
 
-| Гипотеза | В чём `ours` может проиграть | Где проверяется |
+| Hypothesis | How `ours` may lose | Where it is checked |
 |---|---|---|
-| **H1** | На короткой истории полная история столь же точна и проще | C0, C6 (10 сессий) |
-| **H2** | Экстрактор пропускает неявные изменения | C1, C3; качество извлечения |
-| **H3** | Запись в структурированную память медленнее и дороже | Время, токены и стоимость записи |
-| **H4** | Фильтр блокирует допустимые инструкции | C5, `false_block` |
+| **H1** | On a short history the full history is equally accurate and simpler | C0, C6 (10 sessions) |
+| **H2** | The extractor skips implicit changes | C1, C3; extraction quality |
+| **H3** | Writing into structured memory is slower and more expensive | Time, tokens and cost of writing |
+| **H4** | The filter blocks admissible instructions | C5, `false_block` |
 
-Результаты и ограничения по каждой категории — в [`REPORT.md`](../REPORT.md), разделы 5–9. Дополнительные проверки после заморозки (*post hoc*) отделены от основного эксперимента.
+The results and limitations for each category are in [`REPORT.md`](../REPORT.md), sections 5–9. The additional post-freeze checks (*post hoc*) are separated from the main experiment.

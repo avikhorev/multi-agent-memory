@@ -1,45 +1,45 @@
-# Архитектура
+# Architecture
 
-Здесь показан путь данных: сценарий → вызовы агентов → записи в память → контекст → оценка. Основной код — [`live.py`](../src/mam/live.py), [`agents.py`](../src/mam/agents.py) и [`systems/ours.py`](../src/mam/systems/ours.py). Правила интерфейса — в [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md), риски — в [`THREAT_MODEL.md`](THREAT_MODEL.md). **Практический пример** с сохранёнными событиями и ответами агентов — в [`WALKTHROUGH.md`](WALKTHROUGH.md).
+This shows the path of the data: scenario → agent calls → records in memory → context → evaluation. The main code is [`live.py`](../src/mam/live.py), [`agents.py`](../src/mam/agents.py) and [`systems/ours.py`](../src/mam/systems/ours.py). The interface rules are in [`SCENARIO_FORMAT.md`](SCENARIO_FORMAT.md), the risks in [`THREAT_MODEL.md`](THREAT_MODEL.md). A **practical example** with the saved events and agent answers is in [`WALKTHROUGH.md`](WALKTHROUGH.md).
 
-**Навигация:** раздел 1 — вся система; 2 — одна сессия; 3 — запись и чтение `ours`; 4 — разрешение версий; 5–6 — рост контекста и диагностика провалов. Узлы диаграмм содержат ссылки на код в коммите `1811222`; номера строк относятся к нему, а не к текущей версии.
+**Navigation:** section 1 — the whole system; 2 — one session; 3 — writing and reading `ours`; 4 — version resolution; 5–6 — context growth and failure diagnosis. The nodes of the diagrams contain links to the code at commit `1811222`; the line numbers refer to it, not to the current version.
 
-**Визуальная версия:** [статическая карта четырёх этапов](img/visual-story.svg) · [интерактивная экскурсия по реальным трассам](demo/README.md). Mermaid ниже показывает устройство всех компонентов; демо отдельно показывает, какие события **действительно** записаны в выбранном запуске.
+**Visual version:** [static map of the four stages](img/visual-story.svg) · [interactive tour of the real traces](demo/README.md). The Mermaid diagram below shows the structure of all components; the demo separately shows which events were **actually** recorded in the selected run.
 
-## 1. Система целиком
+## 1. The whole system
 
-Между вызовами агенты не сохраняют состояние. Контекст собирает сменяемая реализация [`MemorySystem`](../src/mam/systems/base.py#L21); в [`memory_eval.py`](../src/mam/memory_eval.py) тот же интерфейс проверяется без LLM-агентов.
+Between calls the agents keep no state. The context is assembled by the replaceable implementation [`MemorySystem`](../src/mam/systems/base.py#L21); in [`memory_eval.py`](../src/mam/memory_eval.py) the same interface is checked without LLM agents.
 
 ```mermaid
 flowchart TB
-    scenario["Сценарий<br/>сессии и проверки"] --> loop
+    scenario["Scenario<br/>sessions and checks"] --> loop
 
-    subgraph harness["Живой прогон: run_live"]
-        loop["Цикл сессий"]
-        sim["Simulator<br/>инструменты Worker"]
-        scorer["Оценщик<br/>проверки и метки провалов"]
+    subgraph harness["Live run: run_live"]
+        loop["Session loop"]
+        sim["Simulator<br/>Worker tools"]
+        scorer["Evaluator<br/>checks and failure labels"]
     end
 
-    subgraph memory["Память"]
+    subgraph memory["Memory"]
         api["MemorySystem<br/>write, context, end_session"]
     end
 
-    subgraph agents["Агенты без состояния"]
+    subgraph agents["Stateless agents"]
         planner["Planner"]
         worker["Worker"]
         reviewer["Reviewer"]
     end
 
     llm["LLMClient<br/>ClaudeCliClient<br/>claude-haiku-5-5"]
-    results["Единицы results/live/<br/>таблицы и REPORT.md"]
+    results["Units in results/live/<br/>tables and REPORT.md"]
 
-    loop <-->|"записи и контекст до 2000 токенов"| api
-    loop <-->|"контекст и задача, ответ и действие"| agents
+    loop <-->|"writes and context up to 2000 tokens"| api
+    loop <-->|"context and task, answer and action"| agents
     loop <--> sim
     loop --> scorer
     scorer --> results
     agents --> llm
-    api -.->|"извлечение фактов, только ours"| llm
+    api -.->|"fact extraction, ours only"| llm
 
     click scenario href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/docs/SCENARIO_FORMAT.md"
     click loop href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L130-L203"
@@ -53,132 +53,132 @@ flowchart TB
     click results href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/results/live/main/tables.md"
 ```
 
-## 2. Одна сессия
+## 2. One session
 
-За сессию модель вызывается четыре раза: Planner (1), Worker (2), Reviewer (1). Worker сначала выбирает действие, затем получает результат инструмента. **Оба вызова Worker используют один контекст**: прочитанный документ приходит напрямую как результат инструмента. Новые факты `ours` появятся только после `end_session`.
+Per session the model is called four times: Planner (1), Worker (2), Reviewer (1). The Worker first chooses an action, then receives the result of the tool. **Both Worker calls use one context**: the document read comes directly as the tool result. The new facts of `ours` appear only after `end_session`.
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant H as Цикл run_live
-    participant M as Память
+    participant H as run_live loop
+    participant M as Memory
     participant P as Planner
     participant W as Worker
     participant S as Simulator
     participant R as Reviewer
-    participant E as Оценщик
+    participant E as Evaluator
 
-    H->>M: write, сообщения пользователя,<br/>заметки и черновики сценария
+    H->>M: write, user messages,<br/>scenario notes and drafts
 
-    H->>M: context для Planner
-    M-->>H: контекст
-    H->>P: контекст, сообщение, задача
-    P-->>H: задача для Worker, заметки
-    H->>M: write, заметки Planner
+    H->>M: context for Planner
+    M-->>H: context
+    H->>P: context, message, task
+    P-->>H: task for Worker, notes
+    H->>M: write, Planner notes
 
-    H->>M: context для Worker
-    M-->>H: контекст
-    H->>W: контекст, задача, источник этой сессии
-    W-->>H: одно действие
-    alt read_document или read_status
-        H->>S: вызов инструмента
-        S-->>H: текст источника
-        H->>M: write, источник с доверием untrusted
+    H->>M: context for Worker
+    M-->>H: context
+    H->>W: context, task, this session's source
+    W-->>H: one action
+    alt read_document or read_status
+        H->>S: tool call
+        S-->>H: source text
+        H->>M: write, source with trust untrusted
     else update_record
-        H->>S: вызов инструмента
-        S-->>H: результат
+        H->>S: tool call
+        S-->>H: result
     else none
-        Note over H: инструмент не вызван
+        Note over H: no tool called
     end
-    H->>W: тот же контекст и результат инструмента
-    W-->>H: ответ, заметки
-    opt во втором вызове выбран update_record
-        H->>S: вызов инструмента
+    H->>W: same context and tool result
+    W-->>H: answer, notes
+    opt update_record chosen in the second call
+        H->>S: tool call
     end
-    H->>M: write, заметки Worker
+    H->>M: write, Worker notes
 
-    H->>M: context для Reviewer
-    M-->>H: контекст
-    H->>R: контекст и результат на проверку
-    R-->>H: accept или reject, заметки
-    H->>M: write, заметки Reviewer
+    H->>M: context for Reviewer
+    M-->>H: context
+    H->>R: context and result to review
+    R-->>H: accept or reject, notes
+    H->>M: write, Reviewer notes
 
-    H->>E: проверки этой сессии
-    E-->>H: пройдена или нет, метка провала
+    H->>E: this session's checks
+    E-->>H: passed or not, failure label
 
     H->>M: end_session
-    Note over M: ours извлекает факты закрытой сессии
+    Note over M: ours extracts facts of the closed session
 ```
 
-Номера шагов совпадают с номерами на схеме.
+The step numbers match the numbers in the diagram.
 
-| Шаги | Что происходит | Код |
+| Steps | What happens | Code |
 |---|---|---|
-| 1 | запись сообщений и заметок сценария | [`live.py:131-135`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L131-L135) |
-| 2–3 | контекст для Planner | [`live.py:141`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L141) |
-| 4–5 | вызов Planner | [`live.py:142`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L142) |
-| 6 | заметки Planner | [`live.py:143`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L143) |
-| 7–8 | контекст для Worker, один на оба вызова | [`live.py:148`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L148) |
-| 9–10 | первый вызов Worker | [`live.py:151`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L151) |
-| 11–12 | чтение источника | [`live.py:154-155`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L154-L155) |
-| 13 | запись источника как `untrusted` | [`live.py:156-162`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L156-L162) |
-| 14–15 | `update_record` в первом вызове | [`live.py:163-164`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L163-L164) |
-| 16–17 | второй вызов Worker | [`live.py:167`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L167) |
-| 18 | `update_record` во втором вызове | [`live.py:169-171`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L169-L171) |
-| 19 | заметки Worker | [`live.py:172`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L172) |
-| 20–21 | контекст для Reviewer | [`live.py:176`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L176) |
-| 22–23 | вызов Reviewer | [`live.py:177`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L177) |
-| 24 | заметки Reviewer | [`live.py:178`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L178) |
-| 25–26 | проверки и метки провалов | [`live.py:181-198`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L181-L198) |
+| 1 | write of the scenario's messages and notes | [`live.py:131-135`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L131-L135) |
+| 2–3 | context for Planner | [`live.py:141`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L141) |
+| 4–5 | Planner call | [`live.py:142`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L142) |
+| 6 | Planner notes | [`live.py:143`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L143) |
+| 7–8 | context for Worker, one for both calls | [`live.py:148`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L148) |
+| 9–10 | first Worker call | [`live.py:151`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L151) |
+| 11–12 | reading the source | [`live.py:154-155`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L154-L155) |
+| 13 | writing the source as `untrusted` | [`live.py:156-162`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L156-L162) |
+| 14–15 | `update_record` in the first call | [`live.py:163-164`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L163-L164) |
+| 16–17 | second Worker call | [`live.py:167`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L167) |
+| 18 | `update_record` in the second call | [`live.py:169-171`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L169-L171) |
+| 19 | Worker notes | [`live.py:172`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L172) |
+| 20–21 | context for Reviewer | [`live.py:176`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L176) |
+| 22–23 | Reviewer call | [`live.py:177`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L177) |
+| 24 | Reviewer notes | [`live.py:178`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L178) |
+| 25–26 | checks and failure labels | [`live.py:181-198`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L181-L198) |
 | 27 | `end_session` | [`live.py:200-201`](https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/live.py#L200-L201) |
 
-**Где искать шаги в коде:** запись и вызовы — [`run_live`](../src/mam/live.py); разбор ответа и роли — [`run_agent`](../src/mam/agents.py); симуляция инструментов — [`simulate.py`](../src/mam/simulate.py); проверки — [`scoring.py`](../src/mam/scoring.py). Номера на диаграмме показывают порядок операций. Пунктир на анимации отмечает прямую передачу задачи между ролями, минуя память.
+**Where to find the steps in the code:** the recording and the calls are in [`run_live`](../src/mam/live.py); the parsing of the answer and the role are in [`run_agent`](../src/mam/agents.py); the tool simulation is in [`simulate.py`](../src/mam/simulate.py); the checks are in [`scoring.py`](../src/mam/scoring.py). The numbers in the diagram show the order of the operations. The dashed line in the animation marks the direct passing of a task between roles, bypassing memory.
 
-![Шаги одной сессии: от сообщений пользователя до end_session, два прямых пути мимо памяти](img/session-steps.svg)
+![Steps of one session: from user messages to end_session, two direct paths around memory](img/session-steps.svg)
 
-## 3. Память `ours`
+## 3. Memory `ours`
 
-`write` сохраняет исходную запись. `end_session` извлекает факты и ограничения, а `context` выбирает доступные читателю версии и собирает текст в пределах лимита. **Текущее значение вычисляется при чтении**, после фильтра видимости.
+`write` saves the original record. `end_session` extracts the facts and constraints, and `context` selects the versions available to the reader and assembles the text within the limit. **The current value is computed at read time**, after the visibility filter.
 
-Память `ours` существует только в оперативной памяти одной единицы прогона. Она не восстанавливается из файлов: раннер сохраняет на диск итоги и трассы, но не её состояние.
+The memory `ours` exists only in the RAM of one run unit. It is not restored from files: the runner saves the results and traces to disk, but not its state.
 
-![Путь записи через память ours: шесть шагов от write до диска](img/memory-flow.svg)
+![Write path through memory ours: six steps from write to disk](img/memory-flow.svg)
 
-Для чтения важен порядок: **закреплённые ограничения → факты → фрагменты**. Неподходящие по области видимости записи и карантин исключаются. Если ограничения не помещаются в лимит, система сообщает об ошибке, а не обрезает их.
+For reading the order matters: **pinned constraints → facts → fragments**. Records unsuitable for the scope and quarantined records are excluded. If the constraints do not fit within the limit, the system reports an error instead of cutting them.
 
 ```mermaid
 flowchart TB
-    subgraph writing["Запись"]
-        entry["write: запись сохраняется"]
-        close["end_session: записи сессии по порядку clock"]
-        extractor["Экстрактор<br/>факты с датой и источником"]
-        rule["rule_constraints<br/>только доверенные записи"]
-        guard["split_untrusted<br/>разбор по строкам"]
+    subgraph writing["Writing"]
+        entry["write: the record is saved"]
+        close["end_session: session records in clock order"]
+        extractor["Extractor<br/>facts with date and source"]
+        rule["rule_constraints<br/>trusted records only"]
+        guard["split_untrusted<br/>split by lines"]
         entry --> close
         close --> extractor
         close --> rule
-        close -->|"недоверенные документы<br/>и выводы инструментов"| guard
+        close -->|"untrusted documents<br/>and tool outputs"| guard
     end
 
-    subgraph stores["Хранилища"]
-        versions["Версии фактов<br/>по ключу entity и attribute"]
-        constraints["Закреплённые ограничения"]
-        fragments["Фрагменты quoted_data"]
-        quarantine["Карантин<br/>в контекст не попадает"]
+    subgraph stores["Stores"]
+        versions["Fact versions<br/>by entity and attribute key"]
+        constraints["Pinned constraints"]
+        fragments["quoted_data fragments"]
+        quarantine["Quarantine<br/>does not enter the context"]
     end
 
     extractor --> versions
     rule --> constraints
-    guard -->|"значение не извлечено как факт"| fragments
-    guard -->|"похоже на инструкцию"| quarantine
+    guard -->|"value not extracted as a fact"| fragments
+    guard -->|"looks like an instruction"| quarantine
 
-    subgraph reading["Чтение: context"]
-        scope["Фильтр видимости<br/>private, task, shared"]
-        first["Ограничения идут первыми<br/>ошибка, если не помещаются в лимит"]
-        resolve["Факты<br/>разрешение версий, метки DISPUTED и data"]
-        rest["Фрагменты"]
-        rank["Отбор по BM25 и времени<br/>сначала факты, затем фрагменты"]
-        limit["Заполнение до 2000 токенов"]
+    subgraph reading["Reading: context"]
+        scope["Visibility filter<br/>private, task, shared"]
+        first["Constraints go first<br/>error if they do not fit the limit"]
+        resolve["Facts<br/>version resolution, DISPUTED and data labels"]
+        rest["Fragments"]
+        rank["Selection by BM25 and time<br/>facts first, then fragments"]
+        limit["Filling up to 2000 tokens"]
         scope --> first
         scope --> resolve
         scope --> rest
@@ -209,46 +209,46 @@ flowchart TB
     click limit href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L186-L190"
 ```
 
-[`split_untrusted`](../src/mam/guard.py#L29) пропускает обычные строки как данные и убирает строки с признаками инъекции в карантин; извлечённый факт хранится отдельно от исходного текста. Пример в анимации иллюстративный.
+[`split_untrusted`](../src/mam/guard.py#L29) passes ordinary lines through as data and moves lines with signs of injection into quarantine; the extracted fact is stored separately from the source text. The example in the animation is illustrative.
 
-![Три строки документа проходят через фильтр: факт, данные и карантин](img/injection-guard.svg)
+![Three lines of a document pass through the filter: a fact, data and quarantine](img/injection-guard.svg)
 
-Пример реальной сборки контекста на одном вопросе — `C1-eval-0012` из `data/eval`; для `ours` использован сохранённый кеш экстрактора.
+An example of a real context assembly for one question — `C1-eval-0012` from `data/eval`; for `ours` the saved extractor cache was used.
 
-![Контекст ours, full_history и shared_rag_bm25 на один вопрос о текущем значении](img/same-question.svg)
+![Context of ours, full_history and shared_rag_bm25 for one question about the current value](img/same-question.svg)
 
-**Итерации после заморозки** находятся в `scripts/` и не меняют основной `src/mam`:
+**Post-freeze iterations** are in `scripts/` and do not change the main `src/mam`:
 
-| Вариант | Что добавлено | Код |
+| Variant | What is added | Code |
 |---|---|---|
-| `ours2` | буфер записей открытой сессии; остаток лимита заполняется старыми записями по BM25, кроме недоверенных и записей с проигравшими значениями; недоверенное значение новее доверенного показывается как спор | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py) |
-| `ours3` | проигравшие значения заменяются на `[outdated]`, запись остаётся; заполнение до 300 токенов | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py) |
-| `ours4` | экстрактор возвращает и ограничения; принимаются только из доверенных записей и объединяются с результатом правила | [`scripts/post_hoc_ours4.py`](../scripts/post_hoc_ours4.py) |
+| `ours2` | a buffer of the records of the open session; the rest of the limit is filled with old records by BM25, except untrusted ones and records with losing values; an untrusted value newer than a trusted one is shown as a dispute | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py) |
+| `ours3` | losing values are replaced by `[outdated]`, the record stays; filling up to 300 tokens | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py) |
+| `ours4` | the extractor also returns constraints; accepted only from trusted records and merged with the rule's result | [`scripts/post_hoc_ours4.py`](../scripts/post_hoc_ours4.py) |
 
-Порядок под лимитом у `ours2`–`ours4`: ограничения, буфер, факты, фрагменты, заполнение.
+The order under the limit for `ours2`–`ours4`: constraints, buffer, facts, fragments, filling.
 
-## 4. Разрешение конфликта
+## 4. Conflict resolution
 
-`_resolve` обходит видимые версии в порядке записи. При разных значениях он учитывает доверие, время события, затем авторитет источника (`user` > `tool` > `document` > `agent`). Если время в тексте не указано, версия считается последней. **Результат может зависеть от порядка записи** — см. раздел 9 [`REPORT.md`](../REPORT.md).
+`_resolve` goes through the visible versions in write order. When the values differ, it takes into account trust, the event time, and then the authority of the source (`user` > `tool` > `document` > `agent`). If the time is not stated in the text, the version is considered the last one. **The result may depend on the order of writing** — see section 9 of [`REPORT.md`](../REPORT.md).
 
 ```mermaid
 flowchart TD
-    next["Следующая видимая версия ключа"] --> dated{"Время события<br/>указано в тексте?"}
-    dated -->|"нет"| assume["Считать её последней:<br/>время = максимум + 1"]
-    dated -->|"да"| same
-    assume --> same{"Такое значение<br/>уже действует?"}
-    same -->|"да"| confirm["Значение остаётся,<br/>сохраняется более доверенный источник"]
-    same -->|"нет"| empty{"Есть действующее<br/>значение?"}
-    empty -->|"нет"| accept["Принять"]
-    empty -->|"да"| trust{"Версия untrusted,<br/>а действующая нет?"}
-    trust -->|"да"| rejectTrust["Отклонить: недоверенный источник<br/>не меняет доверенный факт"]
-    trust -->|"нет"| time{"Сравнить время события"}
-    time -->|"новее"| later["Заменить: later_event"]
-    time -->|"старше"| rejectOld["Отклонить: older event"]
-    time -->|"равно"| authority{"Сравнить авторитет"}
-    authority -->|"выше"| replace["Заменить: authority"]
-    authority -->|"ниже"| rejectLow["Отклонить: lower authority"]
-    authority -->|"равен"| disputed["Оставить оба значения:<br/>DISPUTED"]
+    next["Next visible version of the key"] --> dated{"Event time<br/>stated in the text?"}
+    dated -->|"no"| assume["Consider it the last one:<br/>time = maximum + 1"]
+    dated -->|"yes"| same
+    assume --> same{"Is this value<br/>already in effect?"}
+    same -->|"yes"| confirm["The value stays,<br/>the more trusted source is kept"]
+    same -->|"no"| empty{"Is there a value<br/>in effect?"}
+    empty -->|"no"| accept["Accept"]
+    empty -->|"yes"| trust{"Is the version untrusted,<br/>and the current one is not?"}
+    trust -->|"yes"| rejectTrust["Reject: an untrusted source<br/>does not change a trusted fact"]
+    trust -->|"no"| time{"Compare the event time"}
+    time -->|"newer"| later["Replace: later_event"]
+    time -->|"older"| rejectOld["Reject: older event"]
+    time -->|"equal"| authority{"Compare authority"}
+    authority -->|"higher"| replace["Replace: authority"]
+    authority -->|"lower"| rejectLow["Reject: lower authority"]
+    authority -->|"equal"| disputed["Keep both values:<br/>DISPUTED"]
 
     click next href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L104"
     click dated href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L106"
@@ -268,18 +268,18 @@ flowchart TD
     click disputed href "https://github.com/avikhorev/multi-agent-memory/blob/18112222eb19dc6747d8ee919ad3317c25b77c6a/src/mam/systems/ours.py#L130-L132"
 ```
 
-Анимация показывает четыре случая разрешения одного атрибута; значения условные.
+The animation shows four cases of resolving one attribute; the values are illustrative.
 
-![Разрешение конфликта: новее заменяет, недоверенное не заменяет, старое отклоняется, равные остаются как DISPUTED](img/conflict-resolution.svg)
+![Conflict resolution: newer replaces, untrusted does not replace, older is rejected, equal ones stay as DISPUTED](img/conflict-resolution.svg)
 
-## 5. Заполнение контекста
+## 5. Context filling
 
-Рост контекста Worker в 30-сессионном сценарии C6: токены и доля исходных записей, попавших в контекст. Для `ours` доля не сопоставима: система выдаёт факты и фрагменты вместо записей.
+The growth of the Worker's context in the 30-session scenario C6: tokens and the share of the original records that got into the context. For `ours` the share is not comparable: the system outputs facts and fragments instead of records.
 
-![Рост контекста Worker по сессиям: токены в пределах лимита 2000 у четырёх систем](img/context-growth.svg)
+![Growth of the Worker's context by session: tokens within the 2000 limit for four systems](img/context-growth.svg)
 
-## 6. Метка провала
+## 6. Failure label
 
-Для непройденной контрольной точки [`label_failure`](../src/mam/scoring.py#L118) различает отказ провайдера, непрочитанный источник, ошибку контекста и ошибку ответа. Метка `agent` зависит в том числе от системы памяти: её контекст влияет на выбор инструмента.
+For a failed checkpoint, [`label_failure`](../src/mam/scoring.py#L118) distinguishes a provider refusal, an unread source, a context error and an answer error. The label `agent` depends, among other things, on the memory system: its context affects the choice of tool.
 
-![Цепочка проверок, по которой контрольной точке ставится метка провала](img/failure-label.svg)
+![Chain of checks by which a failure label is assigned to a checkpoint](img/failure-label.svg)

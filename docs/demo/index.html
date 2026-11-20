@@ -1,11 +1,11 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <meta name="description" content="Офлайн-демонстрация реальных трасс multi-agent-memory: источник, запись, контекст и оценка.">
-  <title>Путь одного факта · multi-agent-memory</title>
+  <meta name="description" content="Offline replay of real multi-agent-memory traces: source, record, context and evaluation.">
+  <title>One fact's path · multi-agent-memory</title>
   <link rel="stylesheet" href="style.css">
   <script defer src="data.js"></script>
   <script defer src="demo.js"></script>
@@ -17,16 +17,16 @@
         <span class="brand-logo" aria-hidden="true"><span></span><span></span><span></span></span>
         <span>multi-agent-<strong>memory</strong></span>
       </a>
-      <div class="header-right"><span class="status-dot" aria-hidden="true"></span> Чтение сохранённых данных <span class="header-slash">/</span> без LLM</div>
+      <div class="header-right"><span class="status-dot" aria-hidden="true"></span> Reading saved data <span class="header-slash">/</span> no LLM</div>
     </header>
 
     <main>
       <div class="hero-grid">
         <section class="intro" aria-labelledby="page-title">
-          <p class="overline"><span class="overline-line"></span> ИНТЕРАКТИВНЫЙ РАЗБОР / 01</p>
-          <h1 id="page-title">Путь <span>одного факта.</span></h1>
-          <p class="intro-text">От исходного документа до ответа агента. Переключайте систему памяти и шаги, чтобы увидеть, <em>где именно</em> расходятся результаты на одних и тех же сценариях.</p>
-          <div class="hero-tags"><span>3 контрольные точки</span><span>2 системы</span><span>реальный прогон r0</span></div>
+          <p class="overline"><span class="overline-line"></span> INTERACTIVE WALKTHROUGH / 01</p>
+          <h1 id="page-title">The path of <span>one fact.</span></h1>
+          <p class="intro-text">From the source document to the agent's answer. Switch the memory system and the steps to see <em>where exactly</em> results diverge on the same scenarios.</p>
+          <div class="hero-tags"><span>3 checkpoints</span><span>2 systems</span><span>real run r0</span></div>
         </section>
         <div class="hero-aside" aria-hidden="true">
           <div class="hero-orbit orbit-a"></div><div class="hero-orbit orbit-b"></div>
@@ -37,22 +37,22 @@
 
       <section class="workspace" aria-labelledby="workspace-title">
         <div class="workspace-head">
-          <div><p class="section-tag">TRACE EXPLORER</p><h2 id="workspace-title">Посмотрите, что случилось</h2></div>
+          <div><p class="section-tag">TRACE EXPLORER</p><h2 id="workspace-title">See what happened</h2></div>
           <span class="offline-label"><span class="offline-square" aria-hidden="true"></span> OFFLINE REPLAY</span>
         </div>
 
         <div class="config-bar">
           <div class="config-field">
-            <label for="case-select">СЦЕНАРИЙ / ВОПРОС</label>
+            <label for="case-select">SCENARIO / QUESTION</label>
             <select id="case-select" aria-describedby="case-description">
-              <option value="c1-update">C1 · обновление значения</option>
-              <option value="c6-document">C6 · пропущенный документ</option>
-              <option value="c6-status">C6 · пропущенный статус</option>
+              <option value="c1-update">C1 · value update</option>
+              <option value="c6-document">C6 · missed document</option>
+              <option value="c6-status">C6 · missed status</option>
             </select>
           </div>
           <fieldset class="config-field system-field">
-            <legend>СИСТЕМА ПАМЯТИ</legend>
-            <div class="system-switch" role="group" aria-label="Система памяти">
+            <legend>MEMORY SYSTEM</legend>
+            <div class="system-switch" role="group" aria-label="Memory system">
               <button type="button" data-system="ours" aria-pressed="true">ours</button>
               <button type="button" data-system="full_history" aria-pressed="false">full_history</button>
             </div>
@@ -61,19 +61,19 @@
         </div>
         <p id="case-description" class="case-description"></p>
 
-        <div class="overview" aria-label="Краткий итог выбранной трассы">
-          <div class="overview-cell"><span class="metric-label">ЗАПИСЬ ИСТОЧНИКА</span><strong id="metric-source">—</strong><span class="metric-desc" id="metric-source-desc">—</span></div>
-          <div class="overview-cell"><span class="metric-label">КОНТЕКСТ АГЕНТА</span><strong id="metric-tokens">—</strong><span class="metric-desc">токенов в контрольной точке</span></div>
-          <div class="overview-cell"><span class="metric-label">РЕЗУЛЬТАТ ПРОВЕРКИ</span><strong id="metric-outcome">—</strong><span class="metric-desc" id="metric-label">—</span></div>
+        <div class="overview" aria-label="Brief summary of the selected trace">
+          <div class="overview-cell"><span class="metric-label">SOURCE RECORD</span><strong id="metric-source">—</strong><span class="metric-desc" id="metric-source-desc">—</span></div>
+          <div class="overview-cell"><span class="metric-label">AGENT CONTEXT</span><strong id="metric-tokens">—</strong><span class="metric-desc">tokens at the checkpoint</span></div>
+          <div class="overview-cell"><span class="metric-label">CHECK RESULT</span><strong id="metric-outcome">—</strong><span class="metric-desc" id="metric-label">—</span></div>
         </div>
 
         <div class="trace-layout">
-          <section class="trace-main" aria-label="Пошаговая история">
-            <nav class="step-navigation" aria-label="Этапы прохождения факта">
-              <button type="button" class="step-button" data-step="0" aria-controls="step-body"><span class="step-number">01</span><span>Источник</span></button>
-              <button type="button" class="step-button" data-step="1" aria-controls="step-body"><span class="step-number">02</span><span>Память</span></button>
-              <button type="button" class="step-button" data-step="2" aria-controls="step-body"><span class="step-number">03</span><span>Агент</span></button>
-              <button type="button" class="step-button" data-step="3" aria-controls="step-body"><span class="step-number">04</span><span>Оценка</span></button>
+          <section class="trace-main" aria-label="Step-by-step history">
+            <nav class="step-navigation" aria-label="Stages of the fact's path">
+              <button type="button" class="step-button" data-step="0" aria-controls="step-body"><span class="step-number">01</span><span>Source</span></button>
+              <button type="button" class="step-button" data-step="1" aria-controls="step-body"><span class="step-number">02</span><span>Memory</span></button>
+              <button type="button" class="step-button" data-step="2" aria-controls="step-body"><span class="step-number">03</span><span>Agent</span></button>
+              <button type="button" class="step-button" data-step="3" aria-controls="step-body"><span class="step-number">04</span><span>Evaluation</span></button>
             </nav>
 
             <div class="flow-visual" aria-hidden="true">
@@ -87,42 +87,42 @@
             </div>
 
             <div class="story-card" id="step-body" aria-live="polite" aria-atomic="false">
-              <div class="story-titlebar"><span class="story-index" id="step-counter">ШАГ 01 / 04</span><span class="story-path" id="story-path">C1-eval-0000</span></div>
-              <h3 id="step-title">Источник</h3>
+              <div class="story-titlebar"><span class="story-index" id="step-counter">STEP 01 / 04</span><span class="story-path" id="story-path">C1-eval-0000</span></div>
+              <h3 id="step-title">Source</h3>
               <p class="story-lead" id="step-lead"></p>
               <div id="step-content" class="step-content"></div>
             </div>
 
             <div class="player-controls">
               <div class="player-actions">
-                <button type="button" class="control-btn" id="previous" aria-label="Предыдущий этап"><span aria-hidden="true">←</span> Назад</button>
-                <button type="button" class="control-btn play-btn" id="play" aria-label="Воспроизвести этапы">▶ <span>Показать по шагам</span></button>
-                <button type="button" class="control-btn next-btn" id="next">Дальше <span aria-hidden="true">→</span></button>
+                <button type="button" class="control-btn" id="previous" aria-label="Previous stage"><span aria-hidden="true">←</span> Back</button>
+                <button type="button" class="control-btn play-btn" id="play" aria-label="Play stages">▶ <span>Show step by step</span></button>
+                <button type="button" class="control-btn next-btn" id="next">Next <span aria-hidden="true">→</span></button>
               </div>
-              <div class="progress-dots" aria-label="Номер этапа"><span></span><span></span><span></span><span></span></div>
+              <div class="progress-dots" aria-label="Stage number"><span></span><span></span><span></span><span></span></div>
             </div>
           </section>
 
           <aside class="evidence" aria-labelledby="evidence-title">
-            <div class="evidence-header"><span class="square-icon" aria-hidden="true">{ }</span><div><p class="section-tag">EVIDENCE / r0</p><h3 id="evidence-title">Откуда данные</h3></div></div>
-            <p class="evidence-intro">Каждое число, действие и ответ берутся из сохранённых сценариев и трасс. Данные не перегенерируются в браузере.</p>
+            <div class="evidence-header"><span class="square-icon" aria-hidden="true">{ }</span><div><p class="section-tag">EVIDENCE / r0</p><h3 id="evidence-title">Where the data comes from</h3></div></div>
+            <p class="evidence-intro">Every number, action and answer is taken from saved scenarios and traces. The data is not regenerated in the browser.</p>
             <div class="file-links" id="file-links"></div>
             <div class="evidence-divider"></div>
-            <div class="readout"><span class="readout-label">ТЕКУЩАЯ КОНТРОЛЬНАЯ ТОЧКА</span><strong id="checkpoint-id">—</strong><p id="checkpoint-question">—</p></div>
+            <div class="readout"><span class="readout-label">CURRENT CHECKPOINT</span><strong id="checkpoint-id">—</strong><p id="checkpoint-question">—</p></div>
             <div class="evidence-divider"></div>
-            <p class="caveat-heading">ВАЖНО О КОНТЕКСТЕ</p>
-            <p class="caveat">Живой прогон сохраняет <code>item_ids</code> и <code>token_count</code>, но не полный текст контекста. Экран показывает только наблюдаемые идентификаторы, не выдуманную реконструкцию памяти.</p>
+            <p class="caveat-heading">IMPORTANT ABOUT THE CONTEXT</p>
+            <p class="caveat">The live run saves <code>item_ids</code> and <code>token_count</code>, but not the full context text. The screen shows only observed identifiers, not a reconstructed memory.</p>
           </aside>
         </div>
       </section>
 
       <section class="afterword" aria-labelledby="afterword-title">
-        <div><p class="section-tag">NEXT / READ THE CODE</p><h2 id="afterword-title">Диаграмма — начало, не доказательство.</h2><p>Показан один повтор основного прогона, а не средняя точность систем. Успех или провал зависит и от выбора инструментов агентом, и от строгих правил оценщика.</p></div>
-        <div class="afterword-links"><a href="../WALKTHROUGH.md">Разбор успешного C1 <span aria-hidden="true">↗</span></a><a href="../FAILURE_WALKTHROUGH.md">Разбор провала C6 <span aria-hidden="true">↗</span></a><a href="../ARCHITECTURE.md">Архитектура системы <span aria-hidden="true">↗</span></a></div>
+        <div><p class="section-tag">NEXT / READ THE CODE</p><h2 id="afterword-title">The diagram is a starting point, not proof.</h2><p>One repeat of the main run is shown, not the average accuracy of the systems. Success or failure depends both on the agent's choice of tools and on the strict rules of the evaluator.</p></div>
+        <div class="afterword-links"><a href="../WALKTHROUGH.md">Successful C1 walkthrough <span aria-hidden="true">↗</span></a><a href="../FAILURE_WALKTHROUGH.md">Failed C6 walkthrough <span aria-hidden="true">↗</span></a><a href="../ARCHITECTURE.md">System architecture <span aria-hidden="true">↗</span></a></div>
       </section>
     </main>
-    <footer class="footer"><span>multi-agent-memory / visual replay</span><span>Локально · без API · без записи в results/</span></footer>
+    <footer class="footer"><span>multi-agent-memory / visual replay</span><span>Local · no API · no writes to results/</span></footer>
   </div>
-  <noscript><p class="noscript">Для интерактивного просмотра включите JavaScript. <a href="../img/visual-story.svg">Открыть статическую диаграмму</a> или <a href="../WALKTHROUGH.md">прочитать разбор C1</a>.</p></noscript>
+  <noscript><p class="noscript">Enable JavaScript for the interactive view. <a href="../img/visual-story.svg">Open the static diagram</a> or <a href="../WALKTHROUGH.md">read the C1 walkthrough</a>.</p></noscript>
 </body>
 </html>

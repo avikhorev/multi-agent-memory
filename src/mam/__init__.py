@@ -1,1 +1,1 @@
-"""Память для мультиагентной системы и бенчмарк для её оценки."""
+"""Memory for a multi-agent system and a benchmark for evaluating it."""

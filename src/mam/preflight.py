@@ -1,7 +1,7 @@
-"""Проверка доступа перед долгим прогоном: один крошечный вызов и понятное сообщение, если он не удался.
+"""Access check before a long run: one tiny call and a clear message if it failed.
 
-Зачем: долгий прогон на сотнях сценариев не должен падать через час из-за
-отсутствующего ключа или неверной версии CLI. Лучше узнать это за секунды.
+Why: a long run over hundreds of scenarios must not fail an hour in because of a
+missing key or a wrong CLI version. Better to find out in seconds.
 
   python -m mam.preflight
 """
@@ -11,10 +11,10 @@ import sys
 
 from mam.llm import PINNED_CLI_VERSION, ClaudeCliClient, InfrastructureError, LLMError
 
-# Код выхода EX_CONFIG из sysexits.h: «доступа нет, нужна настройка».
+# Exit code EX_CONFIG from sysexits.h: "no access, configuration needed".
 EXIT_NO_ACCESS = 78
 
-# Сообщение (на английском: оно показывается в консоли и может уйти в CI-логи).
+# Message (in English: it is shown in the console and may end up in CI logs).
 NO_ACCESS = (
     "No working access to the model. Do one of the following and run the command again:\n"
     "  - pay by API key: set ANTHROPIC_API_KEY;\n"
@@ -25,18 +25,18 @@ NO_CLI = (f"The `claude` command was not found or has the wrong version. Install
           f"npm install -g @anthropic-ai/claude-code@{PINNED_CLI_VERSION}")
 
 def check_access(client=None, factory=ClaudeCliClient) -> str | None:
-    """None, если тестовый вызов прошёл; иначе текст сообщения для показа.
+    """None if the test call succeeded; otherwise the text of the message to show.
 
-    factory — фабрика клиента; в тестах подставляется заглушка, чтобы не ходить в сеть.
+    factory — the client factory; in tests a stub is substituted so as not to go to the network.
     """
     try:
         client = client or factory()
         client.complete("You are a test endpoint.", [{"role": "user", "content": "Reply with exactly: OK"}], {})
     except (FileNotFoundError, InfrastructureError) as err:
-        # Нет самой программы `claude` или она сломана — это проблема установки.
+        # The `claude` program itself is missing or broken — this is an installation problem.
         return f"{NO_CLI}\n({str(err)[:120]})"
     except LLMError as err:
-        # Программа запустилась, но модель отказала — это проблема доступа/ключа.
+        # The program started, but the model refused — this is an access/key problem.
         return f"{NO_ACCESS}\n(model said: {str(err)[:120]})"
     return None
 
