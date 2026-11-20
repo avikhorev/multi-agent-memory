@@ -5,7 +5,7 @@ import json
 import re
 from pathlib import Path
 
-from mam.extract import make_extractor
+from mam.extractors import make_extractor
 from mam.systems.base import MemorySystem, make_context
 from mam.tokens import count
 from mam.types import Context, ContextItem, Reader

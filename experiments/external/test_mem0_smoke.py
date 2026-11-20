@@ -1,5 +1,5 @@
 """Smoke test of the Mem0 adapter with a stub model (no key, no network except the embedding model download).
-Run: PYTHONPATH=src:external external/.venv-mem0/bin/python -m pytest external/test_mem0_smoke.py -q
+Run: PYTHONPATH=src:experiments/external experiments/external/.venv-mem0/bin/python -m pytest experiments/external/test_mem0_smoke.py -q
 """
 import json
 

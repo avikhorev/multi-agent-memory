@@ -39,16 +39,16 @@ flowchart TB
 
 | Что | Где сейчас | Почему мешает в боевой работе |
 |---|---|---|
-| Закрытый список атрибутов | [`ATTRIBUTES`](../src/mam/extract.py#L191), производный от [`LABELS`](../src/mam/extract.py#L48); 12 имён | Новый параметр не попадёт в память |
-| Отбрасывание неизвестного атрибута | [`LLMExtractor._extract`](../src/mam/extract.py#L288) | Факт пропадает без следа |
-| Свободное имя сущности в правилах | [`extract.py#L122`](../src/mam/extract.py#L122) | Модуль берётся регулярным выражением из текста |
-| Свободное имя сущности у LLM | [`extract.py#L292`](../src/mam/extract.py#L292) | `notifications` и `Notifications` дают два разных слота |
+| Закрытый список атрибутов | [`ATTRIBUTES`](../src/mam/extractors.py#L191), производный от [`LABELS`](../src/mam/extractors.py#L48); 12 имён | Новый параметр не попадёт в память |
+| Отбрасывание неизвестного атрибута | [`LLMExtractor._extract`](../src/mam/extractors.py#L288) | Факт пропадает без следа |
+| Свободное имя сущности в правилах | [`extractors.py#L122`](../src/mam/extractors.py#L122) | Модуль берётся регулярным выражением из текста |
+| Свободное имя сущности у LLM | [`extractors.py#L292`](../src/mam/extractors.py#L292) | `notifications` и `Notifications` дают два разных слота |
 | Ключ слота из сырых строк | [`ours.py#L75`](../src/mam/systems/ours.py#L75), ключ `(entity, attribute)` | Одно поле под разными именами расщепляет версии (см. [D39](DECISIONS.md#d39)) |
 | Значения строками | [`_norm`](../src/mam/systems/ours.py#L22) убирает регистр, пробелы и запятые | Нет типов: даты в разных форматах не равны, деньги не упорядочиваются |
-| Время события — номер дня или `-1` | [`DAY_ZERO`](../src/mam/extract.py#L17), [`UNKNOWN_TIME`](../src/mam/extract.py#L18) | Нужна метка времени самого сообщения |
+| Время события — номер дня или `-1` | [`DAY_ZERO`](../src/mam/extractors.py#L17), [`UNKNOWN_TIME`](../src/mam/extractors.py#L18) | Нужна метка времени самого сообщения |
 | Поля `valid_to` и `supersedes` | [`Fact`](../src/mam/types.py#L8) | Не используются при чтении |
 | Версия схемы не хранится | нет поля в `Fact` | Факты нельзя переизвлечь после смены схемы |
-| Правила только по ключевым словам | [`rule_constraints`](../src/mam/extract.py#L39), [`sentences`](../src/mam/extract.py#L35) | Формулировка без ключевых слов («keep it internal») молча не станет правилом; «never discussed» станет ложным правилом |
+| Правила только по ключевым словам | [`rule_constraints`](../src/mam/extractors.py#L39), [`sentences`](../src/mam/extractors.py#L35) | Формулировка без ключевых слов («keep it internal») молча не станет правилом; «never discussed» станет ложным правилом |
 
 Сейчас всё хранится в оперативной памяти одного прогона ([`ARCHITECTURE.md`](ARCHITECTURE.md)). Для боевой работы понадобится постоянное хранилище, но это отдельная задача.
 

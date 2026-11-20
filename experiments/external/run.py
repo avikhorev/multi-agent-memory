@@ -1,4 +1,4 @@
-"""External baselines on the benchmark (decision D42). python external/run.py <system> pilot|run|tables [--max-cost-usd X]
+"""External baselines on the benchmark (decision D42). python experiments/external/run.py <system> pilot|run|tables [--max-cost-usd X]
 The system is replaced by patching mam.live.create; nothing in the project imports this folder."""
 import argparse
 import importlib
@@ -6,8 +6,8 @@ import json
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path[:0] = [str(ROOT / "src"), str(ROOT / "external"), str(ROOT / "scripts")]
+ROOT = Path(__file__).resolve().parents[2]
+sys.path[:0] = [str(ROOT / "src"), str(ROOT / "experiments" / "external"), str(ROOT / "experiments")]
 import mam.live as live  # noqa: E402
 from mam.llm import ClaudeCliClient  # noqa: E402
 from mam.run import plan_units, run_units  # noqa: E402

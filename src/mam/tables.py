@@ -11,6 +11,7 @@ from collections import defaultdict
 from pathlib import Path
 
 from mam.memory_eval import systems_for
+from mam.scoring import is_controlled
 
 BOOTSTRAP = 2000  # число бутстреп-повторов для доверительного интервала
 SEED = 12345  # фиксированное зерно: интервалы воспроизводимы
@@ -54,8 +55,8 @@ def per_scenario(rows: list[dict], category: str, fn, group: str | None) -> dict
     for r in rows:
         if r.get("record") != "checkpoint" or r["category"] != category:
             continue
-        if category not in ("C0", "C6") and not r["factor"]:
-            continue  # берём только «контрольную» точку категории; точки фактора (factor) сюда не входят
+        if not is_controlled(category, r["factor"]):
+            continue  # в категориях с фактором считаем только его точки
         by[str(r[group]) if group else "all"][r["scenario"]].append(float(fn(r)))
     return {g: [sum(v) / len(v) for v in sc.values()] for g, sc in by.items()}
 

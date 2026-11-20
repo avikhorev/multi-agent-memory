@@ -19,12 +19,12 @@
 | Вариант | Отличие | Выборка / статус | Где смотреть |
 |---|---|---|---|
 | `full_history_meta` и другие `*_meta` | К сырому тексту добавляется префикс `[session, author, kind]`; префикс учитывается в лимите и ранжировании | Отдельная проверка C1/C3 на 48 точках; `ours` **не** перезапускалась в этих условиях | [`post_hoc/presentation/`](../results/post_hoc/presentation/), [E6](EVIDENCE.md#e6) |
-| `ours2` | Буфер незавершённой сессии, BM25-заполнение, дополнительная трактовка споров | Те же 21 сценарий A × 2; **134/156**; настройка на `eval` | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py), [`criteria.md`](../results/post_hoc/ours2/criteria.md) |
+| `ours2` | Буфер незавершённой сессии, BM25-заполнение, дополнительная трактовка споров | Те же 21 сценарий A × 2; **134/156**; настройка на `eval` | [`experiments/post_hoc_ours2.py`](../experiments/post_hoc_ours2.py), [`criteria.md`](../results/post_hoc/ours2/criteria.md) |
 | `ours2_lite` | `ours2` без заполнения | Та же выборка, **121/156** | [`criteria_lite.md`](../results/post_hoc/ours2/criteria_lite.md) |
-| `ours3` | `ours2` с вымарыванием проигравших значений в заполнении и лимитом заполнения 300 токенов | Те же 21 сценарий × 2, **141/156**; третья настройка на `eval` | [`scripts/post_hoc_ours2.py`](../scripts/post_hoc_ours2.py), [`criteria.md`](../results/post_hoc/ours3/criteria.md), [E7](EVIDENCE.md#e7) |
+| `ours3` | `ours2` с вымарыванием проигравших значений в заполнении и лимитом заполнения 300 токенов | Те же 21 сценарий × 2, **141/156**; третья настройка на `eval` | [`experiments/post_hoc_ours2.py`](../experiments/post_hoc_ours2.py), [`criteria.md`](../results/post_hoc/ours3/criteria.md), [E7](EVIDENCE.md#e7) |
 | `ours3` на новых для живого слоя сценариях | Тот же код без очередной правки, но другая выборка | 21 сценарий, 1 повтор; **70/78** против **71/78** у исходной `ours`; не полностью независимая выборка | [`post_hoc/fresh/tables.md`](../results/post_hoc/fresh/tables.md), [E7](EVIDENCE.md#e7) |
-| `ours4` | `ours3` с закреплением ограничений, извлечённых моделью | Набор A: 27 единиц на перефразированных сценариях; B: 21 единица; **нет** общего результата на исходном полном A | [`scripts/post_hoc_ours4.py`](../scripts/post_hoc_ours4.py), [`criteria.md`](../results/post_hoc/ours4/criteria.md), [E9](EVIDENCE.md#e9) |
-| Mem0, Graphiti | Внешние адаптеры, свои окружения и ограничения | Только совпадающие поднаборы; A-Mem **не запускалась** | [`external/`](../external/), [E10](EVIDENCE.md#e10) |
+| `ours4` | `ours3` с закреплением ограничений, извлечённых моделью | Набор A: 27 единиц на перефразированных сценариях; B: 21 единица; **нет** общего результата на исходном полном A | [`experiments/post_hoc_ours4.py`](../experiments/post_hoc_ours4.py), [`criteria.md`](../results/post_hoc/ours4/criteria.md), [E9](EVIDENCE.md#e9) |
+| Mem0, Graphiti | Внешние адаптеры, свои окружения и ограничения | Только совпадающие поднаборы; A-Mem **не запускалась** | [`experiments/external/`](../experiments/external/), [E10](EVIDENCE.md#e10) |
 
 **Не путать:** исходную `ours` и последнюю экспериментальную `ours4`; изменение метрики D39 и изменение системы; эксперимент A из основного прогона и наборы A/B из поздних скриптов. Обозначения A/B используются в разных проверках локально.
 

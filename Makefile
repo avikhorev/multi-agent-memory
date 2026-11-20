@@ -75,14 +75,14 @@ smoke: doctor
 
 # extraction pass: the model reads every source entry once and writes the session summaries; answers are saved
 extraction-trial: doctor
-	PYTHONPATH=src $(PY) -m mam.extraction run --split dev --select trial --out results/extraction/dev_trial --max-cost-usd 3
-	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/dev_trial --out results/extraction/dev_trial/cache.jsonl
+	PYTHONPATH=src $(PY) -m mam.extraction_pass run --split dev --select trial --out results/extraction/dev_trial --max-cost-usd 3
+	PYTHONPATH=src $(PY) -m mam.extraction_pass merge --in results/extraction/dev_trial --out results/extraction/dev_trial/cache.jsonl
 
 extraction: doctor
-	PYTHONPATH=src $(PY) -m mam.extraction run --split eval --out results/extraction/eval --max-cost-usd $(MAX_COST)
-	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/eval --out results/extraction/eval/cache.jsonl
-	PYTHONPATH=src $(PY) -m mam.extraction run --split holdout --out results/extraction/holdout --max-cost-usd $(MAX_COST)
-	PYTHONPATH=src $(PY) -m mam.extraction merge --in results/extraction/holdout --out results/extraction/holdout/cache.jsonl
+	PYTHONPATH=src $(PY) -m mam.extraction_pass run --split eval --out results/extraction/eval --max-cost-usd $(MAX_COST)
+	PYTHONPATH=src $(PY) -m mam.extraction_pass merge --in results/extraction/eval --out results/extraction/eval/cache.jsonl
+	PYTHONPATH=src $(PY) -m mam.extraction_pass run --split holdout --out results/extraction/holdout --max-cost-usd $(MAX_COST)
+	PYTHONPATH=src $(PY) -m mam.extraction_pass merge --in results/extraction/holdout --out results/extraction/holdout/cache.jsonl
 
 # needs: pip install -e '.[mutation]'
 mutation:

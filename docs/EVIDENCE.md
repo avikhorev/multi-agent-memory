@@ -62,7 +62,7 @@ python3 scripts/evidence_summary.py --verify
 ### E6. Подача автора и времени меняет сравнение
 
 - **Данные:** [слепая классификация](../results/post_hoc/presentation/blind.md), [сопоставление](../results/post_hoc/presentation/classified.md), [контрольный повтор](../results/post_hoc/control_repeat.md).
-- **Как проверить:** команды [`scripts/post_hoc_presentation.py`](../scripts/post_hoc_presentation.py) и [`scripts/post_hoc_control_repeat.py`](../scripts/post_hoc_control_repeat.py) перечислены в [RUNBOOK](RUNBOOK.md#5-дополнительные-проверки-post-hoc), либо изучите уже сохранённые таблицы.
+- **Как проверить:** команды [`experiments/post_hoc_presentation.py`](../experiments/post_hoc_presentation.py) и [`experiments/post_hoc_control_repeat.py`](../experiments/post_hoc_control_repeat.py) перечислены в [RUNBOOK](RUNBOOK.md#5-дополнительные-проверки-post-hoc), либо изучите уже сохранённые таблицы.
 - **Объём:** 48 дополнительных проверок подачи в C1/C3. **Статус:** post hoc.
 - **Граница вывода:** сравнение подачи не перезапускало `ours` в тех же условиях; это проверка объяснения разрыва, а не новый независимый основной эксперимент.
 
@@ -78,7 +78,7 @@ python3 scripts/evidence_summary.py --verify
 ### E8. Оценщик пропускает перефразированные ограничения
 
 - **Данные:** [сравнение оригинала и перефразирования](../results/post_hoc/paraphrase/comparison.md), [описание дефекта D39](DECISIONS.md#d39), [код оценки](../src/mam/scoring.py).
-- **Как проверить:** `python scripts/post_hoc_paraphrase.py compare` после настройки окружения из RUNBOOK; таблица показывает штатный и скорректированный счёт отдельно.
+- **Как проверить:** `python experiments/post_hoc_paraphrase.py compare` после настройки окружения из RUNBOOK; таблица показывает штатный и скорректированный счёт отдельно.
 - **Объём:** три проблемные проверки ограничений в перефразированных сценариях. **Статус:** post hoc, известный дефект оценщика.
 - **Граница вывода:** исправлен только **расчёт в дополнительном разборе**; код замороженного оценщика и исходные числа не изменены.
 
@@ -94,7 +94,7 @@ python3 scripts/evidence_summary.py --verify
 ### E10. Mem0 и Graphiti: сравнение только на поднаборах
 
 - **Данные:** [Mem0, общий набор из 12](../results/post_hoc/external/mem0/common12.md), [Graphiti](../results/post_hoc/external/graphiti/tables.md), [D44](DECISIONS.md#d44).
-- **Как проверить:** сверьте колонки по одинаковым 12 сценариям; не смешивайте их с полным основным прогоном. Внешние скрипты — [`external/run.py`](../external/run.py).
+- **Как проверить:** сверьте колонки по одинаковым 12 сценариям; не смешивайте их с полным основным прогоном. Внешние скрипты — [`experiments/external/run.py`](../experiments/external/run.py).
 - **Объём:** Mem0 на ограниченных поднаборах, Graphiti 12 единиц; A-Mem `NOT RUN`. **Статус:** post hoc.
 - **Граница вывода:** конфигурации и цены внешних инструментов специфичны для этого прогона; C4 для Graphiti не проверялся.
 

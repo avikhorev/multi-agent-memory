@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from mam.extract import UNKNOWN_TIME, make_extractor, rule_constraints
+from mam.extractors import UNKNOWN_TIME, make_extractor, rule_constraints
 from mam.guard import split_untrusted
 from mam.systems.base import MemorySystem, make_context, visible_to
 from mam.systems.ranking import bm25_scores
@@ -45,6 +45,11 @@ class Ours(MemorySystem):
     def __init__(self, limit: int, ablate=frozenset(), extractor: str = "oracle", cache_path=None, llm=None):
         super().__init__(limit)
         self.ablate = frozenset(ablate)  # какие механизмы отключены (validity | scopes | trust | pinned_constraints)
+        # Включённые механизмы (обратное ablate): в коде читается «если механизм включён».
+        self.validity_on = "validity" not in self.ablate
+        self.scopes_on = "scopes" not in self.ablate
+        self.trust_on = "trust" not in self.ablate
+        self.pins_on = "pinned_constraints" not in self.ablate
         self._extractor = make_extractor(extractor, cache_path, llm)
         self._done: set[str] = set()  # id записей, уже обработанных извлекателем (повторно не извлекаем)
         # Все версии каждого факта по ключу (сущность, атрибут); отклонённые тоже хранятся, решение — при чтении.
@@ -72,14 +77,13 @@ class Ours(MemorySystem):
               if getattr(self._extractor, "wants_known", False) else self._extractor.extract(e))
         if ex.refused:
             self.refusals.append(e.id)
-        trust_on = "trust" not in self.ablate
-        if "pinned_constraints" not in self.ablate:
+        if self.pins_on:
             # Без фильтра доверия ограничения берутся и из недоверенных записей: так измеряется вред от отсутствия фильтра.
-            texts = ex.constraints if trust_on else (ex.constraints or rule_constraints(e, require_trusted=False))
+            texts = ex.constraints if self.trust_on else (ex.constraints or rule_constraints(e, require_trusted=False))
             self._constraints.extend((e, t) for t in texts)
         # Недоверенный текст — данные, а не команды: пропускаем через карантин.
         if e.trust == "untrusted" and e.kind in ("tool_output", "document"):
-            if trust_on:
+            if self.trust_on:
                 kept, held = split_untrusted(e.text)
                 values = [_norm(f.value) for f in ex.facts]
                 # фрагмент, из которого уже извлечён факт, представлен этим фактом, а не сырым текстом (без дублей)
@@ -115,7 +119,7 @@ class Ours(MemorySystem):
 
     def _can_see(self, e: Entry, reader: Reader) -> bool:
         """Видна ли запись читателю; при абляции scopes видно всё."""
-        return True if "scopes" in self.ablate else visible_to(e, reader)
+        return visible_to(e, reader) if self.scopes_on else True
 
     def _resolve(self, versions: list[Version]) -> list[Version]:
         """Действующие версии одного ключа из видимых версий, в порядке записи.
@@ -128,7 +132,6 @@ class Ours(MemorySystem):
           при равном авторитете — спор (храним обе версии, помечаем DISPUTED).
         Результат — список; больше одного элемента означает спор.
         """
-        validity, trust_on = "validity" not in self.ablate, "trust" not in self.ablate
         current: list[Version] = []
         latest = 0
         for v in sorted(versions, key=lambda v: v.entry.clock):
@@ -140,9 +143,9 @@ class Ours(MemorySystem):
             if same is not None:
                 if v.trust > same.trust:  # a more trusted source confirms the value
                     current[current.index(same)] = v
-            elif not validity or not current:
+            elif not self.validity_on or not current:
                 current.append(v)
-            elif trust_on and v.trust == 0 and current[0].trust > 0:
+            elif self.trust_on and v.trust == 0 and current[0].trust > 0:
                 self.last_trace.append({"op": "reject", "key": key, "entry_id": v.entry.id,
                                         "reason": "untrusted source cannot override a trusted fact"})
             else:
@@ -170,7 +173,6 @@ class Ours(MemorySystem):
 
     def _fact_items(self, reader: Reader) -> list[tuple[ContextItem, int]]:
         """Разрешённые факты как элементы контекста; вместе с каждым — его время (для сортировки при равной релевантности)."""
-        trust_on = "trust" not in self.ablate
         items: list[tuple[ContextItem, int]] = []
         for key in sorted(self._versions):
             visible = [v for v in self._versions[key] if self._can_see(v.entry, reader)]
@@ -178,12 +180,12 @@ class Ours(MemorySystem):
                 continue
             cur = self._resolve(visible)
             # Спор (несколько версий) показываем одним элементом; при абляции validity каждая версия идёт отдельно.
-            groups = [cur] if len(cur) > 1 and "validity" not in self.ablate else [[v] for v in cur]
+            groups = [cur] if len(cur) > 1 and self.validity_on else [[v] for v in cur]
             for g in groups:
                 f = g[0].fact
                 disputed = len(g) > 1
                 # Факт из недоверенного источника подаём как цитируемые данные, помеченные [data].
-                quoted = trust_on and any(v.entry.trust == "untrusted" for v in g)
+                quoted = self.trust_on and any(v.entry.trust == "untrusted" for v in g)
                 if disputed:
                     body = " | ".join(f"{v.fact.value} (per {v.fact.source})" for v in g)
                     text = f"{f.entity} {f.attribute}: {body} [DISPUTED]"
@@ -214,7 +216,7 @@ class Ours(MemorySystem):
             self.last_trace.append({"op": "quarantine", "entry_id": e_id, "reason": "instruction-like fragment"})
 
         facts = self._fact_items(reader)
-        frags = [(ContextItem(id=f"frag-{e.id}-{n}", kind="raw" if "trust" in self.ablate else "quoted_data", text=t,
+        frags = [(ContextItem(id=f"frag-{e.id}-{n}", kind="quoted_data" if self.trust_on else "raw", text=t,
                               entry_ids=(e.id,)), e.clock)
                  for n, (e, t) in enumerate(self._fragments) if self._can_see(e, reader)]
         # Факты важнее сырых фрагментов, поэтому берём их первыми; каждая группа ранжируется по BM25,

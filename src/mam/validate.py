@@ -172,8 +172,8 @@ def _check_ids(s: Scenario, errs: list[str]) -> None:
             errs.append(f"R6: bad event id {e.id}")
 
 
-def _check_structure(s: Scenario, errs: list[str]) -> None:
-    """R6: допустимые значения полей, согласованность категории с вариантом и разрешением, состав сессий и событий."""
+def _check_header(s: Scenario, errs: list[str]) -> None:
+    """R6: допустимые значения split, variant, resolution и согласованность их с категорией; число сессий."""
     if s.split not in ("dev", "eval", "holdout"):
         errs.append(f"R6: bad split {s.split}")
     if s.variant not in ("none", "explicit", "implicit"):
@@ -188,6 +188,22 @@ def _check_structure(s: Scenario, errs: list[str]) -> None:
         errs.append("R6: C3 needs a resolution")
     if len(s.sessions) != s.n_sessions or [x.index for x in s.sessions] != list(range(1, s.n_sessions + 1)):
         errs.append("R6: sessions do not match n_sessions")
+
+
+def _check_event_fields(e: Event, errs: list[str]) -> None:
+    """R6: обязательные поля события по его типу."""
+    if e.type == "user_message" and (e.author, e.scope) != ("user", "task"):
+        errs.append(f"R6: {e.id} user_message must be by user with task scope")
+    if e.type == "tool_data" and (e.author != "tool" or e.tool is None or not e.args):
+        errs.append(f"R6: {e.id} tool_data needs author tool, tool and args")
+    if e.type == "note" and (e.author not in ("planner", "worker", "reviewer") or e.tool or e.args):
+        errs.append(f"R6: {e.id} bad note fields")
+    if e.type not in ("user_message", "tool_data", "note"):
+        errs.append(f"R6: {e.id} bad type")
+
+
+def _check_sessions(s: Scenario, errs: list[str]) -> None:
+    """R6: состав базовой части каждой сессии и поля каждого события."""
     for sess in s.sessions:
         base = [e for e in sess.events if not e.factor]
         # В базовой части сессии: ровно одно сообщение пользователя, до двух выводов инструментов и до трёх заметок.
@@ -195,14 +211,13 @@ def _check_structure(s: Scenario, errs: list[str]) -> None:
         if counts["user_message"] != 1 or counts["tool_data"] > 2 or counts["note"] > 3:
             errs.append(f"R6: session {sess.index} has wrong base event counts {counts}")
         for e in sess.events:
-            if e.type == "user_message" and (e.author, e.scope) != ("user", "task"):
-                errs.append(f"R6: {e.id} user_message must be by user with task scope")
-            if e.type == "tool_data" and (e.author != "tool" or e.tool is None or not e.args):
-                errs.append(f"R6: {e.id} tool_data needs author tool, tool and args")
-            if e.type == "note" and (e.author not in ("planner", "worker", "reviewer") or e.tool or e.args):
-                errs.append(f"R6: {e.id} bad note fields")
-            if e.type not in ("user_message", "tool_data", "note"):
-                errs.append(f"R6: {e.id} bad type")
+            _check_event_fields(e, errs)
+
+
+def _check_structure(s: Scenario, errs: list[str]) -> None:
+    """R6: допустимые значения полей, согласованность категории с вариантом и разрешением, состав сессий и событий."""
+    _check_header(s, errs)
+    _check_sessions(s, errs)
     for cp in s.checkpoints:
         if not 1 <= cp.session <= s.n_sessions:
             errs.append(f"R6: checkpoint {cp.id} session out of range")
@@ -214,12 +229,8 @@ def _check_structure(s: Scenario, errs: list[str]) -> None:
         errs.append("R6: C0 must not contain factor elements")
 
 
-def _check_intervals(s: Scenario, errs: list[str]) -> None:
-    """R1: интервалы непустые; замена указывает на предыдущую версию того же ключа; у закрытого интервала есть преемник;
-    пересечения допускаются только у объявленного конфликта (C3) и у личных фактов."""
-    by_key: dict[tuple[str, str], list[Fact]] = {}
-    for f in s.facts:
-        by_key.setdefault(_key(f), []).append(f)
+def _check_fact_intervals(s: Scenario, by_key: dict[tuple[str, str], list[Fact]], errs: list[str]) -> None:
+    """R1: интервал непустой; замена указывает на предыдущую версию того же ключа; у закрытого интервала есть преемник."""
     ids = {f.id: f for f in s.facts}
     for f in s.facts:
         if f.valid_to is not None and f.valid_to <= f.valid_from:
@@ -231,6 +242,10 @@ def _check_intervals(s: Scenario, errs: list[str]) -> None:
         if f.valid_to is not None and not any(
                 g.id != f.id and _key(g) == _key(f) and g.valid_from == f.valid_to for g in by_key[_key(f)]):
             errs.append(f"R1: {f.id} valid_to has no successor")
+
+
+def _check_overlaps(s: Scenario, by_key: dict[tuple[str, str], list[Fact]], errs: list[str]) -> None:
+    """R1: пересечения допускаются только у объявленного конфликта (C3) и у личных фактов."""
     private = private_only_ids(s)
     base_reported = {fid for sess in s.sessions for e in sess.events if not e.factor for fid in e.facts}
     for key, group in sorted(by_key.items()):
@@ -241,6 +256,15 @@ def _check_intervals(s: Scenario, errs: list[str]) -> None:
                             and a.id not in base_reported and b.id not in base_reported)
                 if _overlapping(a, b) and not declared and not ({a.id, b.id} & private):
                     errs.append(f"R1: {a.id} and {b.id} overlap for {key}")
+
+
+def _check_intervals(s: Scenario, errs: list[str]) -> None:
+    """R1: интервалы непустые, замены и преемники согласованы, пересечения только у объявленного конфликта и личных фактов."""
+    by_key: dict[tuple[str, str], list[Fact]] = {}
+    for f in s.facts:
+        by_key.setdefault(_key(f), []).append(f)
+    _check_fact_intervals(s, by_key, errs)
+    _check_overlaps(s, by_key, errs)
 
 
 def _check_events_and_facts(s: Scenario, errs: list[str]) -> None:
@@ -280,6 +304,47 @@ def _session_of(s: Scenario, event_id: str) -> int | None:
     return None
 
 
+def _check_expected_answer(s: Scenario, cp, groups: dict, winners: dict, effective: list[Fact],
+                           errs: list[str]) -> None:
+    """R3: ожидаемое значение действительно текущее или побеждающее; устаревшее — замещённое значение того же ключа;
+    спорный ответ соответствует нерешённому конфликту."""
+    if cp.answer.disputed:
+        if cp.answer.expect is not None or cp.answer.stale:
+            errs.append(f"R3: {cp.id} disputed answer must have no expected value or stale values")
+        for pair in cp.context.disputed_both:
+            ok = any(len(g) > 1 and winners[k] is None
+                     and {normalize(x) for x in pair} == {normalize(f.value) for f in g}
+                     for k, g in groups.items())
+            if not ok:
+                errs.append(f"R3: {cp.id} pair {pair} is not an unresolved conflict")
+        if not cp.context.disputed_both:
+            errs.append(f"R3: {cp.id} disputed checkpoint lists no pair")
+    elif cp.answer.expect is not None:
+        known = known_facts(s, cp.session)
+        exp = normalize(cp.answer.expect)
+        hits = [w for w in effective if normalize(w.value) == exp]
+        if not hits:
+            errs.append(f"R3: {cp.id} expected value {cp.answer.expect} is not the current or winning fact")
+        for st in cp.answer.stale:
+            ns = normalize(st)
+            if not any(normalize(g.value) == ns and g.id != h.id and _key(g) == _key(h)
+                       for g in known for h in hits):
+                errs.append(f"R3: {cp.id} stale value {st} is not a replaced or losing value of the same key")
+
+
+def _check_context_strings(cp, findable, effective: list[Fact], errs: list[str]) -> None:
+    """R4: нужные строки находимы в событиях; запрещённые не совпадают с текущими значениями."""
+    for p in cp.context.present + [x for pair in cp.context.disputed_both for x in pair]:
+        if not findable(p):
+            errs.append(f"R4: {cp.id} present string {p} not found in any event")
+    for p in cp.context.absent + cp.answer.stale:
+        n = normalize(p)
+        for f in effective:
+            v = normalize(f.value)
+            if n in v or v in n:
+                errs.append(f"R4: {cp.id} string {p} collides with current value {f.value}")
+
+
 def _check_checkpoints(s: Scenario, errs: list[str]) -> None:
     """R3 и R4 для контрольных точек: ожидаемое значение действительно текущее или побеждающее; устаревшее — замещённое
     значение того же ключа; спорный ответ соответствует нерешённому конфликту; нужные строки находимы в событиях;
@@ -292,49 +357,19 @@ def _check_checkpoints(s: Scenario, errs: list[str]) -> None:
         return normalize(p) in text or normalize(p) in derived
 
     for cp in s.checkpoints:
-        known = known_facts(s, cp.session)
         groups: dict[tuple[str, str], list[Fact]] = {}
         for f in current_facts(s, cp.session):
             groups.setdefault(_key(f), []).append(f)
         # По каждому ключу — победитель (None, если спор); effective — только однозначные победители.
         winners = {k: (resolve(g) if len(g) > 1 else g[0]) for k, g in groups.items()}
         effective = [w for w in winners.values() if w is not None]
-        if cp.answer.disputed:
-            if cp.answer.expect is not None or cp.answer.stale:
-                errs.append(f"R3: {cp.id} disputed answer must have no expected value or stale values")
-            for pair in cp.context.disputed_both:
-                ok = any(len(g) > 1 and winners[k] is None
-                         and {normalize(x) for x in pair} == {normalize(f.value) for f in g}
-                         for k, g in groups.items())
-                if not ok:
-                    errs.append(f"R3: {cp.id} pair {pair} is not an unresolved conflict")
-            if not cp.context.disputed_both:
-                errs.append(f"R3: {cp.id} disputed checkpoint lists no pair")
-        elif cp.answer.expect is not None:
-            exp = normalize(cp.answer.expect)
-            hits = [w for w in effective if normalize(w.value) == exp]
-            if not hits:
-                errs.append(f"R3: {cp.id} expected value {cp.answer.expect} is not the current or winning fact")
-            for st in cp.answer.stale:
-                ns = normalize(st)
-                if not any(normalize(g.value) == ns and g.id != h.id and _key(g) == _key(h)
-                           for g in known for h in hits):
-                    errs.append(f"R3: {cp.id} stale value {st} is not a replaced or losing value of the same key")
-        for p in cp.context.present + [x for pair in cp.context.disputed_both for x in pair]:
-            if not findable(p):
-                errs.append(f"R4: {cp.id} present string {p} not found in any event")
-        for p in cp.context.absent + cp.answer.stale:
-            n = normalize(p)
-            for f in effective:
-                v = normalize(f.value)
-                if n in v or v in n:
-                    errs.append(f"R4: {cp.id} string {p} collides with current value {f.value}")
+        _check_expected_answer(s, cp, groups, winners, effective, errs)
+        _check_context_strings(cp, findable, effective, errs)
 
 
-def _check_tokens(s: Scenario, errs: list[str]) -> None:
+def _check_event_tokens(s: Scenario, errs: list[str]) -> set[str]:
     """R5: метки canary/inj стоят только в разрешённых событиях (canary — личная заметка фактора в C4, inj — вывод
-    инструмента фактора в C5), каждая покрыта контрольной точкой и наоборот; личные значения не просачиваются в общие события;
-    задача и «present»-строки контрольной точки не выдают метку."""
+    инструмента фактора в C5). Возвращает множество меток, найденных в событиях."""
     in_events: set[str] = set()
     for sess in s.sessions:
         for e in sess.events:
@@ -348,7 +383,11 @@ def _check_tokens(s: Scenario, errs: list[str]) -> None:
                                         or (not is_canary and e.type == "tool_data" and s.category == "C5"))
                 if not allowed:
                     errs.append(f"R5: token {tok} in event {e.id} that must not contain it")
-    listed: set[str] = set()
+    return in_events
+
+
+def _check_private_values(s: Scenario, errs: list[str]) -> None:
+    """R5: значение личного факта числится «отсутствующим» в какой-то контрольной точке и не просачивается в общие события."""
     absent_all = {normalize(p) for cp in s.checkpoints for p in cp.context.absent}
     for f in s.facts:
         if f.id not in private_only_ids(s):
@@ -359,6 +398,11 @@ def _check_tokens(s: Scenario, errs: list[str]) -> None:
             for e in sess.events:
                 if e.scope != "private" and normalize(f.value) in normalize(e.text):
                     errs.append(f"R5: private value of {f.id} appears in non-private event {e.id}")
+
+
+def _check_checkpoint_tokens(s: Scenario, errs: list[str]) -> set[str]:
+    """R5: задача и «present»-строки контрольной точки не выдают метку. Возвращает метки, перечисленные как отсутствующие."""
+    listed: set[str] = set()
     for cp in s.checkpoints:
         for p in cp.context.absent + cp.context.absent_outside_quoted:
             if TOKEN_RE.fullmatch(p):
@@ -366,6 +410,15 @@ def _check_tokens(s: Scenario, errs: list[str]) -> None:
         for p in (cp.task_text, *(cp.context.present)):
             if TOKEN_RE.search(p):
                 errs.append(f"R5: checkpoint {cp.id} leaks a token in its task or present strings")
+    return listed
+
+
+def _check_tokens(s: Scenario, errs: list[str]) -> None:
+    """R5: метки стоят только где разрешено, каждая покрыта контрольной точкой и наоборот; личные значения не
+    просачиваются в общие события; задача и «present»-строки контрольной точки не выдают метку."""
+    in_events = _check_event_tokens(s, errs)
+    _check_private_values(s, errs)
+    listed = _check_checkpoint_tokens(s, errs)
     for tok in sorted(in_events - listed):
         errs.append(f"R5: token {tok} is not covered by any checkpoint")
     for tok in sorted(listed - in_events):

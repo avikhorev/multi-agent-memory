@@ -190,13 +190,13 @@ PYTHONPATH=src python -m mam.extraction_quality results/extraction/eval/cache.js
 
 | Что проверить | Запуск без модели / подготовка | Платный этап, если есть |
 |---|---|---|
-| Подача истории с автором и сессией | `python scripts/post_hoc_presentation.py plan`, затем `counts`, `blind`, `join` | `python scripts/post_hoc_presentation.py run --max-cost-usd 1.5` |
-| Контрольный повтор | `python scripts/post_hoc_control_repeat.py` | Сами единицы повтора уже сохранены |
-| Зависимость разрешения конфликта от порядка записей | `python scripts/post_hoc_write_order.py` | Нет |
-| Дополнительные контроли C1/C3 | `python scripts/post_hoc_c1c3.py lenient` и `python scripts/post_hoc_controls.py` | Нет |
-| `ours2` и `ours3` | `python scripts/post_hoc_ours2.py memory`, `compare`, `memory3`, `compare3` | `live --variant ours2_lite` / `live --variant ours3` |
-| Новые сценарии и перефразирование | `python scripts/post_hoc_fresh.py plan`; `python scripts/post_hoc_paraphrase.py compare` | `post_hoc_fresh.py run`; `post_hoc_paraphrase.py run` |
-| `ours4` | `pytest scripts/test_post_hoc_ours4.py`; `python scripts/post_hoc_ours4.py criteria` (по сохранённым результатам) | `python scripts/post_hoc_ours4.py paraphrase`, затем `runA`, `runB` |
-| Внешние Mem0 и Graphiti | `python external/run.py <система> tables` | `python external/run.py <система> pilot` или `run` |
+| Подача истории с автором и сессией | `python experiments/post_hoc_presentation.py plan`, затем `counts`, `blind`, `join` | `python experiments/post_hoc_presentation.py run --max-cost-usd 1.5` |
+| Контрольный повтор | `python experiments/post_hoc_control_repeat.py` | Сами единицы повтора уже сохранены |
+| Зависимость разрешения конфликта от порядка записей | `python experiments/post_hoc_write_order.py` | Нет |
+| Дополнительные контроли C1/C3 | `python experiments/post_hoc_c1c3.py lenient` и `python experiments/post_hoc_controls.py` | Нет |
+| `ours2` и `ours3` | `python experiments/post_hoc_ours2.py memory`, `compare`, `memory3`, `compare3` | `live --variant ours2_lite` / `live --variant ours3` |
+| Новые сценарии и перефразирование | `python experiments/post_hoc_fresh.py plan`; `python experiments/post_hoc_paraphrase.py compare` | `post_hoc_fresh.py run`; `post_hoc_paraphrase.py run` |
+| `ours4` | `pytest experiments/test_post_hoc_ours4.py`; `python experiments/post_hoc_ours4.py criteria` (по сохранённым результатам) | `python experiments/post_hoc_ours4.py paraphrase`, затем `runA`, `runB` |
+| Внешние Mem0 и Graphiti | `python experiments/external/run.py <система> tables` | `python experiments/external/run.py <система> pilot` или `run` |
 
-У скриптов есть дополнительные подкоманды (`criteria`, `classified` и др.). Точный порядок, критерии и каталоги выходных данных указаны в разделах 11–15 [`REPORT.md`](../REPORT.md) и в `results/post_hoc/`. Для внешних систем нужны отдельные окружения с зависимостями `external/requirements-<система>.txt`.
+У скриптов есть дополнительные подкоманды (`criteria`, `classified` и др.). Точный порядок, критерии и каталоги выходных данных указаны в разделах 11–15 [`REPORT.md`](../REPORT.md) и в `results/post_hoc/`. Для внешних систем нужны отдельные окружения с зависимостями `experiments/external/requirements-<система>.txt`.

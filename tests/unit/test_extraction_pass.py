@@ -3,8 +3,8 @@ import json
 
 import pytest
 
-from mam.extract import CacheExtractor
-from mam.extraction import Pass, merge_rows, run_pass
+from mam.extractors import CacheExtractor
+from mam.extraction_pass import Pass, merge_rows, run_pass
 from mam.generate import generate
 from mam.llm import FakeClient, LLMResult, Usage
 from mam.simulate import entries

@@ -7,8 +7,8 @@
 стоимости; ограничения частоты, которые не проходят, останавливают проход со своим кодом выхода. Строки
 сохраняются, даже если модель отказалась: отказ записывается как пропущенный факт (или сводка) и считается отдельно.
 
-  python -m mam.extraction run --split dev --select trial --out results/extraction/dev
-  python -m mam.extraction merge --in results/extraction/dev --out results/extraction/dev/cache.jsonl
+  python -m mam.extraction_pass run --split dev --select trial --out results/extraction/dev
+  python -m mam.extraction_pass merge --in results/extraction/dev --out results/extraction/dev/cache.jsonl
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from dataclasses import dataclass
 from pathlib import Path
 
-from mam.extract import rule_constraints
+from mam.extractors import rule_constraints
 from mam.llm import ClaudeCliClient, RateLimitTimeout
 from mam.scenario import load
 from mam.simulate import entries

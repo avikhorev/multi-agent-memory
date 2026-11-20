@@ -1,5 +1,5 @@
 """Smoke test of the Graphiti adapter with a stub model. Run:
-EMBEDDING_DIM=384 PYTHONPATH=src:external external/.venv-graphiti/bin/python -m pytest external/test_graphiti_smoke.py -q
+EMBEDDING_DIM=384 PYTHONPATH=src:experiments/external experiments/external/.venv-graphiti/bin/python -m pytest experiments/external/test_graphiti_smoke.py -q
 """
 import json
 
